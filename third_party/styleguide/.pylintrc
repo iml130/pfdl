@@ -1,8 +1,9 @@
 # This Pylint rcfile contains a best-effort configuration to uphold the
-# best-practices and style described in the Google Python style guide:
+# best-practices and style described in the Google Python style guide
 #   https://google.github.io/styleguide/pyguide.html
+# and was further slightly adapted to our needs.
 #
-# Its canonical open-source location is:
+# Its original open-source location is:
 #   https://google.github.io/styleguide/pylintrc
 
 [MASTER]
@@ -13,7 +14,7 @@ ignore=third_party
 
 # Add files or directories matching the regex patterns to the blacklist. The
 # regex matches against base names, not paths.
-ignore-patterns=
+ignore-patterns=PFDL*
 
 # Pickle collected data for later comparisons.
 persistent=no
@@ -37,121 +38,7 @@ extension-pkg-whitelist=
 
 [MESSAGES CONTROL]
 
-# Only show warnings with the listed confidence levels. Leave empty to show
-# all. Valid levels: HIGH, INFERENCE, INFERENCE_FAILURE, UNDEFINED
-confidence=
-
-# Enable the message, report, category or checker with the given id(s). You can
-# either give multiple identifier separated by comma (,) or put this option
-# multiple time (only on the command line, not in the configuration file where
-# it should appear only once). See also the "--disable" option for examples.
-#enable=
-
-# Disable the message, report, category or checker with the given id(s). You
-# can either give multiple identifiers separated by comma (,) or put this
-# option multiple times (only on the command line, not in the configuration
-# file where it should appear only once).You can also use "--disable=all" to
-# disable everything first and then reenable specific checks. For example, if
-# you want to run only the similarities checker, you can use "--disable=all
-# --enable=similarities". If you want to run only the classes checker, but have
-# no Warning level messages displayed, use"--disable=all --enable=classes
-# --disable=W"
-disable=abstract-method,
-        apply-builtin,
-        arguments-differ,
-        attribute-defined-outside-init,
-        backtick,
-        bad-option-value,
-        basestring-builtin,
-        buffer-builtin,
-        c-extension-no-member,
-        consider-using-enumerate,
-        cmp-builtin,
-        cmp-method,
-        coerce-builtin,
-        coerce-method,
-        delslice-method,
-        div-method,
-        duplicate-code,
-        eq-without-hash,
-        execfile-builtin,
-        file-builtin,
-        filter-builtin-not-iterating,
-        fixme,
-        getslice-method,
-        global-statement,
-        hex-method,
-        idiv-method,
-        implicit-str-concat-in-sequence,
-        import-error,
-        import-self,
-        import-star-module-level,
-        inconsistent-return-statements,
-        input-builtin,
-        intern-builtin,
-        invalid-str-codec,
-        locally-disabled,
-        long-builtin,
-        long-suffix,
-        map-builtin-not-iterating,
-        misplaced-comparison-constant,
-        missing-function-docstring,
-        metaclass-assignment,
-        next-method-called,
-        next-method-defined,
-        no-absolute-import,
-        no-else-break,
-        no-else-continue,
-        no-else-raise,
-        no-else-return,
-        no-init,  # added
-        no-member,
-        no-name-in-module,
-        no-self-use,
-        nonzero-method,
-        oct-method,
-        old-division,
-        old-ne-operator,
-        old-octal-literal,
-        old-raise-syntax,
-        parameter-unpacking,
-        print-statement,
-        raising-string,
-        range-builtin-not-iterating,
-        raw_input-builtin,
-        rdiv-method,
-        reduce-builtin,
-        relative-import,
-        reload-builtin,
-        round-builtin,
-        setslice-method,
-        signature-differs,
-        standarderror-builtin,
-        suppressed-message,
-        sys-max-int,
-        too-few-public-methods,
-        too-many-ancestors,
-        too-many-arguments,
-        too-many-boolean-expressions,
-        too-many-branches,
-        too-many-instance-attributes,
-        too-many-locals,
-        too-many-nested-blocks,
-        too-many-public-methods,
-        too-many-return-statements,
-        too-many-statements,
-        trailing-newlines,
-        unichr-builtin,
-        unicode-builtin,
-        unnecessary-pass,
-        unpacking-in-except,
-        useless-else-on-loop,
-        useless-object-inheritance,
-        useless-suppression,
-        using-cmp-argument,
-        wrong-import-order,
-        xrange-builtin,
-        zip-builtin-not-iterating,
+# TODO
 
 
 [REPORTS]
@@ -270,20 +157,21 @@ generated-members=
 
 [FORMAT]
 
-# Maximum number of characters on a single line.
-max-line-length=80
-
-# TODO(https://github.com/PyCQA/pylint/issues/3352): Direct pylint to exempt
-# lines made too long by directives to pytype.
+# Expected format of line ending, e.g. empty (any line ending), LF or CRLF.
+expected-line-ending-format=
 
 # Regexp for a line that is allowed to be longer than the limit.
-ignore-long-lines=(?x)(
-  ^\s*(\#\ )?<?https?://\S+>?$|
-  ^\s*(from\s+\S+\s+)?import\s+.+$)
+ignore-long-lines = ^\s*(# )?((<?https?://\S+>?)|(\.\. \w+: .*))$
 
-# Allow the body of an if to be on the same line as the test if there is no
-# else.
-single-line-if-stmt=yes
+# Number of spaces of indent required inside a hanging or continued line.
+indent-after-paren=4
+
+# String used as indentation unit. This is usually "    " (4 spaces) or "\t" (1
+# tab).
+indent-string='    '
+
+# Maximum number of characters on a single line.
+max-line-length=99
 
 # List of optional constructs for which whitespace checking is disabled. `dict-
 # separator` is used to allow tabulation in dicts, etc.: {1  : 1,\n222: 2}.
@@ -293,18 +181,6 @@ no-space-check=
 
 # Maximum number of lines in a module
 max-module-lines=99999
-
-# String used as indentation unit.  The internal Google style guide mandates 2
-# spaces.  Google's externaly-published style guide says 4, consistent with
-# PEP 8.  Here, we use 2 spaces, for conformity with many open-sourced Google
-# projects (like TensorFlow).
-indent-string='  '
-
-# Number of spaces of indent required inside a hanging  or continued line.
-indent-after-paren=4
-
-# Expected format of line ending, e.g. empty (any line ending), LF or CRLF.
-expected-line-ending-format=
 
 
 [MISCELLANEOUS]
@@ -323,11 +199,11 @@ check-quote-consistency=yes
 [VARIABLES]
 
 # Tells whether we should check for unused import in __init__ files.
-init-import=no
+init-import=yes
 
 # A regular expression matching the name of dummy variables (i.e. expectedly
 # not used).
-dummy-variables-rgx=^\*{0,2}(_$|unused_|dummy_)
+#dummy-variables-rgx=^\*{0,2}(_$|unused_|dummy_)
 
 # List of additional names supposed to be defined in builtins. Remember that
 # you should avoid to define new builtins when possible.
@@ -341,13 +217,9 @@ callbacks=cb_,_cb
 # builtins.
 redefining-builtins-modules=six,six.moves,past.builtins,future.builtins,functools
 
-
 [LOGGING]
 
-# Logging modules to check that the string format arguments are in logging
-# function parameter format
-logging-modules=logging,absl.logging,tensorflow.io.logging
-
+# TODO
 
 [SIMILARITIES]
 
@@ -362,23 +234,6 @@ ignore-docstrings=yes
 
 # Ignore imports when computing similarities.
 ignore-imports=no
-
-
-[SPELLING]
-
-# Spelling dictionary name. Available dictionaries: none. To make it working
-# install python-enchant package.
-spelling-dict=
-
-# List of comma separated words that should not be checked.
-spelling-ignore-words=
-
-# A path to a file that contains private dictionary; one word per line.
-spelling-private-dict-file=
-
-# Tells whether to store unknown words to indicated private dictionary in
-# --spelling-private-dict-file option instead of raising a message.
-spelling-store-unknown-words=no
 
 
 [IMPORTS]
