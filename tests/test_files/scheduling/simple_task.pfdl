@@ -1,0 +1,30 @@
+Struct Color
+    name: string
+    rgb: number[3]
+End
+
+Struct PaintResult
+    wetness: number
+End
+
+Task productionTask
+    paintingTask
+End
+
+Task paintingTask
+    Painting
+        In
+            Color 
+            {
+                "name": "red",
+                "rgb": [255, 255, 255]
+            }
+        Out
+            pr: PaintResult
+End
+
+
+
+
+
+

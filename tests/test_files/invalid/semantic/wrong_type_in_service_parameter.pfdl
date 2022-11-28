@@ -1,0 +1,58 @@
+Struct Color
+    name: string
+    saturation: number
+    rgb: number[3]
+End
+
+Struct BooleanTest
+    bool: boolean
+End
+
+Struct PaintResult
+    wetness: number
+End
+
+Task paintAndCutTask
+    Painting
+        In
+            Color
+            {
+                "name": 5, # color should be a string
+                "saturation": 5.0,
+                "rgb": [255, 255, 255]
+            }
+        Out
+            pr_1: PaintResult
+End
+
+Task paintAndCutTask2
+    Painting
+        In
+            Color
+            {
+                "name": "green",
+                "saturation": "not a number",
+                "rgb": [255, 255, 255]
+            }
+        Out
+            pr_1: PaintResult
+End
+
+Task paintAndCutTask3
+    Service
+        In
+            BooleanTest { "bool": "not a boolean"}
+End
+
+Task paintAndCutTask4
+    Painting
+        In
+            Color
+            {                
+                "name": "green",
+                "saturation": "not a number",
+                "rgb": ["not a number", 255, "True"]
+            }
+        Out
+            pr_1: PaintResult
+End

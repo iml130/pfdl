@@ -1,0 +1,4 @@
+Struct TestStruct
+    attribute: number
+    attribute: string # Name of the attribute is already assigned
+End

@@ -1,0 +1,8 @@
+Struct TestStruct
+    attribute: string
+End
+
+# Name of the Struct is already assigned
+Struct TestStruct
+    attribute: number
+End

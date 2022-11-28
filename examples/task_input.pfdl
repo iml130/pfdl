@@ -1,0 +1,49 @@
+Struct Color
+    name: string
+    rgb: number[3]
+End
+
+Struct PaintingResult
+    wetness: number
+End
+
+Struct SheetPart
+    width: number
+    hight: number
+End
+
+Struct CuttingResult
+    parts_count: number
+    sheet_parts: SheetPart[]
+End
+
+Task productionTask
+    paintingTask
+End
+
+Task paintingTask
+    Painting
+        In
+            Color
+                {
+                    "name": "red",
+                    "rgb": [255, 255, 255]
+                }
+        Out
+            pr: PaintingResult
+
+    cuttingTask
+        In
+            pr
+End
+
+Task cuttingTask
+    In
+        pr: PaintingResult
+
+    Cutting
+        In
+            pr
+        Out
+            cr: CuttingResult
+End

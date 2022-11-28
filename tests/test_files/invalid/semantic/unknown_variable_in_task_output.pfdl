@@ -1,0 +1,11 @@
+Struct Test
+    attribute: string
+End
+
+Task task_1
+    Service
+        Out
+            variable: Test
+    Out
+        not_a_variable # not_a_variable was never defined
+End

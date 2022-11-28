@@ -1,0 +1,29 @@
+Struct Color
+    name: string
+    rgb: number[3]
+End
+
+Struct PaintingResult
+    wetness: number
+End
+
+Struct DryingResult
+   wetness: number
+End
+
+Task productionTask
+    paintingAndCuttingTask
+End
+
+Task paintingAndCuttingTask
+    Drying
+        Out
+            dr: DryingResult
+
+    Loop While dr.wetness > 1
+        Drying
+            In
+                dr
+            Out
+                dr: DryingResult
+End 

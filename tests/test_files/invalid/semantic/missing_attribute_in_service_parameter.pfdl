@@ -1,0 +1,22 @@
+Struct Color
+    name: string
+    saturation: number
+    rgb: number[3]
+End
+
+Struct PaintResult
+    wetness: number
+End
+
+Task paintAndCutTask
+    Painting
+        In
+            Color
+            {
+                "name": "red",
+                "saturation": 5
+                # missing rgb init
+            }
+        Out
+            pr_1: PaintResult
+End

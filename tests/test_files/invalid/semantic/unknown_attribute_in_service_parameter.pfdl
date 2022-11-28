@@ -1,0 +1,23 @@
+Struct Color
+    name: string
+    saturation: number
+    rgb: number[3]
+End
+
+Struct PaintResult
+    wetness: number
+End
+
+Task paintAndCutTask
+    Painting
+        In
+            # attribute name used, that was not defined in struct above
+            Color
+            {
+                "not_an_attribute": "red", 
+                "saturation": 5,
+                "rgb": [255, 255, 255]
+            }
+        Out
+            pr_1: PaintResult
+End

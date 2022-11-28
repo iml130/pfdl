@@ -1,0 +1,98 @@
+site_name: Production Flow Description Language
+site_url: https://example.com/
+
+repo_name: iml130/pfdl
+repo_url: https://github.com/iml130/pfdl
+
+copyright:  Copyright &copy; The PFDL Contributors
+
+markdown_extensions:
+    - admonition
+    - pymdownx.details
+    - pymdownx.superfences
+
+nav:
+    - Home: index.md
+    - Getting Started:
+        - Installation: getting_started/installation.md
+        - Architecture: getting_started/architecture.md
+        - CI/CD: getting_started/ci_cd.md
+        - Glossary: getting_started/glossary.md
+    - PFDL:
+        - Introduction: pfdl/introduction.md
+        - Struct: pfdl/struct.md
+        - Task: pfdl/task.md
+        - Service: pfdl/service.md
+        - Parallel: pfdl/parallel.md
+        - Condition: pfdl/condition.md
+        - Loop: pfdl/loop.md
+        - Comments: pfdl/comments.md
+    - Scheduler Reference:
+        - Introduction: scheduler/index.md
+        - Scheduler: scheduler/scheduler_class.md
+        - Scheduler API: scheduler/api.md
+        - Model classes: scheduler/model_classes.md
+        - Developer Reference: scheduler/developer_reference.md
+    - Examples:
+        - Introduction: examples/introduction.md
+        - Task input and output: examples/task_input_and_output.md
+        - Concurrency and Synchronization: examples/concurrency_and_synchronization.md
+        - Control Structures: examples/control_structures.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/iml130/pfdl
+      name: PFDL on Github
+
+extra_css:
+        - stylesheets/extra.css
+theme: 
+    name: material
+    
+    palette:
+        - scheme: default
+          primary: indigo
+          accent: indigo
+          toggle:
+            icon: material/brightness-7
+            name: Switch to dark mode
+        - scheme: slate
+          primary: indigo
+          accent: indigo
+          toggle:
+            icon: material/brightness-4
+            name: Switch to light mode
+    logo: img/pfdl_favicon.png
+    favicon: img/pfdl_favicon.png
+    features:
+        - content.code.annotate
+        - content.tooltips
+        - navigation.instant
+        - navigation.tabs
+        - navigation.top # back to top button visible
+        - navigation.tracking
+        - search.highlight
+        - search.share
+        - search.suggest
+        - toc.follow
+        #- toc.integrate # integrate toc from the left to navigation in the right
+    font: false
+
+    # Don't include MkDocs' JavaScript
+    include_search_page: false
+    search_index_only: true
+
+plugins:
+    - search
+    - mkdocstrings:
+        handlers:
+            python:
+                import:
+                    - https://docs.python.org/3/objects.inv
+                paths: [pfdl_scheduler]  # search packages in the src folder
+                options:
+                    merge_init_into_class: True
+                    show_source: False
+                    show_root_heading: True
+            

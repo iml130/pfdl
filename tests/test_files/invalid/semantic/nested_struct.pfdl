@@ -1,0 +1,29 @@
+Struct Nested_1
+    nestedStruct: Nested_2
+End
+
+Struct Nested_2
+    nestedStruct: Nested_3
+End
+
+Struct Nested_3
+    attribute: string
+End
+
+Task productionTask
+    nested
+End
+
+Task nested
+    Service
+        In
+            Nested_1
+            {
+                "nestedStruct":
+                {
+                    "nestedStruct": {
+                        "attribute": 5
+                    }
+                }
+            }
+End

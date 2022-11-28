@@ -1,0 +1,60 @@
+Struct Color
+    name: string
+    rgb: number[3]
+End
+
+Struct PaintingResult
+    wetness: number
+End
+
+Struct SheetPart
+    width: number
+    hight: number
+End
+
+Struct CuttingResult
+    parts_count: number
+    sheet_parts: SheetPart[]
+End
+
+Struct TransportOrderStep
+    location: string
+End
+
+Task productionTask
+    Parallel
+        paintingTask
+        cuttingTask
+    transport
+End
+
+Task paintingTask
+    Painting
+        In
+            Color
+                {
+                    "name": "red",
+                    "rgb": [255, 255, 255]
+                }
+        Out
+            pr: PaintingResult
+End
+
+Task cuttingTask
+    Cutting
+        Out
+            cr: CuttingResult
+End
+
+Task transport
+    Transport
+        In
+            TransportOrderStep
+                {
+                    "location": "start"
+                }
+            TransportOrderStep
+                {
+                    "location": "goal"
+                }
+End

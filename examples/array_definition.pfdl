@@ -1,0 +1,32 @@
+Struct SheetPart
+    width: number
+    height: number
+End
+
+Struct CuttingResult
+    parts_count: number
+    sheet_parts: SheetPart[]
+End
+
+Task productionTask
+    task1
+End
+
+Task task1
+    Service
+        In
+            CuttingResult
+                {
+                    "parts_count": 2,
+                    "sheet_parts": [
+                        {
+                            "width": 5,
+                            "height": 5
+                        },
+                        {
+                            "width": 5,
+                            "height": 5
+                        }
+                    ]
+                }
+End

@@ -1,0 +1,62 @@
+# Production Flow Description Language
+
+**DISCLAIMER**:
+This project is not intended for everyday use and made available without any support.
+However, we welcome any kind of feedback via the issue tracker or by e-mail.
+
+![pfdl_logo](docs/img/pfdl_logo.png)
+The **P**roduction **F**low **D**escription **L**anguage (**PFDL**) is a domain specific language for the description of production orders in the manufacturing of the future.
+With the help of the PFDL customized products and their production steps can be described.
+
+This project consists of the PFDL Grammar and Scheduler.
+The Scheduler is the main part of the language. It parses PFDL files and generates a Petri net for scheduling the production task if the given file is valid.
+An overview of the entire architecture can be found in the figure below.
+
+## Requirements
+- Pip packages from requirements.txt (`pip install -r requirements.txt`)
+- [GraphViz](https://graphviz.org/) (if you want to use the scheduler/run the scheduler_demo.py)
+
+## How to Start
+
+### Validation
+If you just want to validate your PFDL files run the following command from the root directory of the project.
+All errors will be printed in the console, so if nothing is shown the file valid.
+> python validate_pfdl_file.py --file_path <path_to_pfdl_file>
+
+You can also use the flag --folder_path to check all PFDL files within a folder.
+
+### Scheduler
+To make use of the scheduler you can import the scheduler class and use it like in the scheduler_demo.py.
+We will provide a pip package for the scheduler module later so there is no need to run it anymore.
+If you want to run the scheduler from the command line, you can execute the scheduler_demo.py which is a small example program to demonstrate the use of the scheduler class.
+Run the following command from the root directory of the project.
+> python scheduler_demo.py <path_to_pfdl_file>
+
+It will parse the given file and validates it. If the program is valid a petri net will be generated in the root directory.
+
+## Tests
+We also provivde unit tests e.g. for the static semantic validaton methods. To run all the test files you can use a testing environment (e.g. Testing in VSCode) or just execute the following command in the projects root directory:
+> python -m unittest discover -v
+
+## Use the PFDL Scheduler as Submodule
+If you want to use the PFDL Scheduler in your existing project you can use this project as a submodule.
+To run the Scheduler succesfully from your python code you have to add the pfdl_scheduler folder to the sys path somewhere before using (importing) it:
+
+```python
+import sys
+import os
+import inspect
+
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+sys.path.insert(0, currentdir + "/pfdl_scheduler")
+
+# you can use the PFDL Scheduler classes now
+from pfdl_scheduler.scheduler import Scheduler
+```
+
+## Troubleshooting
+No PetriNet is generated / there is an error while generating the net
+> Check if you correctly installed GraphViz (On Windows you need to put the bin folder inside the GraphViz folder into the PATH environment variable. On Ubuntu it should be fine if you install GraphViz via apt-get)
+
+## License
+PDFL is licensed under the MIT License. See [LICENSE](LICENSE) for details on the licensing terms.

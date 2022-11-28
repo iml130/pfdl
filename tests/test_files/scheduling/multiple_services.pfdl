@@ -1,0 +1,34 @@
+Struct Color
+    name: string
+    rgb: number[3]
+End
+
+Struct PaintingResult
+    wetness: number
+End
+
+Struct DryingResult
+    wetness: number
+End
+
+Task productionTask
+    paintingAndCuttingTask
+End
+
+Task paintingAndCuttingTask
+    Painting
+        In
+            Color
+                {
+                    "name": "red",
+                    "rgb": [255, 255, 255]
+                }
+        Out
+            pr: PaintingResult
+
+    Drying
+        In 
+            pr
+        Out
+            dr: DryingResult
+End

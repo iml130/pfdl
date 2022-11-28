@@ -1,0 +1,51 @@
+Struct Color
+    name: string
+    rgb: number[3]
+End
+
+Struct PaintingResult
+    wetness: number
+End
+
+Struct SheetPart
+    width: number
+    hight: number
+End
+
+Struct CuttingResult
+    parts_count: number
+    sheet_parts: SheetPart[]
+End
+
+Task productionTask
+    cutTask
+End
+
+# cuttingTask calls paintingTask and uses the output in Cutting
+Task cuttingTask
+    paintingTask
+        Out
+            pr: PaintingResult
+
+    Cutting
+        In
+            pr
+        Out
+            cr: CuttingResult
+End
+
+Task paintingTask
+    Painting
+        In
+            Color
+                {
+                    "name": "red",
+                    "rgb": [255, 255, 255]
+                }
+        Out
+            pr: PaintingResult
+
+    Out
+        pr
+End
+

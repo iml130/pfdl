@@ -1,0 +1,41 @@
+Struct Color
+    name: string
+    rgb: number[3]
+End
+
+Struct PaintingResult
+    wetness: number
+End
+
+Struct SheetPart
+    width: number
+    hight: number
+End
+
+Struct CuttingResult
+    parts_count: number
+    sheet_parts: SheetPart[]
+End
+
+Task productionTask
+    paintingAndCuttingTask
+End
+
+Task paintingAndCuttingTask
+    Cutting
+        Out
+            cr: CuttingResult
+
+    Loop i To cr.parts_count
+        millingTask
+            In
+                cr.sheet_parts[i]
+End
+
+Task millingTask
+    In 
+        part_in: SheetPart
+    Milling
+        In
+            part_in
+End

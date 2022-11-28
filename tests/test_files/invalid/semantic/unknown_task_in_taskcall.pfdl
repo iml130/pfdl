@@ -1,0 +1,17 @@
+Struct Test
+    attribute: string
+End
+
+Task task_1
+    task_3
+        In
+            "a string"
+End
+
+Task task_2
+    In
+        input: string
+    Service
+        In
+            "test"
+End

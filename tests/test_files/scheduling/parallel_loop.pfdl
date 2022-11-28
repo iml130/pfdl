@@ -1,0 +1,29 @@
+Struct SheetPart
+    width: number
+    hight: number
+End
+
+Struct CuttingResult
+    parts_count: number
+    sheet_parts: SheetPart[]
+End
+
+Task productionTask
+    Cutting
+        Out
+            cr: CuttingResult
+
+    Parallel Loop i To cr.parts_count
+        paintingAndCuttingTask
+            In
+                cr.sheet_parts[i]
+End
+
+Task paintingAndCuttingTask
+    In
+        part: SheetPart
+
+    PaintingAndCutting
+        In
+            part
+End
