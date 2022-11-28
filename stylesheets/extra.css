@@ -1,0 +1,14 @@
+:root > * {
+    --md-primary-fg-color:        #1f82c0;
+    --md-primary-fg-color--light: #ECB7B7;
+    --md-primary-fg-color--dark:  #90030C;
+    font-family: Arial;
+}
+
+[data-md-color-scheme="slate"] {
+    --md-hue: 210; 
+}
+
+.md-grid {
+    max-width:75%; 
+  }
