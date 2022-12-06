@@ -45,6 +45,7 @@ class PetriNetGenerator:
         task_started_id: The id of the 'Task started' place.
         callbacks: A PetriNetCallbacks instance representing functions called while execution.
         generate_test_ids: A boolean indicating if test ids (counting from 0) should be generated.
+        used_in_extension: A boolean indicating if the Generator is used within the extension.
     """
 
     def __init__(
@@ -78,6 +79,7 @@ class PetriNetGenerator:
         self.task_started_id: str = ""
         self.callbacks: PetriNetCallbacks = PetriNetCallbacks()
         self.generate_test_ids: bool = generate_test_ids
+        self.used_in_extension: bool = used_in_extension
 
     def add_callback(self, transition_id: str, callback_function: Callable, *args: Any) -> None:
         """Registers the given callback function in the transition_dict.
@@ -90,11 +92,12 @@ class PetriNetGenerator:
             callback_function: The callback function which should be called.
             *args: Arguments with which the callback function is called.
         """
-        callback = functools.partial(callback_function, *args)
-        if transition_id not in self.transition_dict:
-            self.transition_dict[transition_id] = []
+        if not self.used_in_extension:
+            callback = functools.partial(callback_function, *args)
+            if transition_id not in self.transition_dict:
+                self.transition_dict[transition_id] = []
 
-        self.transition_dict[transition_id].append(callback)
+            self.transition_dict[transition_id].append(callback)
 
     def generate_petri_net(self, process: Process) -> PetriNet:
         """Generates a Petri Net from the given Process object.
