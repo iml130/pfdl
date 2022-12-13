@@ -112,17 +112,20 @@ class PetriNetGenerator:
         self.tasks = process.tasks
         for task in process.tasks.values():
             if task.name == "productionTask":
+
+                group_id = str(uuid.uuid4())
+
                 task_context = TaskAPI(task, None)
                 if self.generate_test_ids:
                     task_context.uuid = "0"
 
-                self.task_started_id = create_place(task.name + "_started", self.net)
+                self.task_started_id = create_place(task.name + "_started", self.net, group_id)
                 connection_id = create_transition("", "", self.net)
 
                 self.add_callback(connection_id, self.callbacks.task_started, task_context)
 
                 self.net.add_input(self.task_started_id, connection_id, Value(1))
-                self.task_finished_id = create_place(task.name + "_finished", self.net)
+                self.task_finished_id = create_place(task.name + "_finished", self.net, group_id)
 
                 second_connection_id = create_transition("", "", self.net)
 
@@ -207,14 +210,16 @@ class PetriNetGenerator:
         Returns:
             The id of the last transition of the Service petri net component.
         """
+        group_id = str(uuid.uuid4())
+
         service_api = ServiceAPI(service, task_context, in_loop=in_loop)
 
-        service_started_id = create_place(service.name + " started", self.net)
+        service_started_id = create_place(service.name + " started", self.net, group_id)
 
-        service_finished_id = create_place(service.name + " finished", self.net)
+        service_finished_id = create_place(service.name + " finished", self.net, group_id)
         self.place_dict[service_api.uuid] = service_finished_id
 
-        service_done_id = create_place(service.name + " done", self.net)
+        service_done_id = create_place(service.name + " done", self.net, group_id)
         service_done_transition_id = create_transition("service_done", "", self.net)
 
         self.add_callback(first_transition_id, self.callbacks.service_started, service_api)
@@ -297,10 +302,14 @@ class PetriNetGenerator:
         Returns:
             The ids of the last transitions of the Condition petri net component.
         """
-        passed_id = create_place("Passed", self.net)
-        failed_id = create_place("Failed", self.net)
+        group_id = str(uuid.uuid4())
 
-        expression_id = create_place("If " + self.parse_expression(condition.expression), self.net)
+        passed_id = create_place("Passed", self.net, group_id)
+        failed_id = create_place("Failed", self.net, group_id)
+
+        expression_id = create_place(
+            "If " + self.parse_expression(condition.expression), self.net, group_id
+        )
 
         first_passed_transition_id = create_transition("", "", self.net)
         first_failed_transition_id = create_transition("", "", self.net)
@@ -359,17 +368,19 @@ class PetriNetGenerator:
         Returns:
             The id of the last transition of the CountingLoop petri net component.
         """
+        group_id = str(uuid.uuid4())
+
         if loop.parallel:
             return self.generate_parallel_loop(
                 loop, task_context, first_transition_id, second_transition_id
             )
 
-        loop_id = create_place("Loop", self.net)
+        loop_id = create_place("Loop", self.net, group_id)
 
         loop_text = "Loop"
 
-        loop_statements_id = create_place(loop_text, self.net)
-        loop_finished_id = create_place("Number of Steps Done", self.net)
+        loop_statements_id = create_place(loop_text, self.net, group_id)
+        loop_finished_id = create_place("Number of Steps Done", self.net, group_id)
 
         condition_passed_transition_id = create_transition("", "", self.net)
         condition_failed_transition_id = create_transition("", "", self.net)
@@ -381,7 +392,7 @@ class PetriNetGenerator:
         self.net.add_input(loop_finished_id, condition_failed_transition_id, Value(1))
         self.net.add_output(loop_id, iteration_step_done_transition_id, Value(1))
 
-        loop_done_id = create_place("Loop Done", self.net)
+        loop_done_id = create_place("Loop Done", self.net, group_id)
         self.generate_statements(
             task_context,
             loop.statements,
@@ -417,8 +428,11 @@ class PetriNetGenerator:
         Returns:
             The id of the last transition of the ParallelLoop petri net component.
         """
+
+        group_id = str(uuid.uuid4())
+
         parallel_loop_started = create_place(
-            "Start " + loop.statements[0].name + " in parallel", self.net
+            "Start " + loop.statements[0].name + " in parallel", self.net, group_id
         )
 
         self.net.add_output(parallel_loop_started, first_transition_id, Value(1))
@@ -465,12 +479,14 @@ class PetriNetGenerator:
         Returns:
             The id of the last transition of the WhileLoop petri net component.
         """
-        loop_id = create_place("Loop", self.net)
+        group_id = str(uuid.uuid4())
+
+        loop_id = create_place("Loop", self.net, group_id)
 
         loop_text = "Loop"
 
-        loop_statements_id = create_place(loop_text, self.net)
-        loop_finished_id = create_place("Number of Steps Done", self.net)
+        loop_statements_id = create_place(loop_text, self.net, group_id)
+        loop_finished_id = create_place("Number of Steps Done", self.net, group_id)
 
         condition_passed_transition_id = create_transition("", "", self.net)
         condition_failed_transition_id = create_transition("", "", self.net)
@@ -482,7 +498,7 @@ class PetriNetGenerator:
         self.net.add_input(loop_finished_id, condition_failed_transition_id, Value(1))
         self.net.add_output(loop_id, iteration_step_done_transition_id, Value(1))
 
-        loop_done_id = create_place("Loop Done", self.net)
+        loop_done_id = create_place("Loop Done", self.net, group_id)
         self.generate_statements(
             task_context,
             loop.statements,
@@ -532,7 +548,7 @@ class PetriNetGenerator:
         )
 
 
-def create_place(name: str, net: PetriNet) -> str:
+def create_place(name: str, net: PetriNet, group_id: str) -> str:
     """Utility function for creating a place with the snakes module.
 
     This function is used to add a place with the given name and to add labels for
@@ -547,7 +563,7 @@ def create_place(name: str, net: PetriNet) -> str:
     """
     place_id = str(uuid.uuid4())
     net.add_place(Place(place_id, []))
-    net.place(place_id).label(name=name)
+    net.place(place_id).label(name=name, group_id=group_id)
     return place_id
 
 

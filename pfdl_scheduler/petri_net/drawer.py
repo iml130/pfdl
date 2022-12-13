@@ -47,6 +47,8 @@ def draw_place(place, attr):
     else:
         attr["xlabel"] = place.name
 
+    attr["group"] = place.label("group_id")
+
     if 1 in place:
         attr["label"] = "&bull;"
     else:
