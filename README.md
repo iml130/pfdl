@@ -1,6 +1,8 @@
 # Production Flow Description Language
 
 ![Tests](https://github.com/iml130/pfdl/actions/workflows/tests.yml/badge.svg)
+![Lint Check](https://github.com/iml130/pfdl/actions/workflows/lint.yml/badge.svg)
+![Code Coverage](https://github.com/iml130/pfdl/actions/workflows/code_coverage.yml/badge.svg)
 ![Build and deploy Docu](https://github.com/iml130/pfdl/actions/workflows/build_and_deploy_docu.yml/badge.svg)
 
 **DISCLAIMER**:
