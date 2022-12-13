@@ -1,5 +1,8 @@
 # Production Flow Description Language
 
+![Tests](https://github.com/iml130/pfdl/actions/workflows/tests.yml/badge.svg)
+![Build and deploy Docu](https://github.com/iml130/pfdl/actions/workflows/build_and_deploy_docu.yml/badge.svg)
+
 **DISCLAIMER**:
 This project is not intended for everyday use and made available without any support.
 However, we welcome any kind of feedback via the issue tracker or by e-mail.
@@ -10,7 +13,8 @@ With the help of the PFDL customized products and their production steps can be 
 
 This project consists of the PFDL Grammar and Scheduler.
 The Scheduler is the main part of the language. It parses PFDL files and generates a Petri net for scheduling the production task if the given file is valid.
-An overview of the entire architecture can be found in the figure below.
+
+For more infos visit the official :books: [Documentation](https://iml130.github.io/pfdl/).
 
 ## Requirements
 - Pip packages from requirements.txt (`pip install -r requirements.txt`)
