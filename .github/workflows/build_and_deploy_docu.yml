@@ -1,0 +1,32 @@
+name: Build and deploy docu
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'docs/**'
+    
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy-docu:
+    name: Build and deploy Docu
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          sudo apt -qq update
+          pip3 install mkdocs-material mkdocstrings[python] --upgrade
+
+      - name: Build and Deploy docu
+        run: |
+          mkdocs gh-deploy --force
