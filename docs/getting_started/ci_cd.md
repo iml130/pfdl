@@ -16,6 +16,7 @@ If all tests are passed the coverge stage measures the code coverage of the unit
 Last but not least the deploy stage starts where the documentation and the code is build.
 
 This pipeline starts on every push to the main repository. The different stages and jobs of the pipeline are depicted in the figure below.
+**Note:** This pipeline is currently outdated as we switched from Gitlab to Github. However, we still run unit, integration and lint checks as well as code coverage and deployment of the documentation.
 
 <div class="figure">
 <img src="../../img/pipeline.png#only-light" alt="CI/CD pipeline"/>
