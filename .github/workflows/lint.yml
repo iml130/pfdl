@@ -1,0 +1,33 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'pfdl_scheduler/**'
+  pull_request: 
+    branches:
+      - 'main'
+    paths:
+      - 'pfdl_scheduler/**'
+
+jobs:
+  lint-check:
+    name: Lint Check
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          sudo apt -qq update
+          pip3 install pylint --upgrade 
+      - name: Run Lint check
+        run: |
+          python3 ci_lint_runner.py pfdl_scheduler 8
+          python3 ci_lint_runner.py tests 8
