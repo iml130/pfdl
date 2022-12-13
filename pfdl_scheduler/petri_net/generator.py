@@ -300,9 +300,7 @@ class PetriNetGenerator:
         passed_id = create_place("Passed", self.net)
         failed_id = create_place("Failed", self.net)
 
-        expression_id = create_place(
-            "If \n " + self.parse_expression(condition.expression), self.net
-        )
+        expression_id = create_place("If " + self.parse_expression(condition.expression), self.net)
 
         first_passed_transition_id = create_transition("", "", self.net)
         first_failed_transition_id = create_transition("", "", self.net)
