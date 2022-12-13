@@ -7,10 +7,11 @@
 """Contains unit tests tests for the Scheduler class."""
 
 # standard libraries
+from typing import Dict
 from pfdl_scheduler.model.condition import Condition
 import unittest
-from unittest.mock import MagicMixin, MagicMock, Mock, patch
-from pfdl_scheduler.model import counting_loop
+from unittest.mock import patch
+from pfdl_scheduler.model.parallel import Parallel
 
 # local sources
 from pfdl_scheduler.model.process import Process
@@ -49,6 +50,22 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.error_handler = ErrorHandler("", False)
         self.checker = SemanticErrorChecker(self.error_handler, self.process)
         self.dummy_context = DummyContext()
+
+    def check_method(self, method_name: str, return_value: bool, calls: int, method, *args) -> bool:
+        """Runs the given method with the help of a mock object which emulates a function.
+
+        Args:
+            method_name: The mock function which should be emulated.
+            return_value: The return value of the mock function.
+            calls: Specifies how many times the mock method should be called to pass the test.
+            method: The method which should be tested.
+            args: Variable amount of arguments for the method to be tested.
+        """
+        result = None
+        with patch.object(self.checker, method_name, return_value=return_value) as mock:
+            result = method(*args)
+        self.assertEqual(mock.call_count, calls)
+        return result
 
     def test_init(self):
         structs = {"struct_1": Struct(), "struct_2": Struct()}
@@ -134,25 +151,123 @@ class TestSemanticErrorChecker(unittest.TestCase):
         )
         self.assertFalse(check_result)
 
+    def execute_check_tasks(self, p1: bool, p2: bool, p3: bool) -> bool:
+        return_value = None
+
+        with patch.object(self.checker, "check_statements", return_value=p1) as mock_1:
+            with patch.object(
+                self.checker, "check_task_input_parameters", return_value=p2
+            ) as mock_2:
+                with patch.object(
+                    self.checker, "check_task_output_parameters", return_value=p3
+                ) as mock_3:
+                    return_value = self.checker.check_tasks()
+
+        self.assertEqual(mock_1.call_count, 1)
+        self.assertEqual(mock_2.call_count, 1)
+        self.assertEqual(mock_3.call_count, 1)
+
+        return return_value
+
     def test_check_tasks(self):
-        self.checker.tasks = {"task_1": Task(), "task_2": Task()}
+        self.checker.tasks = {"productionTask": Task(name="productionTask")}
 
-        # TODO: Search a better way to do this
-        # Return value is set to false so it can be checked if the other methods are still executed
-        with patch.object(self.checker, "check_statements", return_value=False) as mock_1:
-            with patch.object(self.checker, "check_task_input_parameters") as mock_2:
-                with patch.object(self.checker, "check_task_output_parameters") as mock_3:
-                    self.checker.check_tasks()
+        self.assertFalse(self.execute_check_tasks(False, False, False))
+        self.assertFalse(self.execute_check_tasks(False, False, True))
+        self.assertFalse(self.execute_check_tasks(False, True, False))
+        self.assertFalse(self.execute_check_tasks(False, True, True))
+        self.assertFalse(self.execute_check_tasks(True, False, False))
+        self.assertFalse(self.execute_check_tasks(True, False, True))
+        self.assertFalse(self.execute_check_tasks(True, True, False))
+        self.assertTrue(self.execute_check_tasks(True, True, True))
 
-        self.assertEqual(mock_1.call_count, 2)
-        self.assertEqual(mock_2.call_count, 2)
-        self.assertEqual(mock_3.call_count, 2)
+        self.checker.tasks = {"noProductionTask": Task(name="noProductionTask")}
+        self.assertFalse(self.execute_check_tasks(False, False, False))
+        self.assertFalse(self.execute_check_tasks(True, True, True))
 
     def test_check_statements(self):
-        pass
+        dummy_task = Task()
+        dummy_task.statements = [Service()]
+
+        return_value = None
+
+        args = ("check_statement", False, 1, self.checker.check_statements, dummy_task)
+        self.assertFalse(self.check_method(*args))
+
+        args = ("check_statement", True, 1, self.checker.check_statements, dummy_task)
+        self.assertTrue(self.check_method(*args))
+
+        dummy_task.statements = [Service(), Service()]
+
+        args = ("check_statement", False, 2, self.checker.check_statements, dummy_task)
+        self.assertFalse(self.check_method(*args))
 
     def test_check_statement(self):
-        pass
+        dummy_task = Task()
+
+        args = ("check_service", False, 1, self.checker.check_statement, Service(), dummy_task)
+        self.assertFalse(self.check_method(*args))
+
+        args = ("check_task_call", False, 1, self.checker.check_statement, TaskCall(), dummy_task)
+        self.assertFalse(self.check_method(*args))
+
+        args = ("check_parallel", False, 1, self.checker.check_statement, Parallel(), dummy_task)
+        self.assertFalse(self.check_method(*args))
+
+        args = ("check_while_loop", False, 1, self.checker.check_statement, WhileLoop(), dummy_task)
+        self.assertFalse(self.check_method(*args))
+
+        args = (
+            "check_counting_loop",
+            False,
+            1,
+            self.checker.check_statement,
+            CountingLoop(),
+            dummy_task,
+        )
+        self.assertFalse(self.check_method(*args))
+
+        args = (
+            "check_conditional_statement",
+            False,
+            1,
+            self.checker.check_statement,
+            Condition(),
+            dummy_task,
+        )
+        self.assertFalse(self.check_method(*args))
+
+        args = ("check_service", True, 1, self.checker.check_statement, Service(), dummy_task)
+        self.assertTrue(self.check_method(*args))
+
+        args = ("check_task_call", True, 1, self.checker.check_statement, TaskCall(), dummy_task)
+        self.assertTrue(self.check_method(*args))
+
+        args = ("check_parallel", True, 1, self.checker.check_statement, Parallel(), dummy_task)
+        self.assertTrue(self.check_method(*args))
+
+        args = ("check_while_loop", True, 1, self.checker.check_statement, WhileLoop(), dummy_task)
+        self.assertTrue(self.check_method(*args))
+
+        args = (
+            "check_counting_loop",
+            True,
+            1,
+            self.checker.check_statement,
+            CountingLoop(),
+            dummy_task,
+        )
+        self.assertTrue(self.check_method(*args))
+
+        args = (
+            "check_conditional_statement",
+            True,
+            1,
+            self.checker.check_statement,
+            Condition(),
+            dummy_task,
+        )
+        self.assertTrue(self.check_method(*args))
 
     def test_check_task_input_parameters(self):
         pass
@@ -169,13 +284,33 @@ class TestSemanticErrorChecker(unittest.TestCase):
     def test_check_task_call(self):
         pass
 
+    def test_check_parallel(self):
+        parallel = Parallel()
+        dummy_task = Task()
+        parallel.task_calls = []
+
+        args = ("check_task_call", True, 0, self.checker.check_parallel, parallel, dummy_task)
+        self.assertTrue(self.check_method(*args))
+
+        parallel.task_calls = [TaskCall()]
+        args = ("check_task_call", True, 1, self.checker.check_parallel, parallel, dummy_task)
+        self.assertTrue(self.check_method(*args))
+
+        parallel.task_calls = [TaskCall(), TaskCall(), TaskCall()]
+        args = ("check_task_call", True, 3, self.checker.check_parallel, parallel, dummy_task)
+        self.assertTrue(self.check_method(*args))
+
+        parallel.task_calls = [TaskCall(), TaskCall(), TaskCall()]
+        args = ("check_task_call", False, 3, self.checker.check_parallel, parallel, dummy_task)
+        self.assertFalse(self.check_method(*args))
+
     def test_check_if_task_call_matches_with_called_task(self):
         pass
 
     def test_check_if_input_parameter_matches(self):
         pass
 
-    def test_check_if_task_call_parameters_match(self):
+    def check_if_task_call_parameter_length_match(self):
         pass
 
     def test_check_call_parameters(self):
@@ -458,18 +593,15 @@ class TestSemanticErrorChecker(unittest.TestCase):
         struct_definition.attributes = {"identifier_1": "string"}
         instantiated_struct.attributes = {"identifier_1": '"a string"'}
 
-    # ToDo: Check with mock variables if statements are checked
-    # Check if expressions are checked
-
     def test_check_while_loop(self):
         expression = {"True"}
         task = Task()
 
         while_loop = WhileLoop(expression=expression)
         while_loop.statements = [
-            Service("service_1"),
-            Service("service_2"),
-            TaskCall("task_call"),
+            Service(),
+            Service(),
+            TaskCall(),
         ]
 
         with patch.object(self.checker, "check_statement") as mock_1:
@@ -483,9 +615,9 @@ class TestSemanticErrorChecker(unittest.TestCase):
 
         counting_loop = CountingLoop()
         counting_loop.statements = [
-            Service("service_1"),
-            Service("service_2"),
-            TaskCall("task_call"),
+            Service(),
+            Service(),
+            TaskCall(),
         ]
 
         with patch.object(self.checker, "check_statement") as mock:
@@ -497,8 +629,8 @@ class TestSemanticErrorChecker(unittest.TestCase):
         task = Task()
 
         condition = Condition(expression=expression)
-        condition.passed_stmts = [Service("service_1"), Service("service_2")]
-        condition.failed_stmts = [TaskCall("task_call")]
+        condition.passed_stmts = [Service(), Service()]
+        condition.failed_stmts = [TaskCall()]
 
         with patch.object(self.checker, "check_statement") as mock_1:
             with patch.object(self.checker, "check_expression") as mock_2:
