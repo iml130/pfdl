@@ -1,9 +1,9 @@
 # Production Flow Description Language
 
-![Tests](https://github.com/iml130/pfdl/actions/workflows/tests.yml/badge.svg)
-![Lint Check](https://github.com/iml130/pfdl/actions/workflows/lint.yml/badge.svg)
-![Code Coverage](https://github.com/iml130/pfdl/actions/workflows/code_coverage.yml/badge.svg)
-![Build and deploy Docu](https://github.com/iml130/pfdl/actions/workflows/build_and_deploy_docu.yml/badge.svg)
+![Tests](https://github.com/iml130/pfdl/actions/workflows/tests.yml/badge.svg?branch=main)
+![Lint Check](https://github.com/iml130/pfdl/actions/workflows/lint.yml/badge.svg?branch=main)
+![Code Coverage](https://github.com/iml130/pfdl/actions/workflows/code_coverage.yml/badge.svg?branch=main)
+![Build and deploy Docu](https://github.com/iml130/pfdl/actions/workflows/build_and_deploy_docu.yml/badge.svg?branch=main)
 
 **DISCLAIMER**:
 This project is not intended for everyday use and made available without any support.
