@@ -134,7 +134,10 @@ class PetriNetGenerator:
                 self.add_callback(second_connection_id, self.callbacks.task_finished, task_context)
 
         if self.draw_net:
-            draw_petri_net(self.net, self.path_for_image)
+            if self.used_in_extension:
+                draw_petri_net(self.net, self.path_for_image, ".dot")
+            else:
+                draw_petri_net(self.net, self.path_for_image, ".png")
         return self.net
 
     def generate_statements(
