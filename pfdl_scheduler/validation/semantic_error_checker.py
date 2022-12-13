@@ -162,8 +162,12 @@ class SemanticErrorChecker:
         Returns:
             True if the given Parallel statement is valid.
         """
+
+        valid = True
         for task_call in parallel.task_calls:
-            self.check_task_call(task_call, task)
+            if not self.check_task_call(task_call, task):
+                valid = False
+        return valid
 
     def check_task_input_parameters(self, task: Task) -> bool:
         """Checks if the input parameters are valid.
