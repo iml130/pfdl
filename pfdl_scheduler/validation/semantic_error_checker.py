@@ -183,7 +183,7 @@ class SemanticErrorChecker:
                 error_msg = f"Unknown Struct name '{variable_type}'."
                 self.error_handler.print_error(error_msg, context=task.context)
                 break
-            if self.check_if_variable_definition_is_valid(
+            if not self.check_if_variable_definition_is_valid(
                 identifier, variable_type, context=task.context_dict[IN_KEY]
             ):
                 valid = False
