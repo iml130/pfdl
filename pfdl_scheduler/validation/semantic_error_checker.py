@@ -178,11 +178,6 @@ class SemanticErrorChecker:
         valid = True
         # input_parameters: <identifier>: <variable_type>
         for identifier, variable_type in task.input_parameters.items():
-            if variable_type not in self.structs:
-                valid = False
-                error_msg = f"Unknown Struct name '{variable_type}'."
-                self.error_handler.print_error(error_msg, context=task.context)
-                break
             if not self.check_if_variable_definition_is_valid(
                 identifier, variable_type, context=task.context_dict[IN_KEY]
             ):
@@ -206,6 +201,7 @@ class SemanticErrorChecker:
                     f"in the Task Output of Task '{task.name}'"
                 )
                 self.error_handler.print_error(error_msg, context=task.context_dict[OUT_KEY])
+                valid = False
         return valid
 
     def check_service(self, service: Service, task: Task) -> bool:
@@ -225,8 +221,9 @@ class SemanticErrorChecker:
             True if the given TaskCall statement is valid.
         """
         if self.check_if_task_in_taskcall_exists(task_call.name, task_call.context):
-            if (not self.check_call_parameters(task_call, task)) or (
-                not self.check_if_task_call_matches_with_called_task(task_call, task)
+            if not (
+                self.check_call_parameters(task_call, task)
+                & self.check_if_task_call_matches_with_called_task(task_call, task)
             ):
                 return False
         else:
@@ -287,37 +284,21 @@ class SemanticErrorChecker:
     ) -> bool:
         """Checks if the input parameters of a Taskcall matches with the called Task.
 
+        This method assumes that the validity of the input parameter itself was already checked.
+        # TODO: Better naming for args
+
+        Args:
+            input_parameter: The input parameter of the TaskCall.
+            identifier: Parameter name of the input in the called task.
+            defined_type: Type of the input in the called task.
+            task_call: The TaskCall the input parameter is from.
+            called_task: The Task the TaskCall is refering to (the called task).
+            task: The Task in which the TaskCall was evoked.
         Returns:
             True if the input parameters of a Taskcall matches with the called Task.
         """
         if isinstance(input_parameter, str):
-            if defined_type in PRIMITIVE_DATATYPES:
-                if not helpers.check_type_of_value(input_parameter, defined_type):
-                    error_msg = (
-                        f"Type of TaskCall parameter '{input_parameter}' does not match "
-                        f"with type '{defined_type}' of Input Parameter '{identifier}' in"
-                        f" Task '{called_task.name}'"
-                    )
-                    self.error_handler.print_error(
-                        error_msg,
-                        context=task_call.context,
-                        off_symbol_length=len(task_call.name),
-                    )
-                    return False
-            elif input_parameter[0].isupper():
-                if input_parameter != defined_type:
-                    error_msg = (
-                        f"Type of TaskCall parameter '{input_parameter}' does not match "
-                        f"with type '{defined_type}' of Input Parameter '{identifier}' in"
-                        f" Task '{called_task.name}'"
-                    )
-                    self.error_handler.print_error(
-                        error_msg,
-                        context=task_call.context,
-                        off_symbol_length=len(task_call.name),
-                    )
-                    return False
-            elif input_parameter in task.variables:
+            if input_parameter in task.variables:
                 type_of_variable = task.variables[input_parameter]
 
                 # str() because of possible Arrays as
