@@ -76,7 +76,8 @@ class SemanticErrorChecker:
         """
         valid = True
         for struct in self.structs.values():
-            self.check_for_unknown_datatypes_in_struct_definition(struct)
+            if not self.check_for_unknown_datatypes_in_struct_definition(struct):
+                valid = False
         return valid
 
     def check_for_unknown_datatypes_in_struct_definition(self, struct: Struct) -> bool:
@@ -214,16 +215,20 @@ class SemanticErrorChecker:
             return False
         return True
 
-    def check_task_call(self, task_call: TaskCall, task: Task) -> bool:
+    def check_task_call(self, task_call: TaskCall, task_context: Task) -> bool:
         """Calls check methods for the TaskCall statement.
+
+        Args:
+            task_call: The task call to be checked.
+            task_context: The task in which the task call is defined.
 
         Returns:
             True if the given TaskCall statement is valid.
         """
         if self.check_if_task_in_taskcall_exists(task_call.name, task_call.context):
             if not (
-                self.check_call_parameters(task_call, task)
-                & self.check_if_task_call_matches_with_called_task(task_call, task)
+                self.check_call_parameters(task_call, task_context)
+                & self.check_if_task_call_matches_with_called_task(task_call, task_context)
             ):
                 return False
         else:
@@ -234,8 +239,13 @@ class SemanticErrorChecker:
         """Checks if the parameters of the Taskcall matches with the parameters of the Task.
 
         Multiple Checks are done:
-            - Checks if length of parameters of Taskcall and Task matches.
-            - Checks if types of input and output parameters matches.
+            (1) Checks if length of parameters of Taskcall and Task match.
+            (2) Checks if types of input parameters match.
+            (3) Checks if types of output parameters match.
+
+        Args:
+            task_call: The task call to be checked.
+            task_context: The task in which the task call is defined.
 
         Returns:
             True if the parameters matches.
