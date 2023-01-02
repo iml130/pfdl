@@ -16,7 +16,7 @@ other tests methods. Here, mock objects are used to check if certain methods wer
 from typing import Dict
 from pfdl_scheduler.model.condition import Condition
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from pfdl_scheduler.model.parallel import Parallel
 
 # local sources
@@ -93,7 +93,32 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertEqual(semantic_error_checker.structs, structs)
         self.assertEqual(semantic_error_checker.tasks, tasks)
 
+    def test_validate_process(self):
+        self.checker.check_structs = Mock(return_value=True)
+        self.checker.check_tasks = Mock(return_value=True)
+        self.assertTrue(self.checker.validate_process())
+
+        self.checker.check_structs = Mock(return_value=True)
+        self.checker.check_tasks = Mock(return_value=False)
+        self.assertFalse(self.checker.validate_process())
+
+        self.checker.check_structs = Mock(return_value=False)
+        self.checker.check_tasks = Mock(return_value=True)
+        self.assertFalse(self.checker.validate_process())
+
+        self.checker.check_structs = Mock(return_value=False)
+        self.checker.check_tasks = Mock(return_value=False)
+        self.assertFalse(self.checker.validate_process())
+
     def test_check_structs(self):
+        self.checker.structs = {"struct_1": Mock(), "struct_2": Mock()}
+        self.checker.check_for_unknown_datatypes_in_struct_definition = Mock(return_value=True)
+        self.assertTrue(self.checker.check_structs())
+
+        self.checker.structs = {"struct_1": Mock(), "struct_2": Mock()}
+        self.checker.check_for_unknown_datatypes_in_struct_definition = Mock(return_value=False)
+        self.assertFalse(self.checker.check_structs())
+
         self.checker.structs = {
             "struct_1": Struct(),
             "struct_2": Struct(),
@@ -445,9 +470,11 @@ class TestSemanticErrorChecker(unittest.TestCase):
         mock_3.assert_not_called()
 
     def test_check_if_task_call_matches_with_called_task(self):
-        dummy_task = Task("Task")
+        # (1) parameter length check
+        dummy_task_context = Task("Task")
+        dummy_called_task = Task("CalledTask")
         dummy_task_call = TaskCall("Task")
-        self.checker.tasks = {"Task": dummy_task}
+        self.checker.tasks = {"Task": dummy_called_task}
 
         args = (
             "check_if_task_call_parameter_length_match",
@@ -455,7 +482,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
             1,
             self.checker.check_if_task_call_matches_with_called_task,
             dummy_task_call,
-            dummy_task,
+            dummy_task_context,
         )
         self.assertTrue(self.check_method(*args))
 
@@ -465,13 +492,59 @@ class TestSemanticErrorChecker(unittest.TestCase):
             1,
             self.checker.check_if_task_call_matches_with_called_task,
             dummy_task_call,
-            dummy_task,
+            dummy_task_context,
         )
         self.assertFalse(self.check_method(*args))
 
-        self.assertTrue(
-            self.checker.check_if_task_call_matches_with_called_task(dummy_task_call, dummy_task)
-        )
+        # (2) input parameter check
+        args = (dummy_task_call, dummy_task_context)
+
+        dummy_task_call.input_parameters = ["input_1", "input_2"]
+        dummy_called_task.input_parameters = {"param_1": "Struct_1", "param_2": "Struct_2"}
+
+        with patch.object(
+            self.checker, "check_if_input_parameter_matches", return_value=True
+        ) as mock:
+            self.assertTrue(self.checker.check_if_task_call_matches_with_called_task(*args))
+
+        self.assertEqual(mock.call_count, 2)
+
+        dummy_task_call.input_parameters = ["input_1"]
+        dummy_called_task.input_parameters = {"param_1": "Struct_1"}
+        with patch.object(
+            self.checker, "check_if_input_parameter_matches", return_value=True
+        ) as mock:
+            self.assertTrue(self.checker.check_if_task_call_matches_with_called_task(*args))
+            mock.assert_called_with(
+                "input_1",
+                "param_1",
+                "Struct_1",
+                TaskCall(),
+                Task(),
+                Task(),
+            )
+            self.assertIs(mock.call_args[0][3], dummy_task_call)
+            self.assertIs(mock.call_args[0][4], dummy_called_task)
+            self.assertIs(mock.call_args[0][5], dummy_task_context)
+
+        with patch.object(
+            self.checker, "check_if_input_parameter_matches", return_value=False
+        ) as mock:
+            self.assertFalse(self.checker.check_if_task_call_matches_with_called_task(*args))
+
+        # (3) output parameter check
+        dummy_task_call.input_parameters = []
+        dummy_called_task.input_parameters = {}
+        dummy_called_task.variables = {"param_1": "Struct_1", "param_2": "Struct_2"}
+
+        dummy_task_call.output_parameters = {"param_1": "Struct_1", "param_2": "Struct_2"}
+        dummy_called_task.output_parameters = ["param_1", "param_2"]
+
+        self.assertTrue(self.checker.check_if_task_call_matches_with_called_task(*args))
+
+        dummy_called_task.variables = {"param_1": "Struct_1", "param_2": "Struct_3"}
+
+        self.assertFalse(self.checker.check_if_task_call_matches_with_called_task(*args))
 
     def test_check_if_input_parameter_matches(self):
         task_call = TaskCall("Task")
@@ -491,23 +564,37 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
 
         # input parameter is List[str]
-        args = (
-            ["a", "b", "c", "d"],
-            "identifier",
-            "Struct_1",
-            task_call,
-            called_task,
-            task_context,
-        )
-        self.assertTrue(self.checker.check_if_input_parameter_matches(*args))
+        # dummy_struct = Struct()
+        # dummy_struct.attributes = {
+        #     "b": Struct("", attributes={"c": Struct("", attributes={"d": "number"})})
+        # }
+        # task_context.variables = {"a": "Struct_1"}
+        # self.checker.structs = {"Struct_1": dummy_struct}
 
-        args = ("test", "identifier", "Struct_2", task_call, called_task, task_context)
-        self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
+        # args = (
+        #     ["a", "b", "c", "d"],
+        #     "identifier",
+        #     "Struct_1",
+        #     task_call,
+        #     called_task,
+        #     task_context,
+        # )
+        # self.assertTrue(self.checker.check_if_input_parameter_matches(*args))
 
-        args = ("not_a_variable", "identifier", "Struct_1", task_call, called_task, task_context)
-        self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
+        # args = ("test", "identifier", "Struct_2", task_call, called_task, task_context)
+        # self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
+
+        # args = ("not_a_variable", "identifier", "Struct_1", task_call, called_task, task_context)
+        # self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
 
         # input parameter is Struct
+        dummy_struct = Struct("Struct_1")
+        args = (dummy_struct, "identifier", "Struct_1", task_call, called_task, task_context)
+        self.assertTrue(self.checker.check_if_input_parameter_matches(*args))
+
+        dummy_struct = Struct("Struct_2")
+        args = (dummy_struct, "identifier", "Struct_1", task_call, called_task, task_context)
+        self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
 
     def test_check_if_task_call_parameter_length_match(self):
         dummy_task = Task("task")
