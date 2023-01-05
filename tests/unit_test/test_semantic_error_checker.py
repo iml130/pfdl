@@ -77,8 +77,11 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertEqual(mock.call_count, calls)
         return result
 
-    def check_if_print_error_is_called():
-        pass
+    def check_if_print_error_is_called(self, method, *args):
+        """#TODO"""
+        with patch.object(self.error_handler, "print_error") as mock:
+            method(*args)
+        mock.assert_called()
 
     def test_init(self):
         structs = {"struct_1": Struct(), "struct_2": Struct()}
@@ -439,7 +442,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
                     self.assertFalse(self.checker.check_task_call(dummy_task_call, dummy_task))
 
             mock_2.assert_called_once_with(dummy_task_call, dummy_task)
-            mock_3.assert_called_once_with(dummy_task_call, dummy_task)
+            mock_3.assert_not_called()
 
             with patch.object(self.checker, "check_call_parameters", return_value=False) as mock_2:
                 with patch.object(
@@ -450,7 +453,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
                     self.assertFalse(self.checker.check_task_call(dummy_task_call, dummy_task))
 
             mock_2.assert_called_once_with(dummy_task_call, dummy_task)
-            mock_3.assert_called_once_with(dummy_task_call, dummy_task)
+            mock_3.assert_not_called()
 
         mock_1.assert_called_with(dummy_task_call.name, dummy_task_call.context)
 
@@ -532,7 +535,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
         ) as mock:
             self.assertFalse(self.checker.check_if_task_call_matches_with_called_task(*args))
 
-        # (3) output parameter check
+        # (3)output parameter check
         dummy_task_call.input_parameters = []
         dummy_called_task.input_parameters = {}
         dummy_called_task.variables = {"param_1": "Struct_1", "param_2": "Struct_2"}
@@ -563,29 +566,104 @@ class TestSemanticErrorChecker(unittest.TestCase):
         args = ("not_a_variable", "identifier", "Struct_1", task_call, called_task, task_context)
         self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
 
-        # input parameter is List[str]
-        # dummy_struct = Struct()
-        # dummy_struct.attributes = {
-        #     "b": Struct("", attributes={"c": Struct("", attributes={"d": "number"})})
-        # }
-        # task_context.variables = {"a": "Struct_1"}
-        # self.checker.structs = {"Struct_1": dummy_struct}
+        # input parameter is List[str] without array
+        dummy_struct_a = Struct("Struct_1")
+        dummy_struct_b = Struct("Struct_2")
+        dummy_struct_c = Struct("Struct_3")
+        dummy_struct_a.attributes = {"b": dummy_struct_b}
+        dummy_struct_b.attributes = {"c": dummy_struct_c}
+        task_context.variables = {"a": "Struct_1"}
+        self.checker.structs = {
+            "Struct_1": dummy_struct_a,
+            "Struct_2": dummy_struct_b,
+            "Struct_3": dummy_struct_c,
+        }
 
-        # args = (
-        #     ["a", "b", "c", "d"],
-        #     "identifier",
-        #     "Struct_1",
-        #     task_call,
-        #     called_task,
-        #     task_context,
-        # )
-        # self.assertTrue(self.checker.check_if_input_parameter_matches(*args))
+        args = (
+            ["a", "b"],
+            "identifier",
+            "Struct_2",
+            task_call,
+            called_task,
+            task_context,
+        )
+        self.assertTrue(self.checker.check_if_input_parameter_matches(*args))
 
-        # args = ("test", "identifier", "Struct_2", task_call, called_task, task_context)
-        # self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
+        args = (
+            ["a", "b", "c"],
+            "identifier",
+            "Struct_3",
+            task_call,
+            called_task,
+            task_context,
+        )
+        self.assertTrue(self.checker.check_if_input_parameter_matches(*args))
 
-        # args = ("not_a_variable", "identifier", "Struct_1", task_call, called_task, task_context)
-        # self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
+        args = (
+            ["a", "b", "c"],
+            "identifier",
+            "Struct_2",
+            task_call,
+            called_task,
+            task_context,
+        )
+        self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
+
+        # input parameter is List[str] with array
+        dummy_struct_a = Struct("Struct_1")
+        dummy_struct_b = Struct("Struct_2")
+        dummy_struct_c = Struct("Struct_3")
+
+        array = Array("Struct_2", [Struct(), Struct()])
+
+        dummy_struct_a.attributes = {"b": array}
+        dummy_struct_b.attributes = {"c": dummy_struct_c}
+        task_context.variables = {"a": "Struct_1"}
+        self.checker.structs = {
+            "Struct_1": dummy_struct_a,
+            "Struct_2": dummy_struct_b,
+            "Struct_3": dummy_struct_c,
+        }
+
+        args = (
+            ["a", "b", "[]", "c"],
+            "identifier",
+            "Struct_3",
+            task_call,
+            called_task,
+            task_context,
+        )
+        self.assertTrue(self.checker.check_if_input_parameter_matches(*args))
+
+        args = (
+            ["a", "b", "[]", "c"],
+            "identifier",
+            "Struct_2",
+            task_call,
+            called_task,
+            task_context,
+        )
+        self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
+
+        args = (
+            ["a", "b", "[]"],
+            "identifier",
+            "Struct_2",
+            task_call,
+            called_task,
+            task_context,
+        )
+        self.assertTrue(self.checker.check_if_input_parameter_matches(*args))
+
+        args = (
+            ["a", "b", "[]"],
+            "identifier",
+            "Struct_3",
+            task_call,
+            called_task,
+            task_context,
+        )
+        self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
 
         # input parameter is Struct
         dummy_struct = Struct("Struct_1")
@@ -675,39 +753,373 @@ class TestSemanticErrorChecker(unittest.TestCase):
         output.assert_not_called()
 
     def test_check_call_input_parameters(self):
-        pass
+        task_context = Task()
+        service = Service()
+        task_call = TaskCall()
+        # no input parameters
+        self.assertTrue(self.checker.check_call_input_parameters(service, task_context))
+        self.assertTrue(self.checker.check_call_input_parameters(task_call, task_context))
+
+        # input parameter is struct
+        service.input_parameters = [Struct()]
+
+        args = (
+            "check_instantiated_struct_attributes",
+            True,
+            1,
+            self.checker.check_call_input_parameters,
+            service,
+            task_context,
+        )
+        self.assertTrue(self.check_method(*args))
+
+        args = (
+            "check_instantiated_struct_attributes",
+            False,
+            1,
+            self.checker.check_call_input_parameters,
+            service,
+            task_context,
+        )
+        self.assertFalse(self.check_method(*args))
+
+        task_call.input_parameters = [Struct()]
+        args = (
+            "check_instantiated_struct_attributes",
+            True,
+            1,
+            self.checker.check_call_input_parameters,
+            task_call,
+            task_context,
+        )
+        self.assertTrue(self.check_method(*args))
+
+        args = (
+            "check_instantiated_struct_attributes",
+            False,
+            1,
+            self.checker.check_call_input_parameters,
+            task_call,
+            task_context,
+        )
+        self.assertFalse(self.check_method(*args))
+
+        service.input_parameters = [Struct(), Struct(), Struct()]
+        args = (
+            "check_instantiated_struct_attributes",
+            True,
+            3,
+            self.checker.check_call_input_parameters,
+            service,
+            task_context,
+        )
+        self.assertTrue(self.check_method(*args))
+
+        # input parameter is list
+        service.input_parameters = [[]]
+        service.context_dict[IN_KEY] = None
+        args = (
+            "check_attribute_access",
+            True,
+            1,
+            self.checker.check_call_input_parameters,
+            service,
+            task_context,
+        )
+        self.assertTrue(self.check_method(*args))
+
+        args = (
+            "check_attribute_access",
+            False,
+            1,
+            self.checker.check_call_input_parameters,
+            service,
+            task_context,
+        )
+        self.assertFalse(self.check_method(*args))
+
+        task_call.input_parameters = [[]]
+        task_call.context_dict[IN_KEY] = None
+        args = (
+            "check_attribute_access",
+            True,
+            1,
+            self.checker.check_call_input_parameters,
+            task_call,
+            task_context,
+        )
+        self.assertTrue(self.check_method(*args))
+
+        args = (
+            "check_attribute_access",
+            False,
+            1,
+            self.checker.check_call_input_parameters,
+            task_call,
+            task_context,
+        )
+        self.assertFalse(self.check_method(*args))
+
+        service.input_parameters = [[], [], []]
+        args = (
+            "check_attribute_access",
+            True,
+            3,
+            self.checker.check_call_input_parameters,
+            service,
+            task_context,
+        )
+        self.assertTrue(self.check_method(*args))
+
+        # input parameter is string
+        service.input_parameters = ["test"]
+        self.assertFalse(self.checker.check_call_input_parameters(service, task_context))
+
+        task_call.input_parameters = ["test"]
+        self.assertFalse(self.checker.check_call_input_parameters(task_call, task_context))
+
+        task_context.variables = {"test": Struct()}
+        self.assertTrue(self.checker.check_call_input_parameters(service, task_context))
+        self.assertTrue(self.checker.check_call_input_parameters(task_call, task_context))
+
+        # mix of input parameters
+        service.input_parameters = ["test", [], Struct()]
+        with patch.object(
+            self.checker, "check_instantiated_struct_attributes", return_value=True
+        ) as mock_1:
+            with patch.object(self.checker, "check_attribute_access", return_value=True) as mock_2:
+                self.assertTrue(self.checker.check_call_input_parameters(service, task_context))
+
+        mock_1.assert_called_once()
+        mock_2.assert_called_once()
 
     def test_check_attribute_access(self):
         dummy_context = DummyContext()
         dummy_task = Task()
 
-        attribute_access = ["a", "b", "c", "d"]
+        dummy_struct_a = Struct("Struct_1")
+        dummy_struct_b = Struct("Struct_2")
+        dummy_struct_c = Struct("Struct_3")
 
-        # self.assertTrue(
-        #     self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
-        # )
+        self.checker.structs = {
+            "Struct_1": dummy_struct_a,
+            "Struct_2": dummy_struct_b,
+            "Struct_3": dummy_struct_c,
+        }
 
-        # self.assertTrue(
-        #     self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
-        # )
+        # unknown variable
+        dummy_task.variables = {""}
+        attribute_access = ["a", "b"]
+        self.assertFalse(
+            self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
+        )
 
-        # self.assertTrue(
-        #     self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
-        # )
+        dummy_task.variables = {"a": "Struct_1"}
+        dummy_struct_a.attributes = {"b": "Struct_2"}
+        self.assertTrue(
+            self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
+        )
 
-        # self.assertTrue(
-        #     self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
-        # )
+        dummy_struct_b.attributes = {"c": "Struct_3"}
 
-        # self.assertTrue(
-        #     self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
-        # )
+        attribute_access = ["a", "b", "c"]
+        self.assertTrue(
+            self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
+        )
+
+        attribute_access = ["a", "b", "d"]
+        self.assertFalse(
+            self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
+        )
+
+        attribute_access = ["a", "e", "c"]
+        self.assertFalse(
+            self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
+        )
+
+        dummy_struct_a.attributes = {"b": "Unknown Struct"}
+        attribute_access = ["a", "b", "c"]
+        self.assertFalse(
+            self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
+        )
+
+        # with array
+        dummy_struct_a.attributes = {"b": Array("Struct_2")}
+
+        attribute_access = ["a", "b", "[]"]
+        self.assertTrue(
+            self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
+        )
+
+        attribute_access = ["a", "b", "[]", "c"]
+        self.assertTrue(
+            self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
+        )
+        attribute_access = ["a", "b", "[]", "d"]
+        self.assertFalse(
+            self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
+        )
 
     def test_check_call_output_parameters(self):
-        pass
+        # True
+        service_call = Service()
+        service_call.output_parameters = {"1": ""}
+
+        args = (
+            "check_if_variable_definition_is_valid",
+            True,
+            1,
+            self.checker.check_call_output_parameters,
+            service_call,
+        )
+        self.assertTrue(self.check_method(*args))
+
+        service_call.output_parameters = {"1": "", "2": "", "3": ""}
+        args = (
+            "check_if_variable_definition_is_valid",
+            True,
+            3,
+            self.checker.check_call_output_parameters,
+            service_call,
+        )
+        self.assertTrue(self.check_method(*args))
+
+        task_call = TaskCall()
+        task_call.output_parameters = {"1": ""}
+        args = (
+            "check_if_variable_definition_is_valid",
+            True,
+            1,
+            self.checker.check_call_output_parameters,
+            task_call,
+        )
+        self.assertTrue(self.check_method(*args))
+
+        task_call = TaskCall()
+        task_call.output_parameters = {"1": "", "2": "", "3": ""}
+        args = (
+            "check_if_variable_definition_is_valid",
+            True,
+            3,
+            self.checker.check_call_output_parameters,
+            task_call,
+        )
+        self.assertTrue(self.check_method(*args))
+
+        # False
+        service_call.output_parameters = {"1": ""}
+        args = (
+            "check_if_variable_definition_is_valid",
+            False,
+            1,
+            self.checker.check_call_output_parameters,
+            service_call,
+        )
+        self.assertFalse(self.check_method(*args))
+
+        service_call.output_parameters = {"1": "", "2": "", "3": ""}
+        args = (
+            "check_if_variable_definition_is_valid",
+            False,
+            3,
+            self.checker.check_call_output_parameters,
+            service_call,
+        )
+        self.assertFalse(self.check_method(*args))
+
+        task_call = TaskCall()
+        task_call.output_parameters = {"1": ""}
+        args = (
+            "check_if_variable_definition_is_valid",
+            False,
+            1,
+            self.checker.check_call_output_parameters,
+            task_call,
+        )
+        self.assertFalse(self.check_method(*args))
+
+        task_call = TaskCall()
+        task_call.output_parameters = {"1": "", "2": "", "3": ""}
+        args = (
+            "check_if_variable_definition_is_valid",
+            False,
+            3,
+            self.checker.check_call_output_parameters,
+            task_call,
+        )
+        self.assertFalse(self.check_method(*args))
 
     def test_check_instantiated_struct_attributes(self):
-        pass
+        instantiated_struct = Struct("Struct_1")
+        self.checker.structs = {"Struct_1": Struct()}
+
+        with patch.object(self.checker, "check_if_struct_exists", return_value=True) as mock_1:
+            self.assertTrue(self.checker.check_instantiated_struct_attributes(instantiated_struct))
+
+            with patch.object(
+                self.checker, "check_for_missing_attribute_in_struct", return_value=True
+            ) as mock_2:
+                self.assertTrue(
+                    self.checker.check_instantiated_struct_attributes(instantiated_struct)
+                )
+
+                instantiated_struct.attributes = {"attr_1": 1}
+                self.checker.structs = {"Struct_1": Struct("", {"attr_1": "number"})}
+
+                with patch.object(
+                    self.checker, "check_for_unknown_attribute_in_struct", return_value=True
+                ) as mock_3:
+                    self.assertTrue(
+                        self.checker.check_instantiated_struct_attributes(instantiated_struct)
+                    )
+                mock_3.assert_called_once()
+                with patch.object(
+                    self.checker, "check_for_wrong_attribute_type_in_struct", return_value=True
+                ) as mock_3:
+                    self.assertTrue(
+                        self.checker.check_instantiated_struct_attributes(instantiated_struct)
+                    )
+                mock_3.assert_called_once()
+
+                instantiated_struct.attributes = {"attr_1": 1, "attr_2": 2, "attr_3": 3}
+                self.checker.structs = {
+                    "Struct_1": Struct(
+                        "", {"attr_1": "number", "attr_2": "number", "attr_3": "number"}
+                    )
+                }
+                with patch.object(
+                    self.checker, "check_for_unknown_attribute_in_struct", return_value=False
+                ) as mock_3:
+                    self.assertFalse(
+                        self.checker.check_instantiated_struct_attributes(instantiated_struct)
+                    )
+                self.assertEqual(mock_3.call_count, 3)
+                with patch.object(
+                    self.checker, "check_for_wrong_attribute_type_in_struct", return_value=False
+                ) as mock_3:
+                    self.assertFalse(
+                        self.checker.check_instantiated_struct_attributes(instantiated_struct)
+                    )
+                self.assertEqual(mock_3.call_count, 3)
+
+            mock_2.assert_called()
+
+            with patch.object(
+                self.checker, "check_for_missing_attribute_in_struct", return_value=False
+            ) as mock_2:
+                self.assertFalse(
+                    self.checker.check_instantiated_struct_attributes(instantiated_struct)
+                )
+            mock_2.assert_called_once()
+
+        args = (
+            "check_if_struct_exists",
+            False,
+            1,
+            self.checker.check_instantiated_struct_attributes,
+            instantiated_struct,
+        )
+        self.assertFalse(self.check_method(*args))
 
     def test_check_if_struct_exists(self):
         self.checker.structs = {"Struct_1": Struct(), "Struct_2": Struct()}
@@ -740,7 +1152,6 @@ class TestSemanticErrorChecker(unittest.TestCase):
             )
         )
 
-    # ToDo: Überarbeiten, Attribute liegen nun direkt mit korrekten Typen vor
     def test_check_for_wrong_attribute_type_in_struct(self):
         struct_definition = Struct()
         struct_definition.name = "Test"
@@ -875,6 +1286,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
         )
         self.assertFalse(check_result)
 
+        # type is struct
         struct_definition.attributes = {"nested_struct": "NestedStruct_1"}
         struct_definition_2 = Struct()
         struct_definition_2.attributes = {"nested_struct": "NestedStruct_2"}
@@ -898,36 +1310,53 @@ class TestSemanticErrorChecker(unittest.TestCase):
         )
         self.assertTrue(check_result)
 
-        instantiated_struct.attributes = {"identifier_1": "not_a_struct_name"}
+        instantiated_struct.attributes = {"nested_struct": "not_a_struct_name"}
 
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
-            instantiated_struct, "identifier_1", struct_definition
+            instantiated_struct, "nested_struct", struct_definition
         )
         self.assertFalse(check_result)
 
-        instantiated_struct.attributes = {"identifier_1": '"a string"'}
+        instantiated_struct.attributes = {"nested_struct": Array()}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
-            instantiated_struct, "identifier_1", struct_definition
+            instantiated_struct, "nested_struct", struct_definition
         )
         self.assertFalse(check_result)
 
-        instantiated_struct.attributes = {"identifier_1": Array()}
+        instantiated_struct.attributes = {"nested_struct": True}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
-            instantiated_struct, "identifier_1", struct_definition
+            instantiated_struct, "nested_struct", struct_definition
         )
         self.assertFalse(check_result)
 
-        instantiated_struct.attributes = {"identifier_1": "True"}
+        instantiated_struct.attributes = {"nested_struct": 5}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
-            instantiated_struct, "identifier_1", struct_definition
+            instantiated_struct, "nested_struct", struct_definition
         )
         self.assertFalse(check_result)
 
-        instantiated_struct.attributes = {"identifier_1": "5"}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
-            instantiated_struct, "identifier_1", struct_definition
+        instantiated_struct.attributes = {"nested_struct": nested_struct}
+        args = (
+            "check_for_wrong_attribute_type_in_struct",
+            True,
+            1,
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "nested_struct",
+            struct_definition,
         )
-        self.assertFalse(check_result)
+        self.assertTrue(self.check_method(*args))
+
+        args = (
+            "check_for_wrong_attribute_type_in_struct",
+            False,
+            1,
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "nested_struct",
+            struct_definition,
+        )
+        self.assertFalse(self.check_method(*args))
 
     def test_check_for_missing_attribute_in_struct(self):
         struct_definition = Struct()
@@ -984,29 +1413,94 @@ class TestSemanticErrorChecker(unittest.TestCase):
         task = Task()
 
         counting_loop = CountingLoop()
+
+        counting_loop.statements = [Service()]
+        args = ("check_statement", True, 1, self.checker.check_counting_loop, counting_loop, task)
+        self.assertTrue(self.check_method(*args))
+
         counting_loop.statements = [
             Service(),
             Service(),
             TaskCall(),
         ]
 
-        with patch.object(self.checker, "check_statement") as mock:
-            self.checker.check_counting_loop(counting_loop, task)
-        self.assertEqual(mock.call_count, 3)
+        args = ("check_statement", True, 3, self.checker.check_counting_loop, counting_loop, task)
+        self.assertTrue(self.check_method(*args))
+
+        args = ("check_statement", False, 3, self.checker.check_counting_loop, counting_loop, task)
+        self.assertFalse(self.check_method(*args))
 
     def test_check_conditional_statement(self):
         expression = {"True"}
         task = Task()
 
         condition = Condition(expression=expression)
+
+        args = (
+            "check_statement",
+            True,
+            1,
+            self.checker.check_conditional_statement,
+            condition,
+            task,
+        )
+
+        condition.passed_stmts = [Service()]
+        condition.failed_stmts = []
+
+        self.assertTrue(self.check_method(*args))
+
+        condition.passed_stmts = []
+        condition.failed_stmts = [Service()]
+
+        self.assertTrue(self.check_method(*args))
+
         condition.passed_stmts = [Service(), Service()]
         condition.failed_stmts = [TaskCall()]
 
-        with patch.object(self.checker, "check_statement") as mock_1:
-            with patch.object(self.checker, "check_expression") as mock_2:
-                self.checker.check_conditional_statement(condition, task)
-        self.assertEqual(mock_1.call_count, 3)
-        mock_2.assert_called_with(expression, None, task)
+        args = (
+            "check_statement",
+            True,
+            3,
+            self.checker.check_conditional_statement,
+            condition,
+            task,
+        )
+
+        self.assertTrue(self.check_method(*args))
+
+        args = (
+            "check_statement",
+            False,
+            3,
+            self.checker.check_conditional_statement,
+            condition,
+            task,
+        )
+        self.assertFalse(self.check_method(*args))
+
+        with patch.object(self.checker, "check_statement", return_value=True) as mock:
+            args = (
+                "check_expression",
+                True,
+                1,
+                self.checker.check_conditional_statement,
+                condition,
+                task,
+            )
+
+            self.assertTrue(self.check_method(*args))
+
+            args = (
+                "check_expression",
+                False,
+                1,
+                self.checker.check_conditional_statement,
+                condition,
+                task,
+            )
+
+            self.assertFalse(self.check_method(*args))
 
     def test_check_expression(self):
         struct = Struct(
@@ -1233,6 +1727,18 @@ class TestSemanticErrorChecker(unittest.TestCase):
 
         self.assertFalse(self.checker.check_single_expression(variable_list_2, None, task))
 
+        # invalid attribute access
+        args = (
+            "check_attribute_access",
+            False,
+            1,
+            self.checker.check_single_expression,
+            [],
+            None,
+            None,
+        )
+        self.assertFalse(self.check_method(*args))
+
     def test_check_unary_operation(self):
         struct = Struct()
         struct.name = "struct"
@@ -1346,6 +1852,18 @@ class TestSemanticErrorChecker(unittest.TestCase):
             self.checker.check_binary_operation({"left": 5, "binOp": ">=", "right": 10}, None, task)
         )
         self.assertTrue(
+            self.checker.check_binary_operation({"left": 5, "binOp": "+", "right": 10}, None, task)
+        )
+        self.assertTrue(
+            self.checker.check_binary_operation({"left": 5, "binOp": "-", "right": 10}, None, task)
+        )
+        self.assertTrue(
+            self.checker.check_binary_operation({"left": 5, "binOp": "/", "right": 10}, None, task)
+        )
+        self.assertTrue(
+            self.checker.check_binary_operation({"left": 5, "binOp": "*", "right": 10}, None, task)
+        )
+        self.assertTrue(
             self.checker.check_binary_operation(
                 {"left": "a", "binOp": "<", "right": "b"}, None, task
             )
@@ -1406,6 +1924,31 @@ class TestSemanticErrorChecker(unittest.TestCase):
 
         self.assertFalse(
             self.checker.check_binary_operation(
+                {"left": 5, "binOp": "+", "right": "a_string"}, None, task
+            )
+        )
+        self.assertFalse(
+            self.checker.check_binary_operation(
+                {"left": "a_string", "binOp": "+", "right": "5"}, None, task
+            )
+        )
+        self.assertFalse(
+            self.checker.check_binary_operation(
+                {"left": 5, "binOp": "-", "right": "a_string"}, None, task
+            )
+        )
+        self.assertFalse(
+            self.checker.check_binary_operation(
+                {"left": 5, "binOp": "/", "right": "a_string"}, None, task
+            )
+        )
+        self.assertFalse(
+            self.checker.check_binary_operation(
+                {"left": 5, "binOp": "*", "right": "a_string"}, None, task
+            )
+        )
+        self.assertFalse(
+            self.checker.check_binary_operation(
                 {"left": 5, "binOp": "<", "right": "a_string"}, None, task
             )
         )
@@ -1463,6 +2006,29 @@ class TestSemanticErrorChecker(unittest.TestCase):
 
         self.assertFalse(self.checker.expression_is_number("a string", task))
         self.assertFalse(self.checker.expression_is_number(variable_list_2, task))
+
+        self.assertTrue(
+            self.checker.expression_is_number({"left": 5, "binOp": "<", "right": 10}, task)
+        )
+        self.assertFalse(
+            self.checker.expression_is_number(
+                {"left": 5, "binOp": "<", "right": "not a number"}, task
+            )
+        )
+
+        expression = {
+            "left": "(",
+            "binOp": {"left": 5, "binOp": "<", "right": 10},
+            "right": ")",
+        }
+        self.assertTrue(self.checker.expression_is_number(expression, task))
+
+        expression = {
+            "left": "(",
+            "binOp": {"left": 5, "binOp": "<", "right": "not a number"},
+            "right": ")",
+        }
+        self.assertFalse(self.checker.expression_is_number(expression, task))
 
     def test_expression_is_string(self):
         struct = Struct()
@@ -1556,10 +2122,78 @@ class TestSemanticErrorChecker(unittest.TestCase):
         instantiated_array.values = [True, 2, ""]
         self.assertFalse(self.checker.check_array(instantiated_array, array_definition))
 
+        # struct in array
+        array_definition = Array(type_of_elements="Struct_1")
+        array_definition.length = 1
+
+        instantiated_array.values = [Struct("Struct_1")]
+        instantiated_array.length = 1
+        args = (
+            "check_instantiated_struct_attributes",
+            True,
+            1,
+            self.checker.check_array,
+            instantiated_array,
+            array_definition,
+        )
+        self.assertTrue(self.check_method(*args))
+
+        args = (
+            "check_instantiated_struct_attributes",
+            False,
+            1,
+            self.checker.check_array,
+            instantiated_array,
+            array_definition,
+        )
+        self.assertFalse(self.check_method(*args))
+
+        instantiated_array.values = [Struct("Struct_2")]
+        args = (
+            "check_instantiated_struct_attributes",
+            True,
+            1,
+            self.checker.check_array,
+            instantiated_array,
+            array_definition,
+        )
+        self.assertFalse(self.check_method(*args))
+
         # wrong array length
+        array_definition.length = 1
         instantiated_array.length = 2
         instantiated_array.values = [1, 2]
         self.assertFalse(self.checker.check_array(instantiated_array, array_definition))
+
+        # struct type not set yet
+        array_definition = Array(type_of_elements="Struct_1")
+        array_definition.length = 1
+
+        struct_without_type = Struct()
+        instantiated_array.values = [struct_without_type]
+        instantiated_array.length = 1
+
+        args = (
+            "check_instantiated_struct_attributes",
+            True,
+            1,
+            self.checker.check_array,
+            instantiated_array,
+            array_definition,
+        )
+        self.assertTrue(self.check_method(*args))
+        self.assertEqual(struct_without_type.name, "Struct_1")
+
+        args = (
+            "check_instantiated_struct_attributes",
+            False,
+            1,
+            self.checker.check_array,
+            instantiated_array,
+            array_definition,
+        )
+        self.assertFalse(self.check_method(*args))
+        self.assertEqual(struct_without_type.name, "Struct_1")
 
     def test_variable_type_exists(self):
         self.checker.structs = {"Struct_1": Struct(), "Struct_2": Struct()}
