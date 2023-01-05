@@ -33,7 +33,7 @@ from pfdl_scheduler.validation.error_handler import ErrorHandler
 from pfdl_scheduler.validation.semantic_error_checker import SemanticErrorChecker
 
 # global defines
-from pfdl_scheduler.parser.pfdl_tree_visitor import PRIMITIVE_DATATYPES, IN_KEY, OUT_KEY, START_TASK
+from pfdl_scheduler.parser.pfdl_tree_visitor import IN_KEY, OUT_KEY
 
 
 class DummyStart:
@@ -77,8 +77,13 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertEqual(mock.call_count, calls)
         return result
 
-    def check_if_print_error_is_called(self, method, *args):
-        """#TODO"""
+    def check_if_print_error_is_called(self, method, *args) -> None:
+        """Runs the given method wiht the help of a mock object and checks if print error is called.
+
+        Args:
+            method: The method which should be tested.
+            args: Variable amount of arguments for the method to be tested.
+        """
         with patch.object(self.error_handler, "print_error") as mock:
             method(*args)
         mock.assert_called()
@@ -225,6 +230,8 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.checker.tasks = {"noProductionTask": Task(name="noProductionTask")}
         self.assertFalse(self.execute_check_tasks(False, False, False))
         self.assertFalse(self.execute_check_tasks(True, True, True))
+
+        self.check_if_print_error_is_called(self.execute_check_tasks, False, False, False)
 
     def test_check_statements(self):
         dummy_task = Task()
@@ -377,6 +384,8 @@ class TestSemanticErrorChecker(unittest.TestCase):
 
         dummy_task.output_parameters = ["var_1", "var_2", "not_a_variable"]
         self.assertFalse(self.checker.check_task_output_parameters(dummy_task))
+
+        self.check_if_print_error_is_called(self.checker.check_task_output_parameters, dummy_task)
 
     def test_check_service(self):
         dummy_service = Service()
@@ -535,6 +544,10 @@ class TestSemanticErrorChecker(unittest.TestCase):
         ) as mock:
             self.assertFalse(self.checker.check_if_task_call_matches_with_called_task(*args))
 
+        self.check_if_print_error_is_called(
+            self.checker.check_if_task_call_matches_with_called_task, *args
+        )
+
         # (3)output parameter check
         dummy_task_call.input_parameters = []
         dummy_called_task.input_parameters = {}
@@ -549,6 +562,10 @@ class TestSemanticErrorChecker(unittest.TestCase):
 
         self.assertFalse(self.checker.check_if_task_call_matches_with_called_task(*args))
 
+        self.check_if_print_error_is_called(
+            self.checker.check_if_task_call_matches_with_called_task, *args
+        )
+
     def test_check_if_input_parameter_matches(self):
         task_call = TaskCall("Task")
         task_context = Task()
@@ -562,9 +579,11 @@ class TestSemanticErrorChecker(unittest.TestCase):
 
         args = ("test", "identifier", "Struct_2", task_call, called_task, task_context)
         self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
+        self.check_if_print_error_is_called(self.checker.check_if_input_parameter_matches, *args)
 
         args = ("not_a_variable", "identifier", "Struct_1", task_call, called_task, task_context)
         self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
+        self.check_if_print_error_is_called(self.checker.check_if_input_parameter_matches, *args)
 
         # input parameter is List[str] without array
         dummy_struct_a = Struct("Struct_1")
@@ -608,6 +627,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
             task_context,
         )
         self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
+        self.check_if_print_error_is_called(self.checker.check_if_input_parameter_matches, *args)
 
         # input parameter is List[str] with array
         dummy_struct_a = Struct("Struct_1")
@@ -644,6 +664,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
             task_context,
         )
         self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
+        self.check_if_print_error_is_called(self.checker.check_if_input_parameter_matches, *args)
 
         args = (
             ["a", "b", "[]"],
@@ -664,6 +685,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
             task_context,
         )
         self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
+        self.check_if_print_error_is_called(self.checker.check_if_input_parameter_matches, *args)
 
         # input parameter is Struct
         dummy_struct = Struct("Struct_1")
@@ -673,6 +695,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
         dummy_struct = Struct("Struct_2")
         args = (dummy_struct, "identifier", "Struct_1", task_call, called_task, task_context)
         self.assertFalse(self.checker.check_if_input_parameter_matches(*args))
+        self.check_if_print_error_is_called(self.checker.check_if_input_parameter_matches, *args)
 
     def test_check_if_task_call_parameter_length_match(self):
         dummy_task = Task("task")
@@ -687,10 +710,16 @@ class TestSemanticErrorChecker(unittest.TestCase):
         dummy_task.input_parameters = ["a"]
         task_call.input_parameters = {}
         self.assertFalse(self.checker.check_if_task_call_parameter_length_match(task_call))
+        self.check_if_print_error_is_called(
+            self.checker.check_if_task_call_parameter_length_match, task_call
+        )
 
         dummy_task.input_parameters = []
         task_call.input_parameters = {"b": "type"}
         self.assertFalse(self.checker.check_if_task_call_parameter_length_match(task_call))
+        self.check_if_print_error_is_called(
+            self.checker.check_if_task_call_parameter_length_match, task_call
+        )
 
         dummy_task.input_parameters = ["a"]
         task_call.input_parameters = {"b": "type"}
@@ -704,10 +733,16 @@ class TestSemanticErrorChecker(unittest.TestCase):
         dummy_task.output_parameters = {"a": "type"}
         task_call.output_parameters = []
         self.assertFalse(self.checker.check_if_task_call_parameter_length_match(task_call))
+        self.check_if_print_error_is_called(
+            self.checker.check_if_task_call_parameter_length_match, task_call
+        )
 
         dummy_task.output_parameters = {}
         task_call.output_parameters = ["b"]
         self.assertFalse(self.checker.check_if_task_call_parameter_length_match(task_call))
+        self.check_if_print_error_is_called(
+            self.checker.check_if_task_call_parameter_length_match, task_call
+        )
 
         dummy_task.output_parameters = {"a": "type"}
         task_call.output_parameters = ["b"]
@@ -874,9 +909,15 @@ class TestSemanticErrorChecker(unittest.TestCase):
         # input parameter is string
         service.input_parameters = ["test"]
         self.assertFalse(self.checker.check_call_input_parameters(service, task_context))
+        self.check_if_print_error_is_called(
+            self.checker.check_call_input_parameters, service, task_context
+        )
 
         task_call.input_parameters = ["test"]
         self.assertFalse(self.checker.check_call_input_parameters(task_call, task_context))
+        self.check_if_print_error_is_called(
+            self.checker.check_call_input_parameters, service, task_context
+        )
 
         task_context.variables = {"test": Struct()}
         self.assertTrue(self.checker.check_call_input_parameters(service, task_context))
@@ -913,6 +954,9 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertFalse(
             self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
         )
+        self.check_if_print_error_is_called(
+            self.checker.check_attribute_access, attribute_access, dummy_context, dummy_task
+        )
 
         dummy_task.variables = {"a": "Struct_1"}
         dummy_struct_a.attributes = {"b": "Struct_2"}
@@ -931,16 +975,25 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertFalse(
             self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
         )
+        self.check_if_print_error_is_called(
+            self.checker.check_attribute_access, attribute_access, dummy_context, dummy_task
+        )
 
         attribute_access = ["a", "e", "c"]
         self.assertFalse(
             self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
+        )
+        self.check_if_print_error_is_called(
+            self.checker.check_attribute_access, attribute_access, dummy_context, dummy_task
         )
 
         dummy_struct_a.attributes = {"b": "Unknown Struct"}
         attribute_access = ["a", "b", "c"]
         self.assertFalse(
             self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
+        )
+        self.check_if_print_error_is_called(
+            self.checker.check_attribute_access, attribute_access, dummy_context, dummy_task
         )
 
         # with array
@@ -958,6 +1011,9 @@ class TestSemanticErrorChecker(unittest.TestCase):
         attribute_access = ["a", "b", "[]", "d"]
         self.assertFalse(
             self.checker.check_attribute_access(attribute_access, dummy_context, dummy_task)
+        )
+        self.check_if_print_error_is_called(
+            self.checker.check_attribute_access, attribute_access, dummy_context, dummy_task
         )
 
     def test_check_call_output_parameters(self):
@@ -1126,6 +1182,9 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertTrue(self.checker.check_if_struct_exists(Struct("Struct_1")))
         self.assertTrue(self.checker.check_if_struct_exists(Struct("Struct_2")))
         self.assertFalse(self.checker.check_if_struct_exists(Struct("Not_a_struct")))
+        self.check_if_print_error_is_called(
+            self.checker.check_if_struct_exists, Struct("Not_a_struct")
+        )
 
     def test_check_for_unknown_attribute_in_struct(self):
         struct_definition = Struct("Test", {"identifier_1": "string", "identifier_2": "number"})
@@ -1151,6 +1210,12 @@ class TestSemanticErrorChecker(unittest.TestCase):
                 instantiated_struct, "unknown_identifier", struct_definition
             )
         )
+        self.check_if_print_error_is_called(
+            self.checker.check_for_unknown_attribute_in_struct,
+            instantiated_struct,
+            "unknown_identifier",
+            struct_definition,
+        )
 
     def test_check_for_wrong_attribute_type_in_struct(self):
         struct_definition = Struct()
@@ -1171,24 +1236,48 @@ class TestSemanticErrorChecker(unittest.TestCase):
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"identifier_1": Array()}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"identifier_1": True}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"identifier_1": Struct()}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         # type is number
         struct_definition.attributes = {"identifier_1": "number"}
@@ -1203,24 +1292,48 @@ class TestSemanticErrorChecker(unittest.TestCase):
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"identifier_1": Array()}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"identifier_1": True}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"identifier_1": Struct()}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         # type is boolean
         struct_definition.attributes = {"identifier_1": "boolean"}
@@ -1235,24 +1348,48 @@ class TestSemanticErrorChecker(unittest.TestCase):
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"identifier_1": Array()}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"identifier_1": 5}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"identifier_1": Struct()}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         # type is Array
         struct_definition.attributes = {"identifier_1": Array()}
@@ -1267,24 +1404,48 @@ class TestSemanticErrorChecker(unittest.TestCase):
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"identifier_1": 5}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"identifier_1": True}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"identifier_1": Struct()}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "identifier_1",
+            struct_definition,
+        )
 
         # type is struct
         struct_definition.attributes = {"nested_struct": "NestedStruct_1"}
@@ -1316,24 +1477,48 @@ class TestSemanticErrorChecker(unittest.TestCase):
             instantiated_struct, "nested_struct", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "nested_struct",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"nested_struct": Array()}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "nested_struct", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "nested_struct",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"nested_struct": True}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "nested_struct", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "nested_struct",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"nested_struct": 5}
         check_result = self.checker.check_for_wrong_attribute_type_in_struct(
             instantiated_struct, "nested_struct", struct_definition
         )
         self.assertFalse(check_result)
+        self.check_if_print_error_is_called(
+            self.checker.check_for_wrong_attribute_type_in_struct,
+            instantiated_struct,
+            "nested_struct",
+            struct_definition,
+        )
 
         instantiated_struct.attributes = {"nested_struct": nested_struct}
         args = (
@@ -1565,6 +1750,10 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertFalse(
             self.checker.check_expression({"unop": "!", "value": variable_list_2}, None, task)
         )
+        self.check_if_print_error_is_called(
+            self.checker.check_expression, {"unop": "!", "value": variable_list_2}, None, task
+        )
+
         expression = {
             "left": variable_list_2,
             "binOp": "Or",
@@ -1573,6 +1762,10 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertFalse(
             self.checker.check_expression({"unop": "!", "value": expression}, None, task)
         )
+        self.check_if_print_error_is_called(
+            self.checker.check_expression, {"unop": "!", "value": expression}, None, task
+        )
+
         expression = {
             "left": variable_list_3,
             "binOp": "Or",
@@ -1581,6 +1774,10 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertFalse(
             self.checker.check_expression({"unop": "!", "value": expression}, None, task)
         )
+        self.check_if_print_error_is_called(
+            self.checker.check_expression, {"unop": "!", "value": expression}, None, task
+        )
+
         expression = {
             "left": variable_list_3,
             "binOp": "!=",
@@ -1592,6 +1789,9 @@ class TestSemanticErrorChecker(unittest.TestCase):
         }
         self.assertFalse(
             self.checker.check_expression({"unop": "!", "value": expression}, None, task)
+        )
+        self.check_if_print_error_is_called(
+            self.checker.check_expression, {"unop": "!", "value": expression}, None, task
         )
 
         self.assertTrue(
@@ -1664,15 +1864,35 @@ class TestSemanticErrorChecker(unittest.TestCase):
                 {"left": 5, "binOp": "<", "right": "a_string"}, None, task
             )
         )
+        self.check_if_print_error_is_called(
+            self.checker.check_expression,
+            {"left": 5, "binOp": "<", "right": "a_string"},
+            None,
+            task,
+        )
+
         self.assertFalse(
             self.checker.check_expression(
                 {"left": variable_list_2, "binOp": "<", "right": 1}, None, task
             )
         )
+        self.check_if_print_error_is_called(
+            self.checker.check_expression,
+            {"left": variable_list_2, "binOp": "<", "right": 1},
+            None,
+            task,
+        )
+
         self.assertFalse(
             self.checker.check_expression(
                 {"left": variable_list_3, "binOp": "<", "right": 1}, None, task
             )
+        )
+        self.check_if_print_error_is_called(
+            self.checker.check_expression,
+            {"left": variable_list_3, "binOp": "<", "right": 1},
+            None,
+            task,
         )
 
         expression = {
@@ -1681,6 +1901,12 @@ class TestSemanticErrorChecker(unittest.TestCase):
             "right": {"left": 5, "binOp": "<", "right": variable_list},
         }
         self.assertFalse(self.checker.check_expression(expression, None, task))
+        self.check_if_print_error_is_called(
+            self.checker.check_expression,
+            expression,
+            None,
+            task,
+        )
 
         # boolean or boolean < number -> valid
         expression = {
@@ -1700,6 +1926,12 @@ class TestSemanticErrorChecker(unittest.TestCase):
             },
         }
         self.assertFalse(self.checker.check_expression(expression, None, task))
+        self.check_if_print_error_is_called(
+            self.checker.check_expression,
+            expression,
+            None,
+            task,
+        )
 
     def test_check_single_expression(self):
         struct = Struct()
@@ -2086,16 +2318,43 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertFalse(
             self.checker.check_if_variable_definition_is_valid("identifier", "Not_a_struct", None)
         )
+        self.check_if_print_error_is_called(
+            self.checker.check_if_variable_definition_is_valid,
+            "identifier",
+            "Not_a_struct",
+            None,
+        )
+
         self.assertFalse(
             self.checker.check_if_variable_definition_is_valid("identifier", array_4, None)
         )
+        self.check_if_print_error_is_called(
+            self.checker.check_if_variable_definition_is_valid,
+            "identifier",
+            array_4,
+            None,
+        )
+
         self.assertFalse(
             self.checker.check_if_variable_definition_is_valid(
                 "identifier", "not_a_primitive_datatype", None
             )
         )
+        self.check_if_print_error_is_called(
+            self.checker.check_if_variable_definition_is_valid,
+            "identifier",
+            "not_a_primitive_datatype",
+            None,
+        )
+
         self.assertFalse(
             self.checker.check_if_variable_definition_is_valid("identifier", array_5, None)
+        )
+        self.check_if_print_error_is_called(
+            self.checker.check_if_variable_definition_is_valid,
+            "identifier",
+            array_5,
+            None,
         )
 
     def test_check_if_task_in_taskcall_exists(self):
@@ -2103,6 +2362,9 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertTrue(self.checker.check_if_task_in_taskcall_exists("task_1", None))
         self.assertTrue(self.checker.check_if_task_in_taskcall_exists("task_2", None))
         self.assertFalse(self.checker.check_if_task_in_taskcall_exists("not_a_task", None))
+        self.check_if_print_error_is_called(
+            self.checker.check_if_task_in_taskcall_exists, "not_a_task", None
+        )
 
     def test_check_array(self):
         array_definition = Array(type_of_elements="number")
@@ -2115,12 +2377,21 @@ class TestSemanticErrorChecker(unittest.TestCase):
         # wrong type
         instantiated_array.values = [True, 2, 3]
         self.assertFalse(self.checker.check_array(instantiated_array, array_definition))
+        self.check_if_print_error_is_called(
+            self.checker.check_array, instantiated_array, array_definition
+        )
 
         instantiated_array.values = [1, "a string", 3]
         self.assertFalse(self.checker.check_array(instantiated_array, array_definition))
+        self.check_if_print_error_is_called(
+            self.checker.check_array, instantiated_array, array_definition
+        )
 
         instantiated_array.values = [True, 2, ""]
         self.assertFalse(self.checker.check_array(instantiated_array, array_definition))
+        self.check_if_print_error_is_called(
+            self.checker.check_array, instantiated_array, array_definition
+        )
 
         # struct in array
         array_definition = Array(type_of_elements="Struct_1")
@@ -2164,6 +2435,9 @@ class TestSemanticErrorChecker(unittest.TestCase):
         instantiated_array.length = 2
         instantiated_array.values = [1, 2]
         self.assertFalse(self.checker.check_array(instantiated_array, array_definition))
+        self.check_if_print_error_is_called(
+            self.checker.check_array, instantiated_array, array_definition
+        )
 
         # struct type not set yet
         array_definition = Array(type_of_elements="Struct_1")
