@@ -228,7 +228,7 @@ class SemanticErrorChecker:
         if self.check_if_task_in_taskcall_exists(task_call.name, task_call.context):
             if not (
                 self.check_call_parameters(task_call, task_context)
-                & self.check_if_task_call_matches_with_called_task(task_call, task_context)
+                and self.check_if_task_call_matches_with_called_task(task_call, task_context)
             ):
                 return False
         else:
@@ -237,6 +237,8 @@ class SemanticErrorChecker:
 
     def check_if_task_call_matches_with_called_task(self, task_call: TaskCall, task: Task) -> bool:
         """Checks if the parameters of the Taskcall matches with the parameters of the Task.
+
+        This method assumes that the validity of the input parameter itself was already checked.
 
         Multiple Checks are done:
             (1) Checks if length of parameters of Taskcall and Task match.
@@ -290,26 +292,25 @@ class SemanticErrorChecker:
         defined_type: Union[str, Array],
         task_call: TaskCall,
         called_task: Task,
-        task: Task,
+        task_context: Task,
     ) -> bool:
         """Checks if the input parameters of a Taskcall matches with the called Task.
 
         This method assumes that the validity of the input parameter itself was already checked.
-        # TODO: Better naming for args
 
         Args:
             input_parameter: The input parameter of the TaskCall.
-            identifier: Parameter name of the input in the called task.
+            identifier: Parameter name of the input in the called task (only for error message).
             defined_type: Type of the input in the called task.
             task_call: The TaskCall the input parameter is from.
             called_task: The Task the TaskCall is refering to (the called task).
-            task: The Task in which the TaskCall was evoked.
+            task_context: The Task in which the TaskCall was evoked.
         Returns:
             True if the input parameters of a Taskcall matches with the called Task.
         """
         if isinstance(input_parameter, str):
-            if input_parameter in task.variables:
-                type_of_variable = task.variables[input_parameter]
+            if input_parameter in task_context.variables:
+                type_of_variable = task_context.variables[input_parameter]
 
                 # str() because of possible Arrays as
                 # types (we can compare types by converting Array object to string)
@@ -339,20 +340,22 @@ class SemanticErrorChecker:
                 return False
         elif isinstance(input_parameter, list):
             # At this point it is known that the variable chain is valid, so dont check again
-            current_struct = self.structs[task.variables[input_parameter[0]]]
+            current_struct = self.structs[task_context.variables[input_parameter[0]]]
             i = 1
             while i < len(input_parameter) - 1:
                 element = current_struct.attributes[input_parameter[i]]
                 if isinstance(element, Array):
                     i = i + 1
-                current_struct = self.structs[element.type_of_elements]
+                    current_struct = self.structs[element.type_of_elements]
+                else:
+                    current_struct = self.structs[element.name]
                 i = i + 1
 
             index = len(input_parameter) - 1
             if input_parameter[index].startswith("["):
                 given_type = current_struct.name
             else:
-                given_type = current_struct.attributes[input_parameter[index]]
+                given_type = current_struct.attributes[input_parameter[index]].name
             if given_type != defined_type:
                 error_msg = (
                     "Type of TaskCall parameter "
@@ -401,6 +404,9 @@ class SemanticErrorChecker:
     def check_call_parameters(self, called_entity: Union[Service, TaskCall], task: Task) -> bool:
         """Checks if the parameters of a Service or Task call are valid (input and output).
 
+        Args:
+            called_entity: The evoked call (service or task call).
+
         Returns:
             True if the parameters of a Service or Task call are valid.
         """
@@ -417,6 +423,9 @@ class SemanticErrorChecker:
     ) -> bool:
         """Checks if the input parameters of a Service or Task Call are valid.
 
+        Args:
+            called_entity: The evoked call (service or task call).
+
         Returns:
             True if the input parameters of a Service or Task Call are valid.
         """
@@ -431,20 +440,13 @@ class SemanticErrorChecker:
                     input_parameter, called_entity.context_dict[IN_KEY], task
                 ):
                     valid = False
-            else:  # input_parameter is str
-                # check if its a value
-                if not helpers.is_con(input_parameter):
-                    # array access
-                    if input_parameter.find(".") == -1:
-                        input_parameter = input_parameter.split(".")[0]
-
-                    if not input_parameter in task.variables:
-                        error_msg = (
-                            f"An unknown variable '{input_parameter}' is used as input of"
-                            f" {type(called_entity).__name__} '{called_entity.name}'"
-                        )
-                        self.error_handler.print_error(error_msg, context=called_entity.context)
-                        valid = False
+            elif not input_parameter in task.variables:
+                error_msg = (
+                    f"An unknown variable '{input_parameter}' is used as input of"
+                    f" {type(called_entity).__name__} '{called_entity.name}'"
+                )
+                self.error_handler.print_error(error_msg, context=called_entity.context)
+                valid = False
         return valid
 
     def check_attribute_access(
@@ -467,6 +469,7 @@ class SemanticErrorChecker:
                         self.error_handler.print_error(error_msg, context=context)
                         return False
                     if i < len(variable_list) - 1:
+                        # check if this attribute is an array (next element is [])
                         if not (
                             variable_list[i + 1].startswith("[")
                             and variable_list[i + 1].endswith("]")
@@ -475,9 +478,11 @@ class SemanticErrorChecker:
                                 error_msg = f"Attribute '{attribute}' is not a Struct"
                                 self.error_handler.print_error(error_msg, context=context)
                                 return False
+                            predecessor = self.structs[predecessor.attributes[attribute]]
                         else:
-                            return True
-                        predecessor = self.structs[predecessor.attributes[attribute]]
+                            predecessor = self.structs[
+                                predecessor.attributes[attribute].type_of_elements
+                            ]
         else:
             error_msg = f"Unknown variable '{variable}'."
             self.error_handler.print_error(error_msg, context=context)
@@ -486,6 +491,14 @@ class SemanticErrorChecker:
 
     def check_call_output_parameters(self, called_entity: Union[Service, TaskCall]) -> bool:
         """Checks if the output parameters of a Service or Task Call are valid.
+
+        The output parameter of a call only consists of the visible variable name and
+        the type of the variable. So all there is to check is the variable definition.
+        This methods just calls the `check_if_variable_definition_is_valid` method for all
+        output parameters.
+
+        Args:
+            called_entity: The evoked call (service or task call).
 
         Returns:
             True if the output parameters of a Service or Task Call are valid.
@@ -498,26 +511,35 @@ class SemanticErrorChecker:
                 valid = False
         return valid
 
-    def check_instantiated_struct_attributes(self, struct: Struct) -> bool:
+    def check_instantiated_struct_attributes(self, struct_instance: Struct) -> bool:
         """Calls multiple check methods to validate an instantiated Struct.
+
+        Multiple Checks are done:
+            (1) Check if the name of the struct instance exists in the struct definitions.
+            (2) Check if attributes from the struct definition are missing.
+            (3) Check if there are attributes in the instance that do not exist in the definition.
+            (4) Check if attributes in the instance do not match with attributes in the definition.
+
+        Args:
+            struct_instance: The instantiated struct that is checked.
 
         Returns:
             True if the instantiated Struct is valid.
         """
         valid = True
-        if self.check_if_struct_exists(struct):
-            struct_definition = self.structs[struct.name]
+        if self.check_if_struct_exists(struct_instance):
+            struct_definition = self.structs[struct_instance.name]
 
-            if not self.check_for_missing_attribute_in_struct(struct, struct_definition):
+            if not self.check_for_missing_attribute_in_struct(struct_instance, struct_definition):
                 valid = False
 
-            for identifier in struct.attributes:
+            for identifier in struct_instance.attributes:
                 if not (
                     self.check_for_unknown_attribute_in_struct(
-                        struct, identifier, struct_definition
+                        struct_instance, identifier, struct_definition
                     )
                     & self.check_for_wrong_attribute_type_in_struct(
-                        struct, identifier, struct_definition
+                        struct_instance, identifier, struct_definition
                     )
                 ):
                     valid = False
@@ -539,10 +561,15 @@ class SemanticErrorChecker:
         return True
 
     def check_for_unknown_attribute_in_struct(
-        self, struct: Struct, identifier: str, struct_definition: Struct
+        self, struct_instance: Struct, identifier: str, struct_definition: Struct
     ) -> bool:
         """Checks if the given identifier in the instantiated struct
         exists in the struct definition.
+
+        Args:
+            struct_instance: The instantiated struct that is checked.
+            identifier: The identifier in the struct instance which should be checked.
+            struct_definition: The corresponding struct definition.
 
         Returns:
             True if the given identifier exists in the struct definition.
@@ -552,63 +579,67 @@ class SemanticErrorChecker:
                 f"Unknown attribute '{identifier}' in instantiated "
                 f"struct '{struct_definition.name}'"
             )
-            self.error_handler.print_error(error_msg, context=struct.context)
+            self.error_handler.print_error(error_msg, context=struct_instance.context)
             return False
         return True
 
     def check_for_wrong_attribute_type_in_struct(
-        self, struct: Struct, identifier: str, struct_definition: Struct
+        self, struct_instance: Struct, identifier: str, struct_definition: Struct
     ) -> bool:
         """Calls check methods for the attribute assignments in an instantiated Struct.
 
+        This methods assumes that the given identifier is not unknown.
+        Args:
+            struct_instance: The instantiated struct that is checked.
+            identifier: The identifier in the struct instance which should be checked.
+            struct_definition: The corresponding struct definition.
+
         Returns:
-            True if all attribute assignments are valid.
+            True if the given identifier in the struct instance matches with the struct definition.
         """
-        if identifier in struct_definition.attributes:
-            correct_attribute_type = struct_definition.attributes[identifier]
-            attribute = struct.attributes[identifier]
+        correct_attribute_type = struct_definition.attributes[identifier]
+        attribute = struct_instance.attributes[identifier]
 
-            if isinstance(correct_attribute_type, str):
-                if correct_attribute_type in self.structs:
+        if isinstance(correct_attribute_type, str):
+            if correct_attribute_type in self.structs:
 
-                    # check for structs which has structs as attribute
-                    if isinstance(attribute, Struct):
-                        attribute.name = correct_attribute_type
-                        struct_def = self.structs[correct_attribute_type]
-                        struct_correct = True
-                        for identifier in attribute.attributes:
-                            if not self.check_for_wrong_attribute_type_in_struct(
-                                attribute, identifier, struct_def
-                            ):
-                                struct_correct = False
-                        return struct_correct
-                    error_msg = (
-                        f"Attribute '{identifier}' has the wrong type in the "
-                        f"instantiated Struct '{struct.name}', expected "
-                        f"Struct '{correct_attribute_type}'"
-                    )
-                    self.error_handler.print_error(error_msg, context=struct.context)
-                    return False
-                if not helpers.check_type_of_value(attribute, correct_attribute_type):
-                    error_msg = (
-                        f"Attribute '{identifier}' has the wrong type in the instantiated"
-                        f" Struct '{struct.name}', expected '{correct_attribute_type}'"
-                    )
-                    self.error_handler.print_error(error_msg, context=struct.context)
-                    return False
+                # check for structs which has structs as attribute
+                if isinstance(attribute, Struct):
+                    attribute.name = correct_attribute_type
+                    struct_def = self.structs[correct_attribute_type]
+                    struct_correct = True
+                    for identifier in attribute.attributes:
+                        if not self.check_for_wrong_attribute_type_in_struct(
+                            attribute, identifier, struct_def
+                        ):
+                            struct_correct = False
+                    return struct_correct
+                error_msg = (
+                    f"Attribute '{identifier}' has the wrong type in the "
+                    f"instantiated Struct '{struct_instance.name}', expected "
+                    f"Struct '{correct_attribute_type}'"
+                )
+                self.error_handler.print_error(error_msg, context=struct_instance.context)
+                return False
+            if not helpers.check_type_of_value(attribute, correct_attribute_type):
+                error_msg = (
+                    f"Attribute '{identifier}' has the wrong type in the instantiated"
+                    f" Struct '{struct_instance.name}', expected '{correct_attribute_type}'"
+                )
+                self.error_handler.print_error(error_msg, context=struct_instance.context)
+                return False
 
-            elif isinstance(correct_attribute_type, Array):
-                if not isinstance(attribute, Array) or not self.check_array(
-                    attribute, correct_attribute_type
-                ):
-                    error_msg = (
-                        f"Attribute '{identifier}' has the wrong type in the instantiated"
-                        f" Struct '{struct.name}', expected 'Array'"
-                    )
-                    self.error_handler.print_error(error_msg, context=struct.context)
-                    return False
-            return True
-        return False
+        elif isinstance(correct_attribute_type, Array):
+            if not isinstance(attribute, Array) or not self.check_array(
+                attribute, correct_attribute_type
+            ):
+                error_msg = (
+                    f"Attribute '{identifier}' has the wrong type in the instantiated"
+                    f" Struct '{struct_instance.name}', expected 'Array'"
+                )
+                self.error_handler.print_error(error_msg, context=struct_instance.context)
+                return False
+        return True
 
     def check_array(self, instantiated_array: Array, array_definition: Array) -> bool:
         """Calls check methods to validate the instantiated array.
@@ -620,9 +651,11 @@ class SemanticErrorChecker:
         element_type = array_definition.type_of_elements
         for value in instantiated_array.values:
             # type of Struct not checked yet
-            if isinstance(value, Struct) and value.name == "":
-                value.name = array_definition.type_of_elements
-                self.check_instantiated_struct_attributes(value)
+            if isinstance(value, Struct):
+                if value.name == "":
+                    value.name = array_definition.type_of_elements
+                if not self.check_instantiated_struct_attributes(value):
+                    return False
             if not helpers.check_type_of_value(value, element_type):
                 error_msg = (
                     f"Array has elements that does not match "
