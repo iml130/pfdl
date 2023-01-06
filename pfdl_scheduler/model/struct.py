@@ -56,6 +56,16 @@ class Struct:
         self.context: ParserRuleContext = context
         self.context_dict: Dict = {}
 
+    def __eq__(self, __o: object) -> bool:
+        if isinstance(__o, Struct):
+            return (
+                self.name == __o.name
+                and self.attributes == __o.attributes
+                and self.context == __o.context
+                and self.context_dict == __o.context_dict
+            )
+        return False
+
     @classmethod
     def from_json(
         cls, json_string: str, error_handler: ErrorHandler, struct_context: ParserRuleContext
