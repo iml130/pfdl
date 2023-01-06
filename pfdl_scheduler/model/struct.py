@@ -109,10 +109,10 @@ def parse_json(
             struct.attributes[identifier] = array
             for element in value:
                 if isinstance(element, (int, float, str, bool)):
-                    if isinstance(element, (int, float)):
-                        array.type_of_elements = "number"
-                    elif isinstance(element, bool):
+                    if isinstance(element, bool):
                         array.type_of_elements = "boolean"
+                    elif isinstance(element, (int, float)):
+                        array.type_of_elements = "number"
                     else:
                         array.type_of_elements = "string"
                     array.append_value(element)
