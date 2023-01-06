@@ -34,20 +34,20 @@ class TestArray(unittest.TestCase):
         self.assertEqual(array.context, context)
 
     def test_repr(self):
-        # Test with defined length
+        # test with defined length
         array = Array("int", [1, 2, 3])
         self.assertEqual(repr(array), "int[3]")
 
-        # Test with undefined length
+        # test with undefined length
         array = Array("int", [])
         self.assertEqual(repr(array), "int[]")
 
     def test_str(self):
-        # Test with defined length
+        # test with defined length
         array = Array("int", [1, 2, 3])
         self.assertEqual(str(array), "int[3]")
 
-        # Test with undefined length
+        # test with undefined length
         array = Array("int", [])
         self.assertEqual(str(array), "int[]")
 
@@ -67,10 +67,10 @@ class TestArray(unittest.TestCase):
         self.assertEqual(array.length, 2)
 
     def test_length_defined(self):
-        # Test with defined length
+        # test with defined length
         array = Array("int", [1, 2, 3])
         self.assertTrue(array.length_defined())
 
-        # Test with undefined length
+        # test with undefined length
         array = Array("int", [])
         self.assertFalse(array.length_defined())

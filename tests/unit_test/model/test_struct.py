@@ -7,7 +7,6 @@
 """Contains unit tests tests for the Struct class and the 'parse_json' method."""
 
 # standard libraries
-from typing import Dict
 import unittest
 
 # local sources
