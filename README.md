@@ -1,4 +1,10 @@
-# Production Flow Description Language
+<div align="center">
+  
+Production Flow Description Language
+===========================
+
+<img src="docs/img/pfdl_logo_without_font.png" alt="pfdl_logo" width="600"/>
+<br><br>
 
 ![Tests](https://github.com/iml130/pfdl/actions/workflows/tests.yml/badge.svg?branch=main)
 ![Lint Check](https://github.com/iml130/pfdl/actions/workflows/lint.yml/badge.svg?branch=main)
@@ -8,8 +14,11 @@
 **DISCLAIMER**:
 This project is not intended for everyday use and made available without any support.
 However, we welcome any kind of feedback via the issue tracker or by e-mail.
+</div>
 
-![pfdl_logo](docs/img/pfdl_logo.png)
+---
+<div align="left">
+
 The **P**roduction **F**low **D**escription **L**anguage (**PFDL**) is a domain specific language for the description of production orders in the manufacturing of the future.
 With the help of the PFDL customized products and their production steps can be described.
 
