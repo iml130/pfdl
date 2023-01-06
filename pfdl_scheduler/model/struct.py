@@ -109,6 +109,12 @@ def parse_json(
             struct.attributes[identifier] = array
             for element in value:
                 if isinstance(element, (int, float, str, bool)):
+                    if isinstance(element, (int, float)):
+                        array.type_of_elements = "number"
+                    elif isinstance(element, bool):
+                        array.type_of_elements = "boolean"
+                    else:
+                        array.type_of_elements = "string"
                     array.append_value(element)
                 elif isinstance(element, dict):
                     inner_struct = parse_json(element, error_handler, struct_context)
