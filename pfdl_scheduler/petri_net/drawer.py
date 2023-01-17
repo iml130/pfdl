@@ -64,6 +64,7 @@ def draw_transition(trans, attr):
     attr["height"] = TRANSITION_HEIGHT
     attr["width"] = TRANSITION_WIDTH
     attr["fillcolor"] = TRANSITION_FILL_COLOR
+    attr["group"] = trans.label("group_id")
 
 
 def draw_arcs(arc, attr):
