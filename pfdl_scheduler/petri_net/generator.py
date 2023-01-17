@@ -119,18 +119,22 @@ class PetriNetGenerator:
                 if self.generate_test_ids:
                     task_context.uuid = "0"
 
-                self.task_started_id = create_place(task.name + "_started", self.net, group_id)
-                connection_id = create_transition("", "", self.net, group_id)
+                self.task_started_id = create_place(
+                    task.name + "_started", self.net, (group_id, group_id)
+                )
+                connection_id = create_transition("", "", self.net, (group_id, group_id))
 
                 self.add_callback(connection_id, self.callbacks.task_started, task_context)
 
                 self.net.add_input(self.task_started_id, connection_id, Value(1))
-                self.task_finished_id = create_place(task.name + "_finished", self.net, group_id)
+                self.task_finished_id = create_place(
+                    task.name + "_finished", self.net, (group_id, group_id)
+                )
 
-                second_connection_id = create_transition("", "", self.net, group_id)
+                second_connection_id = create_transition("", "", self.net, (group_id, group_id))
 
                 self.generate_statements(
-                    task_context, task.statements, connection_id, second_connection_id
+                    task_context, task.statements, connection_id, second_connection_id, group_id
                 )
                 self.net.add_output(self.task_finished_id, second_connection_id, Value(1))
 
@@ -149,6 +153,7 @@ class PetriNetGenerator:
         statements: List,
         first_connection_id: str,
         last_connection_id: str,
+        parent_group_id: str,
         in_loop: bool = False,
     ) -> List[str]:
         """Generate Petri Net components for each statement in the given Task
@@ -171,14 +176,23 @@ class PetriNetGenerator:
             # and we are not in the last iteration
             if multiple_statements:
                 if i < len(statements) - 1:
-                    current_connection_id = create_transition("connection", "", self.net, "")
+                    current_connection_id = create_transition(
+                        "connection", "", self.net, (parent_group_id, parent_group_id)
+                    )
                 else:
                     current_connection_id = last_connection_id
             else:
                 previous_connection_id = first_connection_id
                 current_connection_id = last_connection_id
 
-            args = (statement, task_context, previous_connection_id, current_connection_id, in_loop)
+            args = (
+                statement,
+                task_context,
+                previous_connection_id,
+                current_connection_id,
+                parent_group_id,
+                in_loop,
+            )
 
             if isinstance(statement, Service):
                 connection_ids = [self.generate_service(*args)]
@@ -203,6 +217,7 @@ class PetriNetGenerator:
         task_context: TaskAPI,
         first_transition_id: str,
         second_transition_id: str,
+        parent_group_id: str,
         in_loop: bool = False,
     ) -> str:
         """Generate the Petri Net components for a Service Call.
@@ -214,13 +229,21 @@ class PetriNetGenerator:
 
         service_api = ServiceAPI(service, task_context, in_loop=in_loop)
 
-        service_started_id = create_place(service.name + " started", self.net, group_id)
+        service_started_id = create_place(
+            service.name + " started", self.net, (group_id, parent_group_id)
+        )
 
-        service_finished_id = create_place(service.name + " finished", self.net, group_id)
+        service_finished_id = create_place(
+            service.name + " finished", self.net, (group_id, parent_group_id)
+        )
         self.place_dict[service_api.uuid] = service_finished_id
 
-        service_done_id = create_place(service.name + " done", self.net, group_id)
-        service_done_transition_id = create_transition("service_done", "", self.net, group_id)
+        service_done_id = create_place(
+            service.name + " done", self.net, (group_id, parent_group_id)
+        )
+        service_done_transition_id = create_transition(
+            "service_done", "", self.net, (group_id, parent_group_id)
+        )
 
         self.add_callback(first_transition_id, self.callbacks.service_started, service_api)
         self.add_callback(service_done_transition_id, self.callbacks.service_finished, service_api)
@@ -240,6 +263,7 @@ class PetriNetGenerator:
         task_context: TaskAPI,
         first_transition_id: str,
         second_transition_id: str,
+        parent_group_id: str,
         in_loop: bool = False,
     ) -> List[str]:
         """Generate the Petri Net components for a Task Call.
@@ -257,6 +281,7 @@ class PetriNetGenerator:
             called_task.statements,
             first_transition_id,
             second_transition_id,
+            parent_group_id,
             in_loop,
         )
 
@@ -271,6 +296,7 @@ class PetriNetGenerator:
         task_context: TaskAPI,
         first_transition_id: str,
         second_transition_id: str,
+        parent_group_id: str,
         in_loop: bool = False,
     ) -> str:
         """Generate the Petri Net components for a Parallel statement.
@@ -279,7 +305,7 @@ class PetriNetGenerator:
             The id of the last transition of the Parallel petri net component.
         """
 
-        sync_id = create_transition("", "", self.net, "")
+        sync_id = create_transition("", "", self.net, "", (parent_group_id, parent_group_id))
         parallel_finished_id = create_place("Parallel finished", self.net, "")
 
         for task_call in parallel.task_calls:
@@ -295,6 +321,7 @@ class PetriNetGenerator:
         task_context: TaskAPI,
         first_transition_id: str,
         second_transition_id: str,
+        parent_group_id: str,
         in_loop: bool = False,
     ) -> List[str]:
         """Generate Petri Net components for the Condition statement.
@@ -304,15 +331,21 @@ class PetriNetGenerator:
         """
         group_id = str(uuid.uuid4())
 
-        passed_id = create_place("Passed", self.net, group_id)
-        failed_id = create_place("Failed", self.net, group_id)
+        passed_id = create_place("Passed", self.net, (group_id, parent_group_id))
+        failed_id = create_place("Failed", self.net, (group_id, parent_group_id))
 
         expression_id = create_place(
-            "If " + self.parse_expression(condition.expression), self.net, group_id
+            "If " + self.parse_expression(condition.expression),
+            self.net,
+            (group_id, parent_group_id),
         )
 
-        first_passed_transition_id = create_transition("", "", self.net, group_id)
-        first_failed_transition_id = create_transition("", "", self.net, group_id)
+        first_passed_transition_id = create_transition(
+            "", "", self.net, (group_id, parent_group_id)
+        )
+        first_failed_transition_id = create_transition(
+            "", "", self.net, (group_id, parent_group_id)
+        )
 
         self.net.add_input(expression_id, first_passed_transition_id, Value(1))
         self.net.add_input(expression_id, first_failed_transition_id, Value(1))
@@ -320,9 +353,11 @@ class PetriNetGenerator:
         self.net.add_input(passed_id, first_passed_transition_id, Value(1))
         self.net.add_input(failed_id, first_failed_transition_id, Value(1))
 
-        finished_id = create_place("Condition_Finished", self.net)
+        finished_id = create_place("Condition_Finished", self.net, (group_id, parent_group_id))
 
-        second_passed_transition_id = create_transition("", "", self.net, group_id)
+        second_passed_transition_id = create_transition(
+            "", "", self.net, (group_id, parent_group_id)
+        )
         self.net.add_output(finished_id, second_passed_transition_id, Value(1))
 
         self.generate_statements(
@@ -340,7 +375,9 @@ class PetriNetGenerator:
         self.add_callback(first_transition_id, self.callbacks.condition_started, *args)
 
         if condition.failed_stmts:
-            second_failed_transition_id = create_transition("", "", self.net, group_id)
+            second_failed_transition_id = create_transition(
+                "", "", self.net, (group_id, parent_group_id)
+            )
             self.generate_statements(
                 task_context,
                 condition.failed_stmts,
@@ -361,6 +398,7 @@ class PetriNetGenerator:
         task_context: TaskAPI,
         first_transition_id: str,
         second_transition_id: str,
+        parent_group_id: str,
         in_loop: bool = False,
     ) -> str:
         """Generates the Petri Net components for a Couting Loop.
@@ -375,16 +413,24 @@ class PetriNetGenerator:
                 loop, task_context, first_transition_id, second_transition_id
             )
 
-        loop_id = create_place("Loop", self.net, group_id)
+        loop_id = create_place("Loop", self.net, (group_id, parent_group_id))
 
         loop_text = "Loop"
 
-        loop_statements_id = create_place(loop_text, self.net, group_id)
-        loop_finished_id = create_place("Number of Steps Done", self.net, group_id)
+        loop_statements_id = create_place(loop_text, self.net, (group_id, parent_group_id))
+        loop_finished_id = create_place(
+            "Number of Steps Done", self.net, (group_id, parent_group_id)
+        )
 
-        condition_passed_transition_id = create_transition("", "", self.net, group_id)
-        condition_failed_transition_id = create_transition("", "", self.net, group_id)
-        iteration_step_done_transition_id = create_transition("", "", self.net, group_id)
+        condition_passed_transition_id = create_transition(
+            "", "", self.net, (group_id, parent_group_id)
+        )
+        condition_failed_transition_id = create_transition(
+            "", "", self.net, (group_id, parent_group_id)
+        )
+        iteration_step_done_transition_id = create_transition(
+            "", "", self.net, (group_id, parent_group_id)
+        )
 
         self.net.add_input(loop_id, condition_passed_transition_id, Value(1))
         self.net.add_input(loop_statements_id, condition_passed_transition_id, Value(1))
@@ -392,12 +438,13 @@ class PetriNetGenerator:
         self.net.add_input(loop_finished_id, condition_failed_transition_id, Value(1))
         self.net.add_output(loop_id, iteration_step_done_transition_id, Value(1))
 
-        loop_done_id = create_place("Loop Done", self.net, group_id)
+        loop_done_id = create_place("Loop Done", self.net, (group_id, parent_group_id))
         self.generate_statements(
             task_context,
             loop.statements,
             condition_passed_transition_id,
             iteration_step_done_transition_id,
+            parent_group_id,
             True,
         )
 
@@ -419,6 +466,7 @@ class PetriNetGenerator:
         task_context: TaskAPI,
         first_transition_id: str,
         second_transition_id: str,
+        parent_group_id: str,
     ) -> str:
         """Generates the static petri net components for a ParallelLoop.
 
@@ -432,7 +480,9 @@ class PetriNetGenerator:
         group_id = str(uuid.uuid4())
 
         parallel_loop_started = create_place(
-            "Start " + loop.statements[0].name + " in parallel", self.net, group_id
+            "Start " + loop.statements[0].name + " in parallel",
+            self.net,
+            (group_id, parent_group_id),
         )
 
         self.net.add_output(parallel_loop_started, first_transition_id, Value(1))
@@ -472,6 +522,7 @@ class PetriNetGenerator:
         task_context: TaskAPI,
         first_transition_id: str,
         second_transition_id: str,
+        parent_group_id: str,
         in_loop: bool = False,
     ) -> str:
         """Generate the Petri Net components for a While Loop.
@@ -485,12 +536,20 @@ class PetriNetGenerator:
 
         loop_text = "Loop"
 
-        loop_statements_id = create_place(loop_text, self.net, group_id)
-        loop_finished_id = create_place("Number of Steps Done", self.net, group_id)
+        loop_statements_id = create_place(loop_text, self.net, (group_id, parent_group_id))
+        loop_finished_id = create_place(
+            "Number of Steps Done", self.net, (group_id, parent_group_id)
+        )
 
-        condition_passed_transition_id = create_transition("", "", self.net, group_id)
-        condition_failed_transition_id = create_transition("", "", self.net, group_id)
-        iteration_step_done_transition_id = create_transition("", "", self.net, group_id)
+        condition_passed_transition_id = create_transition(
+            "", "", self.net, (group_id, parent_group_id)
+        )
+        condition_failed_transition_id = create_transition(
+            "", "", self.net, (group_id, parent_group_id)
+        )
+        iteration_step_done_transition_id = create_transition(
+            "", "", self.net, (group_id, parent_group_id)
+        )
 
         self.net.add_input(loop_id, condition_passed_transition_id, Value(1))
         self.net.add_input(loop_statements_id, condition_passed_transition_id, Value(1))
@@ -498,12 +557,13 @@ class PetriNetGenerator:
         self.net.add_input(loop_finished_id, condition_failed_transition_id, Value(1))
         self.net.add_output(loop_id, iteration_step_done_transition_id, Value(1))
 
-        loop_done_id = create_place("Loop Done", self.net, group_id)
+        loop_done_id = create_place("Loop Done", self.net, (group_id, parent_group_id))
         self.generate_statements(
             task_context,
             loop.statements,
             condition_passed_transition_id,
             iteration_step_done_transition_id,
+            parent_group_id,
             True,
         )
 
@@ -548,7 +608,7 @@ class PetriNetGenerator:
         )
 
 
-def create_place(name: str, net: PetriNet, group_id: str) -> str:
+def create_place(name: str, net: PetriNet, group_ids: Tuple[str]) -> str:
     """Utility function for creating a place with the snakes module.
 
     This function is used to add a place with the given name and to add labels for
@@ -564,12 +624,12 @@ def create_place(name: str, net: PetriNet, group_id: str) -> str:
     """
     place_id = str(uuid.uuid4())
     net.add_place(Place(place_id, []))
-    net.place(place_id).label(name=name, group_id=group_id)
+    net.place(place_id).label(name=name, group_id=group_ids[0] + "," + group_ids[1])
     return place_id
 
 
 def create_transition(
-    transition_name: str, transition_type: str, net: PetriNet, group_id: str
+    transition_name: str, transition_type: str, net: PetriNet, group_ids: Tuple[str]
 ) -> str:
     """Utility function for creating a transition with the snakes module.
 
@@ -587,6 +647,8 @@ def create_transition(
     transition_id = str(uuid.uuid4())
     net.add_transition(Transition(transition_id))
     net.transition(transition_id).label(
-        name=transition_name, transitionType=transition_type, group_id=group_id
+        name=transition_name,
+        transitionType=transition_type,
+        group_id=group_ids[0] + "," + group_ids[1],
     )
     return transition_id
