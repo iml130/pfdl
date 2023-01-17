@@ -25,7 +25,7 @@ from pfdl_scheduler.api.service_api import ServiceAPI
 from pfdl_scheduler.utils.parsing_utils import load_file
 from pfdl_scheduler.utils.parsing_utils import parse_file
 
-from pfdl_scheduler.petri_net.generator import PetriNetGenerator
+from pfdl_scheduler.petri_net.generator import Node, PetriNetGenerator
 from pfdl_scheduler.petri_net.logic import PetriNetLogic
 
 from pfdl_scheduler.scheduling.event import Event
@@ -400,7 +400,7 @@ class Scheduler(Subject):
         parallel_loop_started,
         first_transition_id: str,
         second_transition_id: str,
-        parent_group_id: str,
+        node: Node,
     ) -> None:
         """Executes Scheduling logic when a Parallel Loop is started."""
         task_count = self.get_loop_limit(loop, task_context)
