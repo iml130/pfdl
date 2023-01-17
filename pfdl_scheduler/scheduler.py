@@ -400,6 +400,7 @@ class Scheduler(Subject):
         parallel_loop_started,
         first_transition_id: str,
         second_transition_id: str,
+        parent_group_id: str,
     ) -> None:
         """Executes Scheduling logic when a Parallel Loop is started."""
         task_count = self.get_loop_limit(loop, task_context)

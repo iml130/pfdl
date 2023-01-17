@@ -305,11 +305,15 @@ class PetriNetGenerator:
             The id of the last transition of the Parallel petri net component.
         """
 
-        sync_id = create_transition("", "", self.net, "", (parent_group_id, parent_group_id))
-        parallel_finished_id = create_place("Parallel finished", self.net, "")
+        sync_id = create_transition("", "", self.net, (parent_group_id, parent_group_id))
+        parallel_finished_id = create_place(
+            "Parallel finished", self.net, (parent_group_id, parent_group_id)
+        )
 
         for task_call in parallel.task_calls:
-            self.generate_task_call(task_call, task_context, first_transition_id, sync_id, in_loop)
+            self.generate_task_call(
+                task_call, task_context, first_transition_id, sync_id, parent_group_id, in_loop
+            )
 
         self.net.add_output(parallel_finished_id, sync_id, Value(1))
         self.net.add_input(parallel_finished_id, second_transition_id, Value(1))
@@ -365,6 +369,7 @@ class PetriNetGenerator:
             condition.passed_stmts,
             first_passed_transition_id,
             second_passed_transition_id,
+            parent_group_id,
             in_loop,
         )
 
@@ -383,6 +388,7 @@ class PetriNetGenerator:
                 condition.failed_stmts,
                 first_failed_transition_id,
                 second_failed_transition_id,
+                parent_group_id,
                 in_loop,
             )
 
@@ -410,7 +416,7 @@ class PetriNetGenerator:
 
         if loop.parallel:
             return self.generate_parallel_loop(
-                loop, task_context, first_transition_id, second_transition_id
+                loop, task_context, first_transition_id, second_transition_id, parent_group_id
             )
 
         loop_id = create_place("Loop", self.net, (group_id, parent_group_id))
@@ -495,6 +501,7 @@ class PetriNetGenerator:
             parallel_loop_started,
             first_transition_id,
             second_transition_id,
+            parent_group_id,
         )
         self.add_callback(first_transition_id, self.callbacks.parallel_loop_started, *args)
         return second_transition_id
