@@ -208,9 +208,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
     def visitParameter(self, ctx: PFDLParser.ParameterContext) -> Union[str, List[str]]:
         if ctx.STARTS_WITH_LOWER_C_STR():
             return ctx.STARTS_WITH_LOWER_C_STR().getText()
-        if ctx.attribute_access():
-            return self.visitAttribute_access(ctx.attribute_access())
-        return self.visitValue(ctx.value())
+        return self.visitAttribute_access(ctx.attribute_access())
 
     def visitStruct_initialization(self, ctx: PFDLParser.Struct_initializationContext) -> Struct:
         json_object_ctx = ctx.json_object()
