@@ -315,11 +315,14 @@ class PFDLTreeVisitor(PFDLParserVisitor):
             array = Array()
             array.type_of_elements = variable_type
             array.context = ctx.array()
-            array.length = self.visitArray(ctx.array())
-            if not isinstance(array.length, int):
+            length = self.visitArray(ctx.array())
+            if not isinstance(length, int):
                 self.error_handler.print_error(
                     "Array length has to be specified by an integer", syntax_error=True
                 )
+            else:
+                array.length = length
+
             variable_type = array
 
         return (identifier, variable_type)
