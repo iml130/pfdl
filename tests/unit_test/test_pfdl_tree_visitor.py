@@ -128,7 +128,7 @@ class TestPFDLTreeVisitor(unittest.TestCase):
             self.assertIn("var1", struct.attributes)
             self.assertEqual(struct.attributes["var1"], "number")
             self.assertIn("var2", struct.attributes)
-            # self.assertEqual(struct.attributes["var2"], Array("number"))
+            self.assertEqual(struct.attributes["var2"], Array("number"))
 
         self.assertEqual(mock.call_count, 2)
 
@@ -193,7 +193,7 @@ class TestPFDLTreeVisitor(unittest.TestCase):
                     self.assertIn("param_1", task.input_parameters)
                     self.assertEqual(task.input_parameters["param_1"], "number")
                     self.assertIn("param_2", task.input_parameters)
-                    # self.assertEqual(task.input_parameters["param_2"], Array("number"))
+                    self.assertEqual(task.input_parameters["param_2"], Array("number"))
                     self.assertEqual(len(task.output_parameters), 2)
                     self.assertEqual(task.output_parameters[0], "param_1")
                     self.assertEqual(task.output_parameters[1], "param_2")
@@ -231,6 +231,55 @@ class TestPFDLTreeVisitor(unittest.TestCase):
         create_and_add_token(PFDLParser.STARTS_WITH_LOWER_C_STR, "attr_3", attribute_access_context)
         attr_list = self.visitor.visitAttribute_access(attribute_access_context)
         self.assertEqual(attr_list, ["attr_1", "attr_2", "attr_3"])
+
+    def test_visitVariable_definition(self):
+        variable_definition_context = PFDLParser.Variable_definitionContext(None)
+        # without array
+        variable_definition_context.children = [
+            PFDLParser.PrimitiveContext(None),
+        ]
+        create_and_add_token(
+            PFDLParser.STARTS_WITH_LOWER_C_STR, "variable", variable_definition_context
+        )
+
+        with patch.object(self.visitor, "visitPrimitive", return_value="number"):
+            self.assertEqual(
+                self.visitor.visitVariable_definition(variable_definition_context),
+                ("variable", "number"),
+            )
+
+        # with array
+        variable_definition_context.children = [
+            PFDLParser.PrimitiveContext(None),
+            PFDLParser.ArrayContext(None),
+        ]
+        create_and_add_token(
+            PFDLParser.STARTS_WITH_LOWER_C_STR, "variable", variable_definition_context
+        )
+        with patch.object(self.visitor, "visitPrimitive", return_value="string"):
+            # without length
+            with patch.object(self.visitor, "visitArray", return_value=-1):
+                self.assertEqual(
+                    self.visitor.visitVariable_definition(variable_definition_context),
+                    ("variable", Array("string")),
+                )
+            # with length
+            with patch.object(self.visitor, "visitArray", return_value=10):
+                array = Array("string")
+                array.length = 10
+                self.assertEqual(
+                    self.visitor.visitVariable_definition(variable_definition_context),
+                    ("variable", array),
+                )
+            # with invalid length (string)
+            with patch.object(self.visitor, "visitArray", return_value="not a number"):
+                self.assertEqual(
+                    self.visitor.visitVariable_definition(variable_definition_context),
+                    ("variable", Array("string")),
+                )
+                self.check_if_print_error_is_called(
+                    self.visitor.visitVariable_definition, variable_definition_context
+                )
 
     def test_visitPrimitive(self):
         primitive_context = PFDLParser.PrimitiveContext(None)
@@ -296,6 +345,22 @@ class TestPFDLTreeVisitor(unittest.TestCase):
         with patch.object(self.visitor, "visit", return_value=mock):
             self.assertEqual(self.visitor.get_content(mock), mock)
 
+    def test_visitArray(self):
+        array_context = PFDLParser.ArrayContext(None)
+
+        # array without defined length
+        self.assertEqual(self.visitor.visitArray(array_context), -1)
+
+        # array with defined length
+        array_context = PFDLParser.ArrayContext(None)
+        create_and_add_token(PFDLParser.INTEGER, "10", array_context)
+        self.assertEqual(self.visitor.visitArray(array_context), 10)
+
+        # array with index variable
+        array_context = PFDLParser.ArrayContext(None)
+        create_and_add_token(PFDLParser.STARTS_WITH_LOWER_C_STR, "i", array_context)
+        self.assertEqual(self.visitor.visitArray(array_context), "i")
+
     def test_visitExpression(self):
         # case length = 0
         expression_context = PFDLParser.ExpressionContext(None)
@@ -303,7 +368,18 @@ class TestPFDLTreeVisitor(unittest.TestCase):
         self.assertIsNone(self.visitor.visitExpression(expression_context))
 
         # case length = 1
-        # TODO
+        expression_context.children = [
+            PFDLParser.ExpressionContext(None),
+        ]
+        with patch.object(
+            PFDLTreeVisitor,
+            "get_content",
+            MagicMock(side_effect=[["test"], "10", "5.0", "true"]),
+        ):
+            self.assertEqual(self.visitor.visitExpression(expression_context), ["test"])
+            self.assertEqual(self.visitor.visitExpression(expression_context), 10)
+            self.assertEqual(self.visitor.visitExpression(expression_context), 5.0)
+            self.assertEqual(self.visitor.visitExpression(expression_context), True)
 
         # case length = 2
         expression_context.children = [
