@@ -62,6 +62,15 @@ class Array:
     def __radd__(self, other) -> str:
         return other + str(self)
 
+    def __eq__(self, __o: object) -> bool:
+        if isinstance(__o, Array):
+            return (
+                self.values == __o.values
+                and self.length == __o.length
+                and self.type_of_elements == __o.type_of_elements
+            )
+        return False
+
     def append_value(self, value: Any) -> None:
         """Adds an element to the array and increase the length.
 

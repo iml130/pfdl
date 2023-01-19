@@ -50,8 +50,8 @@ class DummyContext:
 
 # ToDo: Check with mock objects if print error is called
 class TestSemanticErrorChecker(unittest.TestCase):
-    """
-    Tests the methods of the SemanticErrorChecker
+    """Tests the methods of the SemanticErrorChecker.
+
     Most methods will require a created Process object
     """
 
