@@ -211,16 +211,12 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         return self.visitAttribute_access(ctx.attribute_access())
 
     def visitStruct_initialization(self, ctx: PFDLParser.Struct_initializationContext) -> Struct:
-        json_object_ctx = ctx.json_object()
-        json_string = self.visitJson_object(json_object_ctx)
+        json_string = ctx.json_object().getText()
 
         struct = Struct.from_json(json_string, self.error_handler, ctx.json_object())
         struct.name = ctx.STARTS_WITH_UPPER_C_STR().getText()
         struct.context = ctx
         return struct
-
-    def visitJson_object(self, ctx: PFDLParser.Json_objectContext) -> str:
-        return ctx.getText()
 
     def visitTask_call(self, ctx: PFDLParser.Task_callContext) -> TaskCall:
         task_call = TaskCall()
@@ -244,6 +240,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
 
     def visitParallel(self, ctx: PFDLParser.ParallelContext) -> Parallel:
         parallel = Parallel()
+        parallel.context = ctx
         for task_call_context in ctx.task_call():
             task_call = self.visitTask_call(task_call_context)
             parallel.task_calls.append(task_call)
