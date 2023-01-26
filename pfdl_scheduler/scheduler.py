@@ -7,7 +7,8 @@
 """Contains the Scheduler class."""
 
 # standard libraries
-from typing import Any, Callable, Dict, List
+import copy
+from typing import Any, Callable, Dict, List, Union
 import uuid
 
 # local sources
@@ -31,6 +32,13 @@ from pfdl_scheduler.scheduling.event import START_PRODUCTION_TASK, SET_PLACE, SE
 from pfdl_scheduler.scheduling.task_callbacks import TaskCallbacks
 
 from pfdl_scheduler.utils import helpers
+
+
+class ParallelLoopCounter:
+    """Represents an intermediate object which indicates that the counter is from a parallel loop."""
+
+    def __init__(self):
+        self.value = -1
 
 
 class Scheduler:
@@ -77,7 +85,7 @@ class Scheduler:
         self.petri_net_logic: PetriNetLogic = None
         self.task_callbacks: TaskCallbacks = TaskCallbacks()
         self.variable_access_function: Callable[[str], str] = None
-        self.loop_counters: Dict[str, int] = {}
+        self.loop_counters: Dict[str, Dict[str, int]] = {}
         self.awaited_events: List[Event] = []
         self.generate_test_ids: bool = generate_test_ids
         self.test_id_counters: List[int] = [0, 0]
@@ -202,17 +210,44 @@ class Scheduler:
 
     def on_task_started(self, task_api: TaskAPI) -> None:
         """Executes Scheduling logic when a Task is started."""
+        new_uuid = str(uuid.uuid4())
         if self.generate_test_ids:
-            task_api.uuid = str(self.test_id_counters[0])
+            new_uuid = str(self.test_id_counters[0])
             self.test_id_counters[0] = self.test_id_counters[0] + 1
-        else:
-            task_api.uuid = str(uuid.uuid4())
 
+        task_api.uuid = new_uuid
+        if task_api.task_call:
+            task_api.input_parameters = copy.deepcopy(task_api.task_call.input_parameters)
+
+        self.substitute_loop_indexes(task_api)
         for callback in self.task_callbacks.task_started:
             callback(task_api)
 
+    def substitute_loop_indexes(self, call_api: Union[ServiceAPI, TaskAPI]) -> None:
+        """Substitutes loop indexes in service or task call input parameters if present."""
+        if call_api.task_context:
+            task_uuid = call_api.task_context.uuid
+            if task_uuid in self.loop_counters:
+                current_loop_counters = self.loop_counters[task_uuid]
+
+                counter_was_raised = {}
+                for i, input_parameter in enumerate(call_api.input_parameters):
+                    if isinstance(input_parameter, List):
+                        for j, element in enumerate(input_parameter):
+                            counting_variable = element.replace("[", "").replace("]", "")
+                            if counting_variable in current_loop_counters:
+                                value = current_loop_counters[counting_variable]
+                                if isinstance(value, ParallelLoopCounter):
+                                    if counting_variable not in counter_was_raised:
+                                        current_loop_counters[counting_variable].value += 1
+                                        counter_was_raised[counting_variable] = True
+                                    value = current_loop_counters[counting_variable].value
+                                # substitute the counting variable with the value of the ith iteration
+                                call_api.input_parameters[i][j] = "[" + str(value) + "]"
+
     def on_service_started(self, service_api: ServiceAPI) -> None:
         """Executes Scheduling logic when a Service is started."""
+
         new_uuid = str(uuid.uuid4())
         if self.generate_test_ids:
             new_uuid = str(self.test_id_counters[1])
@@ -220,10 +255,15 @@ class Scheduler:
         self.petri_net_generator.place_dict[new_uuid] = self.petri_net_generator.place_dict[
             service_api.uuid
         ]
+
         service_api.uuid = new_uuid
+        if service_api.input_parameters:
+            service_api.input_parameters = copy.deepcopy(service_api.service.input_parameters)
+
         awaited_event = Event(event_type=SERVICE_FINISHED, data={"service_id": service_api.uuid})
         self.awaited_events.append(awaited_event)
 
+        self.substitute_loop_indexes(service_api)
         for callback in self.task_callbacks.service_started:
             callback(service_api)
 
@@ -263,25 +303,34 @@ class Scheduler:
     ) -> None:
         """Executes Scheduling logic when a Counting Loop is started."""
 
-        # there can only exist one loop counter per task instance at a time
-        loop_counter = self.loop_counters.get(task_context.uuid)
-        if loop_counter is None:
-            loop_counter = 0
-            self.loop_counters[task_context.uuid] = loop_counter
+        if self.loop_counters.get(task_context.uuid) is None:
+            self.loop_counters[task_context.uuid] = {}
+
+        if self.loop_counters[task_context.uuid].get(loop.counting_variable) is None:
+            self.loop_counters[task_context.uuid][loop.counting_variable] = 0
+        else:
+            self.loop_counters[task_context.uuid][loop.counting_variable] = (
+                self.loop_counters[task_context.uuid][loop.counting_variable] + 1
+            )
+
+        loop_counter = self.loop_counters[task_context.uuid][loop.counting_variable]
         loop_limit = self.get_loop_limit(loop, task_context)
 
         if loop_counter < loop_limit:
             awaited_event = Event(event_type=SET_PLACE, data={"place_id": then_uuid})
             self.awaited_events.append(awaited_event)
+
             self.fire_event(awaited_event)
-            self.loop_counters[task_context.uuid] = self.loop_counters[task_context.uuid] + 1
         else:
             awaited_event = Event(event_type=SET_PLACE, data={"place_id": else_uuid})
             self.awaited_events.append(awaited_event)
-            self.fire_event(awaited_event)
 
             # loop is done so reset loop counter for this task context
-            self.loop_counters[task_context.uuid] = 0
+            # set it to -1 because it exists now and will be incremented by 1
+            self.loop_counters[task_context.uuid][loop.counting_variable] = -1
+
+            # has to be executed at last
+            self.fire_event(awaited_event)
 
     def on_parallel_loop_started(
         self,
@@ -295,15 +344,28 @@ class Scheduler:
         """Executes Scheduling logic when a Parallel Loop is started."""
         task_count = self.get_loop_limit(loop, task_context)
 
+        if task_count > 0:
+            for i in range(task_count):
+                self.petri_net_generator.generate_task_call(
+                    parallelTask,
+                    task_context,
+                    first_transition_id,
+                    second_transition_id,
+                    False,
+                )
+
+                if self.loop_counters.get(task_context.uuid) is None:
+                    self.loop_counters[task_context.uuid] = {}
+                self.loop_counters[task_context.uuid][
+                    loop.counting_variable
+                ] = ParallelLoopCounter()
+        else:
+            self.petri_net_generator.generate_empty_parallel_loop(
+                first_transition_id, second_transition_id
+            )
+
         # generate parallel tasks in petri net
-        self.petri_net_generator.generate_parallel_loop_on_runtime(
-            parallelTask,
-            task_context,
-            task_count,
-            parallel_loop_started,
-            first_transition_id,
-            second_transition_id,
-        )
+        self.petri_net_generator.remove_place_on_runtime(parallel_loop_started)
 
         # start evaluation of net again
         self.petri_net_logic.evaluate_petri_net()
