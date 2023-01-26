@@ -431,29 +431,22 @@ class PetriNetGenerator:
         self.add_callback(first_transition_id, self.callbacks.parallel_loop_started, *args)
         return second_transition_id
 
-    def generate_parallel_loop_on_runtime(
-        self,
-        task_call: TaskCall,
-        task_context: TaskAPI,
-        task_count: int,
-        parallel_loop_started,
-        first_transition_id: str,
-        second_transition_id: str,
-        in_loop: bool = False,
-    ) -> None:
-        """Generates the dynamic petri net components for a ParallelLoop at runtime.
+    def remove_place_on_runtime(self, place_id: str) -> None:
+        """Removes a place from the petri net at runtime.
 
-        The amount of parallel started Tasks inside the ParallelLoop is only known at runtime.
-        This method will generate as many parallel TaskCalls
-        as specified in the task_count parameter.
+        Args:
+            place_id: The id as stringg of the task which should be removed from the net.
         """
-        for i in range(task_count):
-            self.generate_task_call(
-                task_call, task_context, first_transition_id, second_transition_id, in_loop
-            )
-        self.net.remove_place(parallel_loop_started)
+        self.net.remove_place(place_id)
         if self.draw_net:
             draw_petri_net(self.net, self.path_for_image)
+
+    def generate_empty_parallel_loop(
+        self, first_transition_id: str, second_transition_id: str
+    ) -> None:
+        empty_loop_place = create_place("Exeute 0 tasks", self.net)
+        self.net.add_output(empty_loop_place, first_transition_id, Value(1))
+        self.net.add_input(empty_loop_place, second_transition_id, Value(1))
 
     def generate_while_loop(
         self,
