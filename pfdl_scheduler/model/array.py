@@ -7,6 +7,7 @@
 """Contains the Array class."""
 
 # standard libraries
+import copy
 from typing import Any, List
 
 # 3rd party libraries
@@ -70,6 +71,17 @@ class Array:
                 and self.type_of_elements == __o.type_of_elements
             )
         return False
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for attr, value in self.__dict__.items():
+            try:
+                setattr(result, attr, copy.deepcopy(value, memo))
+            except Exception:
+                setattr(result, attr, value)
+        return result
 
     def append_value(self, value: Any) -> None:
         """Adds an element to the array and increase the length.

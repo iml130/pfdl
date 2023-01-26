@@ -7,6 +7,7 @@
 """Contains the Struct class."""
 
 # standard libraries
+import copy
 from dataclasses import dataclass
 from typing import Dict, Union
 import json
@@ -65,6 +66,17 @@ class Struct:
                 and self.context_dict == __o.context_dict
             )
         return False
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for attr, value in self.__dict__.items():
+            try:
+                setattr(result, attr, copy.deepcopy(value, memo))
+            except Exception:
+                setattr(result, attr, value)
+        return result
 
     @classmethod
     def from_json(
