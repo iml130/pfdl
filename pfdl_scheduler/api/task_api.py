@@ -7,8 +7,11 @@
 """Contains the TaskAPI class."""
 
 # standard libraries
+import copy
+from typing import List, Union
 from dataclasses import dataclass
 from uuid import uuid4
+from pfdl_scheduler.model.struct import Struct
 
 # local sources
 from pfdl_scheduler.model.task import Task
@@ -55,4 +58,11 @@ class TaskAPI:
         self.task: Task = task
         self.task_context: TaskAPI = task_context
         self.task_call: TaskCall = task_call
+
+        if task_call:
+            self.input_parameters: List[Union[str, List[str], Struct]] = copy.deepcopy(
+                task_call.input_parameters
+            )
+        else:
+            self.input_parameters: List[Union[str, List[str], Struct]] = []
         self.in_loop: bool = in_loop
