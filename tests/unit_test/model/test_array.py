@@ -7,6 +7,7 @@
 """Contains unit tests for the Array class."""
 
 # standard libraries
+import copy
 import unittest
 
 # local sources
@@ -55,6 +56,14 @@ class TestArray(unittest.TestCase):
         array = Array("int", [1, 2, 3])
         self.assertEqual(array + "test", "int[3]test")
         self.assertEqual("test" + array, "testint[3]")
+
+    def test_deepcopy(self):
+        # do not test context, as we cant control the copying of it
+        array = Array("int", [1, 2, 3])
+        copied_array = copy.deepcopy(array)
+        self.assertEqual(copied_array.type_of_elements, "int")
+        self.assertEqual(copied_array.values, [1, 2, 3])
+        self.assertEqual(copied_array.length, 3)
 
     def test_append_value(self):
         array = Array("int", [])

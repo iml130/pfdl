@@ -7,6 +7,7 @@
 """Contains unit tests tests for the Struct class and the 'parse_json' method."""
 
 # standard libraries
+import copy
 import unittest
 
 # local sources
@@ -56,6 +57,15 @@ class TestStruct(unittest.TestCase):
         self.assertFalse(struct1 == struct4)
 
         self.assertFalse(struct1 == "struct1")
+
+    def test_deep_copy(self):
+        # do not test context, as we cant control the copying of it
+        attributes = {"attr_1": "number", "attr2": Struct("struct2", {"attr_3": "string"})}
+        struct = Struct("struct1", attributes, ParserRuleContext())
+        copied_struct = copy.deepcopy(struct)
+
+        self.assertEqual(copied_struct.name, "struct1")
+        self.assertEqual(copied_struct.attributes, attributes)
 
     def test_struct_from_json(self):
         context = ParserRuleContext()
