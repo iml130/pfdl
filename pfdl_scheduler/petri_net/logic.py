@@ -30,7 +30,6 @@ class PetriNetLogic:
         petri_net: A reference to the generated petri net.
         draw_net: Indiciating whether the net should be drawn.
         transition_dict: A reference to the dict in the generator which maps the ids to callbacks.
-
     """
 
     def __init__(self, petri_net_generator: PetriNetGenerator, draw_net: bool = True):
@@ -70,20 +69,26 @@ class PetriNetLogic:
             if self.petri_net.transition(transition_id).enabled(Value(1)):
                 if transition_id in self.transition_dict:
                     callbacks = self.transition_dict[transition_id]
+                    temp = None
 
                     for callback in callbacks:
                         # parallel loop functionallity stop evaluation
                         if callback.func.__name__ == "on_parallel_loop_started":
-                            self.draw_petri_net(self.petri_net.name, self.petri_net)
-                            callbacks.remove(callback)
+                            temp = callback
+                            callbacks.remove(temp)
+
+                    if temp:
+                        # self.draw_petri_net(self.petri_net.name, self.petri_net)
+                        for callback in list(callbacks):
                             callback()
-                            return
+                            callbacks.remove(callback)
+                        temp()
+                        return
+                    else:
+                        self.petri_net.transition(transition_id).fire(Value(1))
 
-                    self.petri_net.transition(transition_id).fire(Value(1))
-
-                    for callback in callbacks:
-                        callback()  # run functools.partials() function here
-
+                        for callback in callbacks:
+                            callback()
                 else:
                     self.petri_net.transition(transition_id).fire(Value(1))
 
