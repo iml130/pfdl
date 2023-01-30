@@ -348,14 +348,14 @@ class SemanticErrorChecker:
                     i = i + 1
                     current_struct = self.structs[element.type_of_elements]
                 else:
-                    current_struct = self.structs[element.name]
+                    current_struct = self.structs[element]
                 i = i + 1
 
             index = len(input_parameter) - 1
             if input_parameter[index].startswith("["):
                 given_type = current_struct.name
             else:
-                given_type = current_struct.attributes[input_parameter[index]].name
+                given_type = current_struct.attributes[input_parameter[index]]
             if given_type != defined_type:
                 error_msg = (
                     "Type of TaskCall parameter "
@@ -538,7 +538,7 @@ class SemanticErrorChecker:
                     self.check_for_unknown_attribute_in_struct(
                         struct_instance, identifier, struct_definition
                     )
-                    & self.check_for_wrong_attribute_type_in_struct(
+                    and self.check_for_wrong_attribute_type_in_struct(
                         struct_instance, identifier, struct_definition
                     )
                 ):
