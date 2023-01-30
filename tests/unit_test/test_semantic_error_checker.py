@@ -586,11 +586,13 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.check_if_print_error_is_called(self.checker.check_if_input_parameter_matches, *args)
 
         # input parameter is List[str] without array
+
+        # struct definitions
         dummy_struct_a = Struct("Struct_1")
         dummy_struct_b = Struct("Struct_2")
         dummy_struct_c = Struct("Struct_3")
-        dummy_struct_a.attributes = {"b": dummy_struct_b}
-        dummy_struct_b.attributes = {"c": dummy_struct_c}
+        dummy_struct_a.attributes = {"b": "Struct_2"}
+        dummy_struct_b.attributes = {"c": "Struct_3"}
         task_context.variables = {"a": "Struct_1"}
         self.checker.structs = {
             "Struct_1": dummy_struct_a,
@@ -637,7 +639,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
         array = Array("Struct_2", [Struct(), Struct()])
 
         dummy_struct_a.attributes = {"b": array}
-        dummy_struct_b.attributes = {"c": dummy_struct_c}
+        dummy_struct_b.attributes = {"c": "Struct_3"}
         task_context.variables = {"a": "Struct_1"}
         self.checker.structs = {
             "Struct_1": dummy_struct_a,
