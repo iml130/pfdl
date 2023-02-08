@@ -169,7 +169,7 @@ class PetriNetGenerator:
             if self.used_in_extension:
                 draw_petri_net(self.net, self.path_for_image, ".dot")
                 json_string = json.dumps(self.tree.toJSON(), indent=4)
-                with open("temp/tree.json", "w") as outfile:
+                with open("../media/tree.json", "w") as outfile:
                     outfile.write(json_string)
                 outfile.close()
             else:
