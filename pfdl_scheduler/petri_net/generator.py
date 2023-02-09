@@ -144,19 +144,15 @@ class PetriNetGenerator:
                 if self.generate_test_ids:
                     task_context.uuid = "0"
 
-                self.task_started_id = create_place(
-                    task.name + "_started", self.net, (group_id, group_id)
-                )
-                connection_id = create_transition("", "", self.net, (group_id, group_id))
+                self.task_started_id = create_place(task.name + "_started", self.net, group_id)
+                connection_id = create_transition("", "", self.net, group_id)
 
                 self.add_callback(connection_id, self.callbacks.task_started, task_context)
 
                 self.net.add_input(self.task_started_id, connection_id, Value(1))
-                self.task_finished_id = create_place(
-                    task.name + "_finished", self.net, (group_id, group_id)
-                )
+                self.task_finished_id = create_place(task.name + "_finished", self.net, group_id)
 
-                second_connection_id = create_transition("", "", self.net, (group_id, group_id))
+                second_connection_id = create_transition("", "", self.net, group_id)
 
                 self.generate_statements(
                     task_context, task.statements, connection_id, second_connection_id, self.tree
