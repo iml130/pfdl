@@ -10,6 +10,7 @@
 import copy
 from typing import Any, Callable, Dict, List, Union
 import uuid
+import logging
 
 # local sources
 from pfdl_scheduler.model.process import Process
@@ -31,6 +32,7 @@ from pfdl_scheduler.scheduling.event import Event
 from pfdl_scheduler.scheduling.event import START_PRODUCTION_TASK, SET_PLACE, SERVICE_FINISHED
 from pfdl_scheduler.scheduling.task_callbacks import TaskCallbacks
 
+from pfdl_scheduler.api.observer_api import NotificationType, Observer, Subject
 from pfdl_scheduler.utils import helpers
 
 
@@ -41,7 +43,7 @@ class ParallelLoopCounter:
         self.value = -1
 
 
-class Scheduler:
+class Scheduler(Subject):
     """Schedules Tasks of a given PFDL file.
 
     The scheduler comprises almost the complete execution of a production order including
@@ -51,7 +53,7 @@ class Scheduler:
 
     Attributes:
         running: A boolean that indicates whether the scheduler is running.
-        pfdl_file_valid: A boolean indicating wheter the given PFDL file was valid.
+        pfdl_file_valid: A boolean indicating whether the given PFDL file was valid.
         process: The corresponding Process instance from the PFDL file.
         petri_net_generator: A PetriNetGenerator instance for generating the petri net.
         petri_net_logic: A PetriNetLogic instance for execution of the petri net.
@@ -69,14 +71,14 @@ class Scheduler:
         """Initialize the object.
 
         If the given path leads to a valid PFDL file the parsing will be started. If no errors
-        occour the model of the PFDL File will be transformed into a petri net and be drawn if
+        occur the model of the PFDL File will be transformed into a petri net and be drawn if
         the `draw_petri_net` flag is set. If `generate_test_ids` is set the ids of the called
         tasks and services will be an enumeration starting at 0.
 
         Args:
             pfdl_file_path: The path to the PFDL file.
             generate_test_ids: A boolean indicating whether test ids should be generated.
-            draw_petri_net: A boolean indicating wheter the petri net should be drawn.
+            draw_petri_net: A boolean indicating whether the petri net should be drawn.
         """
         self.running: bool = False
         self.pfdl_file_valid: bool = False
@@ -104,6 +106,20 @@ class Scheduler:
 
         awaited_event = Event(event_type=START_PRODUCTION_TASK, data={})
         self.awaited_events.append(awaited_event)
+        self.observers: List[Observer] = []
+        self.petri_net_dot = ""
+
+    def attach(self, observer: Observer) -> None:
+        self.observers.append(observer)
+
+    def detach(self, observer: Observer) -> None:
+        self.observers.remove(observer)
+
+    def notify(self, notification_type: NotificationType, data: Any) -> None:
+        """Trigger an update in each subscriber."""
+
+        for observer in self.observers:
+            observer.update(notification_type, data)
 
     def start(self) -> bool:
         """Starts the scheduling process for the given PFDL file from the path.
@@ -133,6 +149,7 @@ class Scheduler:
         if event in self.awaited_events:
             if self.petri_net_logic.fire_event(event):
                 self.awaited_events.remove(event)
+                self.notify(NotificationType.PETRI_NET, None)
                 return True
         return False
 
@@ -223,6 +240,9 @@ class Scheduler:
         for callback in self.task_callbacks.task_started:
             callback(task_api)
 
+        log_entry = "Task " + task_api.task.name + " with UUID '" + task_api.uuid + "' started."
+        self.notify(NotificationType.LOG_ENTRY, (log_entry, logging.INFO))
+
     def substitute_loop_indexes(self, call_api: Union[ServiceAPI, TaskAPI]) -> None:
         """Substitutes loop indexes in service or task call input parameters if present."""
         if call_api.task_context:
@@ -267,10 +287,24 @@ class Scheduler:
         for callback in self.task_callbacks.service_started:
             callback(service_api)
 
+        log_entry = (
+            "Service " + service_api.service.name + " with UUID '" + service_api.uuid + "' started."
+        )
+        self.notify(NotificationType.LOG_ENTRY, (log_entry, logging.INFO))
+
     def on_service_finished(self, service_api: ServiceAPI) -> None:
         """Executes Scheduling logic when a Service is finished."""
         for callback in self.task_callbacks.service_finished:
             callback(service_api)
+
+        log_entry = (
+            "Service "
+            + service_api.service.name
+            + " with UUID '"
+            + service_api.uuid
+            + "' finished."
+        )
+        self.notify(NotificationType.LOG_ENTRY, (log_entry, logging.INFO))
 
     def on_condition_started(
         self, condition: Condition, then_uuid: str, else_uuid: str, task_context: TaskAPI
@@ -385,6 +419,9 @@ class Scheduler:
             callback(task_api)
         if task_api.task.name == "productionTask":
             self.running = False
+
+        log_entry = "Task " + task_api.task.name + " with UUID '" + task_api.uuid + "' finished."
+        self.notify(NotificationType.LOG_ENTRY, (log_entry, logging.INFO))
 
     def register_for_petrinet_callbacks(self) -> None:
         """Register scheduler callback functions in the petri net."""
