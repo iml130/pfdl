@@ -71,12 +71,12 @@ def draw_arcs(arc, attr):
     attr["label"] = ""
 
 
-def draw_petri_net(net, file_path):
+def draw_petri_net(net, file_path, file_ending=".png"):
     """Calls the draw method form the Snakes module on the given PetriNet."""
     with draw_lock:
         Path("./temp").mkdir(parents=True, exist_ok=True)
         net.draw(
-            file_path + ".png",
+            file_path + file_ending,
             LAYOUT_METHOD,
             graph_attr=draw_graph,
             arc_attr=draw_arcs,
