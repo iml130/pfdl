@@ -1,0 +1,86 @@
+# Copyright The PFDL Contributors
+#
+# Licensed under the MIT License.
+# For details on the licensing terms, see the LICENSE file.
+# SPDX-License-Identifier: MIT
+
+"""Contains the start up script for the dashboard.
+
+A program executed in the VS Code extension which
+has a string containing a PFDL program as input.
+"""
+
+# standard libraries
+import argparse
+import base64
+import requests
+from typing import Any
+from datetime import datetime
+
+# local sources
+from pfdl_scheduler.api.observer_api import NotificationType
+from pfdl_scheduler.api.observer_api import Observer
+from pfdl_scheduler.scheduler import Scheduler
+
+
+class DashboardObserver(Observer):
+    """DashboardObserver for receiving infos about changes of the PetriNet or Scheduling.
+
+    The Observer will send a post request to the dashboard with the data.
+    """
+
+    def __init__(self, host: str):
+        self.host = host
+
+    def update(self, notification_type: NotificationType, data: Any) -> None:
+        if notification_type == NotificationType.PETRI_NET:
+            encoded_string = ""
+            with open("temp/petri_net.png", "rb") as file:
+                encoded_string = base64.b64encode(file.read())
+
+            request_data = {
+                "order_id": "8bf4eb6a-74df-427c-a475-532392465f70",
+                "content": b"data:image/png;base64," + encoded_string,
+                "type_pn": "png",
+            }
+
+            requests.post(url=self.host + "/petri_net", data=request_data)
+        elif notification_type == NotificationType.LOG_ENTRY:
+            log_entry = data[0]
+            log_level = data[1]
+
+            request_data = {
+                "order_id": "8bf4eb6a-74df-427c-a475-532392465f70",
+                "log_entry": log_entry,
+                "log_date": datetime.timestamp(datetime.now()),
+                "log_level": log_level,
+            }
+
+            requests.post(url=self.host + "/log_entry", data=request_data)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Process some integers.")
+    parser.add_argument("file_path", type=str, help="the path for the PFDL file.")
+    parser.add_argument(
+        "-dh", "--dashboard_host", type=str, help="the host address of the PFDL dashboard."
+    )
+    parser.add_argument(
+        "--test_ids",
+        action="store_true",
+        help="services and tasks get test ids starting from 0.",
+    )
+    args = parser.parse_args()
+    scheduler = Scheduler(args.file_path, args.test_ids)
+
+    if args.dashboard_host:
+        dashboard_observer = DashboardObserver(args.dashboard_host)
+        scheduler.attach(dashboard_observer)
+
+    scheduler.start()
+    while scheduler.running:
+        pass
+
+
+if __name__ == "__main__":
+    main()
