@@ -34,6 +34,7 @@ from pfdl_scheduler.scheduling.task_callbacks import TaskCallbacks
 
 from pfdl_scheduler.api.observer_api import NotificationType, Observer, Subject
 from pfdl_scheduler.utils import helpers
+from pfdl_scheduler.utils.logger import LogEntryObserver
 
 
 class ParallelLoopCounter:
@@ -51,6 +52,9 @@ class Scheduler(Subject):
     the petri net. It interacts with the execution engines and informs them about services
     or tasks which started or finished.
 
+    This class implements the Observer pattern and serves as subject. Observers can be registered
+    in the scheduler and receive updates (e.g. log entries, info about a new petri net img,..)
+
     Attributes:
         running: A boolean that indicates whether the scheduler is running.
         pfdl_file_valid: A boolean indicating whether the given PFDL file was valid.
@@ -63,6 +67,7 @@ class Scheduler(Subject):
         awaited_events: A list of awaited `Event`s. Only these events can be passed to the net.
         generate_test_ids: Indicates whether test ids should be generated.
         test_id_counters: A List consisting of counters for the test ids of tasks and services.
+        observers: List of `Observers` used to update them on a `notify` call.
     """
 
     def __init__(
@@ -109,14 +114,24 @@ class Scheduler(Subject):
         self.observers: List[Observer] = []
         self.petri_net_dot = ""
 
+        # enable logging
+        self.attach(LogEntryObserver())
+
     def attach(self, observer: Observer) -> None:
+        """Attach (add) an observer object to the observers list."""
         self.observers.append(observer)
 
     def detach(self, observer: Observer) -> None:
+        """Detach (remove) an observer object from the observers list."""
         self.observers.remove(observer)
 
     def notify(self, notification_type: NotificationType, data: Any) -> None:
-        """Trigger an update in each subscriber."""
+        """Trigger an update in each subscriber.
+
+        Args:
+            notification_type: A `NotificationType` informs about the type of the data.
+            data: The data which the observers will receive.
+        """
 
         for observer in self.observers:
             observer.update(notification_type, data)
