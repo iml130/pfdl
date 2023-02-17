@@ -16,11 +16,16 @@ import base64
 import requests
 from typing import Any
 from datetime import datetime
+import threading
 
 # local sources
 from pfdl_scheduler.api.observer_api import NotificationType
 from pfdl_scheduler.api.observer_api import Observer
 from pfdl_scheduler.scheduler import Scheduler
+
+
+def make_post_request(host: str, data: Any):
+    requests.post(host, data)
 
 
 class DashboardObserver(Observer):
@@ -43,8 +48,11 @@ class DashboardObserver(Observer):
                 "content": b"data:image/png;base64," + encoded_string,
                 "type_pn": "png",
             }
-
-            requests.post(url=self.host + "/petri_net", data=request_data)
+            post_thread = threading.Thread(
+                target=make_post_request,
+                args=[self.host + "/petri_net", request_data],
+            )
+            post_thread.start()
         elif notification_type == NotificationType.LOG_ENTRY:
             log_entry = data[0]
             log_level = data[1]
@@ -56,7 +64,11 @@ class DashboardObserver(Observer):
                 "log_level": log_level,
             }
 
-            requests.post(url=self.host + "/log_entry", data=request_data)
+            post_thread = threading.Thread(
+                target=make_post_request,
+                args=[self.host + "/log_entry", request_data],
+            )
+            post_thread.start()
 
 
 def main():
