@@ -76,5 +76,18 @@ No PetriNet is generated / there is an error while generating the net
 ## License
 PDFL is licensed under the MIT License. See [LICENSE](LICENSE) for details on the licensing terms.
 
-## Conference
-P. Detzner, A. Ebner, M. Hörstrup and S. Kerner, "[PFDL: A Production Flow Description Language for an Order-Controlled Production](https://doi.org/10.23919/ICCAS55662.2022.10003953)", 2022 22nd International Conference on Control, Automation and Systems (ICCAS), Jeju, Korea, Republic of, 2022, pp. 1099-1106.
+## Academic Attribution
+If you use the PFDL for research, please include the following reference in any resulting publication.
+
+- [PFDL: A Production Flow Description Language for an Order-Controlled Production](https://doi.org/10.23919/ICCAS55662.2022.10003953)
+```plain
+@INPROCEEDINGS{PFDL_Detzner_2022,
+  author={Detzner, Peter and Ebner, Andreas and Hörstrup, Maximilian and Kerner, Sören},
+  booktitle={2022 22nd International Conference on Control, Automation and Systems (ICCAS)}, 
+  title={PFDL: A Production Flow Description Language for an Order-Controlled Production}, 
+  year={2022},
+  volume={},
+  number={},
+  pages={1099-1106},
+  doi={10.23919/ICCAS55662.2022.10003953}}
+```
