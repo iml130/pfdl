@@ -46,27 +46,27 @@ class DashboardObserver(Observer):
             request_data = {
                 "order_id": "8bf4eb6a-74df-427c-a475-532392465f70",
                 "content": b"data:image/png;base64," + encoded_string,
-                "type_pn": "png",
+                "format": "png",
             }
             post_thread = threading.Thread(
                 target=make_post_request,
                 args=[self.host + "/petri_net", request_data],
             )
             post_thread.start()
-        elif notification_type == NotificationType.LOG_ENTRY:
-            log_entry = data[0]
+        elif notification_type == NotificationType.LOG_EVENT:
+            log_event = data[0]
             log_level = data[1]
 
             request_data = {
                 "order_id": "8bf4eb6a-74df-427c-a475-532392465f70",
-                "log_entry": log_entry,
-                "log_date": datetime.timestamp(datetime.now()),
+                "log_message": log_event,
+                "log_date": int(round(datetime.timestamp(datetime.now()))),
                 "log_level": log_level,
             }
 
             post_thread = threading.Thread(
                 target=make_post_request,
-                args=[self.host + "/log_entry", request_data],
+                args=[self.host + "/log_event", request_data],
             )
             post_thread.start()
 
