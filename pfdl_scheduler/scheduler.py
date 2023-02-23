@@ -112,7 +112,6 @@ class Scheduler(Subject):
         awaited_event = Event(event_type=START_PRODUCTION_TASK, data={})
         self.awaited_events.append(awaited_event)
         self.observers: List[Observer] = []
-        self.petri_net_dot = ""
 
         # enable logging
         self.attach(LogEntryObserver())
