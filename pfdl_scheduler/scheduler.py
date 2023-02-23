@@ -256,7 +256,7 @@ class Scheduler(Subject):
             callback(task_api)
 
         log_entry = "Task " + task_api.task.name + " with UUID '" + task_api.uuid + "' started."
-        self.notify(NotificationType.LOG_ENTRY, (log_entry, logging.INFO))
+        self.notify(NotificationType.LOG_EVENT, (log_entry, logging.INFO))
 
     def substitute_loop_indexes(self, call_api: Union[ServiceAPI, TaskAPI]) -> None:
         """Substitutes loop indexes in service or task call input parameters if present."""
@@ -305,7 +305,7 @@ class Scheduler(Subject):
         log_entry = (
             "Service " + service_api.service.name + " with UUID '" + service_api.uuid + "' started."
         )
-        self.notify(NotificationType.LOG_ENTRY, (log_entry, logging.INFO))
+        self.notify(NotificationType.LOG_EVENT, (log_entry, logging.INFO))
 
     def on_service_finished(self, service_api: ServiceAPI) -> None:
         """Executes Scheduling logic when a Service is finished."""
@@ -319,7 +319,7 @@ class Scheduler(Subject):
             + service_api.uuid
             + "' finished."
         )
-        self.notify(NotificationType.LOG_ENTRY, (log_entry, logging.INFO))
+        self.notify(NotificationType.LOG_EVENT, (log_entry, logging.INFO))
 
     def on_condition_started(
         self, condition: Condition, then_uuid: str, else_uuid: str, task_context: TaskAPI
@@ -436,7 +436,7 @@ class Scheduler(Subject):
             self.running = False
 
         log_entry = "Task " + task_api.task.name + " with UUID '" + task_api.uuid + "' finished."
-        self.notify(NotificationType.LOG_ENTRY, (log_entry, logging.INFO))
+        self.notify(NotificationType.LOG_EVENT, (log_entry, logging.INFO))
 
     def register_for_petrinet_callbacks(self) -> None:
         """Register scheduler callback functions in the petri net."""

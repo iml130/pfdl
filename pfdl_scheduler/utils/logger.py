@@ -33,7 +33,7 @@ class LogEntryObserver(Observer):
         )
 
     def update(self, notification_type: NotificationType, data: Any) -> None:
-        if notification_type == NotificationType.LOG_ENTRY:
+        if notification_type == NotificationType.LOG_EVENT:
             log_level = data[1]
             log_date = str(datetime.now())
             log_entry = log_date + ": " + data[0]

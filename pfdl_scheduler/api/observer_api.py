@@ -26,7 +26,7 @@ class NotificationType(Enum):
     """Declares the type of Notification in the observer pattern."""
 
     PETRI_NET = 1
-    LOG_ENTRY = 2
+    LOG_EVENT = 2
     SCHEDULER = 3
 
 
