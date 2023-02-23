@@ -44,7 +44,7 @@ class DashboardObserver(Observer):
                 encoded_string = base64.b64encode(file.read())
 
             request_data = {
-                "order_id": "8bf4eb6a-74df-427c-a475-532392465f70",
+                "order_id": data,
                 "content": b"data:image/png;base64," + encoded_string,
                 "format": "png",
             }
@@ -54,11 +54,12 @@ class DashboardObserver(Observer):
             )
             post_thread.start()
         elif notification_type == NotificationType.LOG_EVENT:
-            log_event = data[0]
-            log_level = data[1]
+            scheduler_id = data[0]
+            log_event = data[1]
+            log_level = data[2]
 
             request_data = {
-                "order_id": "8bf4eb6a-74df-427c-a475-532392465f70",
+                "order_id": scheduler_id,
                 "log_message": log_event,
                 "log_date": int(round(datetime.timestamp(datetime.now()))),
                 "log_level": log_level,
@@ -72,18 +73,25 @@ class DashboardObserver(Observer):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Process some integers.")
+    parser = argparse.ArgumentParser()
     parser.add_argument("file_path", type=str, help="the path for the PFDL file.")
+    parser.add_argument(
+        "-id",
+        "--scheduler_id",
+        type=str,
+        help="associate the scheduler with an id (will be used in the requests).",
+    )
     parser.add_argument(
         "-dh", "--dashboard_host", type=str, help="the host address of the PFDL dashboard."
     )
+
     parser.add_argument(
         "--test_ids",
         action="store_true",
         help="services and tasks get test ids starting from 0.",
     )
     args = parser.parse_args()
-    scheduler = Scheduler(args.file_path, args.test_ids)
+    scheduler = Scheduler(pfdl_file_path=args.file_path, scheduler_id=args.scheduler_id)
 
     if args.dashboard_host:
         dashboard_observer = DashboardObserver(args.dashboard_host)
