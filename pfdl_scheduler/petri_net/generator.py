@@ -162,14 +162,11 @@ class PetriNetGenerator:
                 self.add_callback(second_connection_id, self.callbacks.task_finished, task_context)
 
         if self.draw_net:
-            if self.used_in_extension:
-                draw_petri_net(self.net, self.path_for_image, ".dot")
-                json_string = json.dumps(self.tree.toJSON(), indent=4)
-                with open("../media/tree.json", "w") as outfile:
-                    outfile.write(json_string)
-                outfile.close()
-            else:
-                draw_petri_net(self.net, self.path_for_image, ".png")
+            json_string = json.dumps(self.tree.toJSON(), indent=4)
+            self.net.name = json_string
+            draw_petri_net(self.net, self.path_for_image, ".dot")
+            draw_petri_net(self.net, self.path_for_image, ".png")
+
         return self.net
 
     def generate_statements(

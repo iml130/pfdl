@@ -38,6 +38,7 @@ LAYOUT_METHOD = "dot"
 def draw_graph(graph, attr):
     """Set attributes for drawing the net."""
     attr["nodesep"] = NODE_SEP_VALUE
+    attr["comment"] = graph.name
 
 
 def draw_place(place, attr):

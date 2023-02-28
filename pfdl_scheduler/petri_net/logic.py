@@ -51,10 +51,11 @@ class PetriNetLogic:
             name: The name of the image.
             petri_net: The petri net instance that should be drawn.
         """
-        file_path = "./temp/" + name
+        file_path = "./temp/petri_net"
 
         if self.draw_net:
             draw_petri_net(petri_net, file_path)
+            draw_petri_net(petri_net, file_path, ".dot")
 
     def evaluate_petri_net(self) -> None:
         """Tries to fire every transition as long as all transitions
