@@ -30,28 +30,40 @@ class PetriNetLogic:
         petri_net: A reference to the generated petri net.
         draw_net: Indiciating whether the net should be drawn.
         transition_dict: A reference to the dict in the generator which maps the ids to callbacks.
+        used_in_extension: A boolean indicating if the Generator is used within the extension.
     """
 
-    def __init__(self, petri_net_generator: PetriNetGenerator, draw_net: bool = True):
+    def __init__(
+        self,
+        petri_net_generator: PetriNetGenerator,
+        draw_net: bool = True,
+        used_in_extension: bool = False,
+    ):
         """Initialize the object.
 
         Args:
             petri_net_generator: A reference to the PetriNetGenerator.
             draw_net: Indiciating whether the net should be drawn.
+            used_in_extension: A boolean indicating if the Generator is used within the extension.
         """
         self.petri_net_generator: PetriNetGenerator = petri_net_generator
         self.petri_net: PetriNet = petri_net_generator.net
         self.draw_net: bool = draw_net
         self.transition_dict: Dict = self.petri_net_generator.transition_dict
+        self.used_in_extension: bool = False
 
-    def draw_petri_net(self, name: str, petri_net: PetriNet) -> None:
+    def draw_petri_net(self, petri_net: PetriNet) -> None:
         """Saves the given petri net as an image in the current working directory.
 
         Args:
             name: The name of the image.
             petri_net: The petri net instance that should be drawn.
         """
-        file_path = "./temp/petri_net"
+
+        if self.used_in_extension:
+            file_path = "../media/petri_net"
+        else:
+            file_path = "./temp/petri_net"
 
         if self.draw_net:
             draw_petri_net(petri_net, file_path)
@@ -97,7 +109,7 @@ class PetriNetLogic:
             else:
                 index = index + 1
 
-        self.draw_petri_net(self.petri_net.name, self.petri_net)
+        self.draw_petri_net(self.petri_net)
 
     def fire_event(self, event: Event) -> bool:
         """Adds a token to the corresponding place of the event in the petri net.
@@ -116,7 +128,7 @@ class PetriNetLogic:
 
         if self.petri_net.has_place(name_in_petri_net):
             self.petri_net.place(name_in_petri_net).add(1)
-            self.draw_petri_net(self.petri_net.name, self.petri_net)
+            self.draw_petri_net(self.petri_net)
             self.evaluate_petri_net()
             return True
 

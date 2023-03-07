@@ -166,6 +166,10 @@ class PetriNetGenerator:
             self.net.name = json_string
             draw_petri_net(self.net, self.path_for_image, ".dot")
             draw_petri_net(self.net, self.path_for_image, ".png")
+            if self.used_in_extension:
+                with open("../media/petri_net.dot", "a") as file:
+                    file.write("\n")
+                    file.write(json_string)
 
         return self.net
 
