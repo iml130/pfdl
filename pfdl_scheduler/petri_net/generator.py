@@ -163,7 +163,6 @@ class PetriNetGenerator:
 
         if self.draw_net:
             json_string = json.dumps(self.tree.toJSON(), indent=4)
-            self.net.name = json_string
             draw_petri_net(self.net, self.path_for_image, ".dot")
             draw_petri_net(self.net, self.path_for_image, ".png")
             if self.used_in_extension:
