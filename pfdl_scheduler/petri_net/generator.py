@@ -77,6 +77,7 @@ class PetriNetGenerator:
         used_in_extension: bool = False,
         generate_test_ids: bool = False,
         draw_net: bool = True,
+        file_name: str = "",
     ) -> None:
         """Initialize the object.
 
@@ -104,6 +105,7 @@ class PetriNetGenerator:
         self.generate_test_ids: bool = generate_test_ids
         self.used_in_extension: bool = used_in_extension
         self.tree = None
+        self.file_name = file_name
 
     def add_callback(self, transition_id: str, callback_function: Callable, *args: Any) -> None:
         """Registers the given callback function in the transition_dict.
@@ -166,7 +168,7 @@ class PetriNetGenerator:
             draw_petri_net(self.net, self.path_for_image, ".dot")
             draw_petri_net(self.net, self.path_for_image, ".png")
             if self.used_in_extension:
-                with open("../media/petri_net.dot", "a") as file:
+                with open("../media/" + self.file_name + ".dot", "a") as file:
                     file.write("\ncall_tree:")
                     file.write(json_string)
 

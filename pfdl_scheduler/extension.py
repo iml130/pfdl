@@ -21,7 +21,7 @@ from pfdl_scheduler.petri_net.generator import PetriNetGenerator
 def main():
     valid, process = parse_string(sys.argv[2], used_in_extension=True)
     if valid:
-        petrinet_generator = PetriNetGenerator(used_in_extension=True)
+        petrinet_generator = PetriNetGenerator(used_in_extension=True, file_name=sys.argv[3])
         petrinet_generator.generate_petri_net(process)
 
 
