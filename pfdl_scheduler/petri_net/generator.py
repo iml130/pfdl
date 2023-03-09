@@ -77,7 +77,7 @@ class PetriNetGenerator:
         used_in_extension: bool = False,
         generate_test_ids: bool = False,
         draw_net: bool = True,
-        file_name: str = "",
+        file_name: str = "petri_net",
     ) -> None:
         """Initialize the object.
 
@@ -89,11 +89,11 @@ class PetriNetGenerator:
         """
 
         if used_in_extension:
-            self.path_for_image: str = "../media/petri_net"
+            self.path_for_image: str = "../media/" + file_name
         elif path_for_image == "":
-            self.path_for_image: str = "temp/petri_net"
+            self.path_for_image: str = "temp/" + file_name
         else:
-            self.path_for_image: str = path_for_image + "/temp/petri_net"
+            self.path_for_image: str = path_for_image + "/temp/" + file_name
 
         self.net: PetriNet = PetriNet("petri_net")
         self.draw_net: bool = draw_net
@@ -168,7 +168,7 @@ class PetriNetGenerator:
             draw_petri_net(self.net, self.path_for_image, ".dot")
             draw_petri_net(self.net, self.path_for_image, ".png")
             if self.used_in_extension:
-                with open("../media/" + self.file_name + ".dot", "a") as file:
+                with open(self.path_for_image + ".dot", "a") as file:
                     file.write("\ncall_tree:")
                     file.write(json_string)
 
