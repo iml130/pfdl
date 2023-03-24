@@ -37,7 +37,8 @@ LAYOUT_METHOD = "dot"
 
 def draw_graph(graph, attr):
     """Set attributes for drawing the net."""
-    attr["nodesep"] = NODE_SEP_VALUE
+    attr["margin"] = 15
+    attr["newrank"] = "true"
 
 
 def draw_place(place, attr):
@@ -54,12 +55,13 @@ def draw_place(place, attr):
     else:
         attr["label"] = PLACE_LABEL
     attr["shape"] = PLACE_SHAPE
+    attr["ordering"] = "out"
 
 
 def draw_transition(trans, attr):
     """Set attributes for drawing transitions."""
 
-    attr["label"] = TRANSITION_LABEL
+    attr["label"] = ""  # TRANSITION_LABEL
     attr["shape"] = TRANSITION_SHAPE
     attr["height"] = TRANSITION_HEIGHT
     attr["width"] = TRANSITION_WIDTH
@@ -74,6 +76,10 @@ def draw_arcs(arc, attr):
     attr["label"] = ""
 
 
+def draw_clusters(clust, attr):
+    attr["style"] = ""
+
+
 def draw_petri_net(net, file_path, file_ending=".png"):
     """Calls the draw method form the Snakes module on the given PetriNet."""
     with draw_lock:
@@ -85,4 +91,5 @@ def draw_petri_net(net, file_path, file_ending=".png"):
             arc_attr=draw_arcs,
             place_attr=draw_place,
             trans_attr=draw_transition,
+            cluster_attr=draw_clusters,
         )
