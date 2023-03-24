@@ -69,10 +69,9 @@ class PetriNetLogic:
         if self.draw_net:
             draw_petri_net(petri_net, file_path)
             draw_petri_net(petri_net, file_path, ".dot")
-            if self.used_in_extension:
-                with open(file_path + ".dot", "a") as file:
-                    file.write("\ncall_tree:")
-                    file.write(json.dumps(self.petri_net_generator.tree.toJSON(), indent=4))
+            with open(file_path + ".dot", "a") as file:
+                file.write("\ncall_tree:")
+                file.write(json.dumps(self.petri_net_generator.tree.toJSON(), indent=4))
 
     def evaluate_petri_net(self) -> None:
         """Tries to fire every transition as long as all transitions
