@@ -34,7 +34,8 @@ from pfdl_scheduler.scheduling.task_callbacks import TaskCallbacks
 
 from pfdl_scheduler.api.observer_api import NotificationType, Observer, Subject
 from pfdl_scheduler.utils import helpers
-from pfdl_scheduler.utils.logger import LogEntryObserver
+from pfdl_scheduler.utils.log_entry_observer import LogEntryObserver
+from pfdl_scheduler.utils.dashboard_observer import DashboardObserver
 
 
 class ParallelLoopCounter:
@@ -76,6 +77,7 @@ class Scheduler(Subject):
         generate_test_ids: bool = False,
         draw_petri_net: bool = True,
         scheduler_id: str = str(uuid.uuid4()),
+        dashboard_host_address: str = "",
     ) -> None:
         """Initialize the object.
 
@@ -88,6 +90,8 @@ class Scheduler(Subject):
             pfdl_file_path: The path to the PFDL file.
             generate_test_ids: A boolean indicating whether test ids should be generated.
             draw_petri_net: A boolean indicating whether the petri net should be drawn.
+            scheduler_id: A unique ID to identify the Scheduer / Production Order
+            dashboard_host_address: The address of the Dashboard (if existing)
         """
         self.scheduler_id = scheduler_id
         self.running: bool = False
@@ -120,6 +124,9 @@ class Scheduler(Subject):
 
         # enable logging
         self.attach(LogEntryObserver())
+
+        if dashboard_host_address != "":
+            self.attach(DashboardObserver(dashboard_host_address, self.scheduler_id))
 
     def attach(self, observer: Observer) -> None:
         """Attach (add) an observer object to the observers list."""
@@ -260,7 +267,7 @@ class Scheduler(Subject):
             callback(task_api)
 
         log_entry = "Task " + task_api.task.name + " with UUID '" + task_api.uuid + "' started."
-        self.notify(NotificationType.LOG_EVENT, (self.scheduler_id, log_entry, logging.INFO))
+        self.notify(NotificationType.LOG_EVENT, (log_entry, logging.INFO, False))
 
     def substitute_loop_indexes(self, call_api: Union[ServiceAPI, TaskAPI]) -> None:
         """Substitutes loop indexes in service or task call input parameters if present."""
@@ -309,7 +316,7 @@ class Scheduler(Subject):
         log_entry = (
             "Service " + service_api.service.name + " with UUID '" + service_api.uuid + "' started."
         )
-        self.notify(NotificationType.LOG_EVENT, (self.scheduler_id, log_entry, logging.INFO))
+        self.notify(NotificationType.LOG_EVENT, (log_entry, logging.INFO, False))
 
     def on_service_finished(self, service_api: ServiceAPI) -> None:
         """Executes Scheduling logic when a Service is finished."""
@@ -323,7 +330,7 @@ class Scheduler(Subject):
             + service_api.uuid
             + "' finished."
         )
-        self.notify(NotificationType.LOG_EVENT, (self.scheduler_id, log_entry, logging.INFO))
+        self.notify(NotificationType.LOG_EVENT, (log_entry, logging.INFO, False))
 
     def on_condition_started(
         self, condition: Condition, then_uuid: str, else_uuid: str, task_context: TaskAPI
@@ -440,7 +447,7 @@ class Scheduler(Subject):
             self.running = False
 
         log_entry = "Task " + task_api.task.name + " with UUID '" + task_api.uuid + "' finished."
-        self.notify(NotificationType.LOG_EVENT, (self.scheduler_id, log_entry, logging.INFO))
+        self.notify(NotificationType.LOG_EVENT, (log_entry, logging.INFO, True))
 
     def register_for_petrinet_callbacks(self) -> None:
         """Register scheduler callback functions in the petri net."""
