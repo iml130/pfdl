@@ -99,8 +99,17 @@ def main():
         action="store_true",
         help="services and tasks get test ids starting from 0.",
     )
+    parser.add_argument(
+        "-dh", "--dashboard_host", type=str, help="the host address of the PFDL dashboard."
+    )
     args = parser.parse_args()
-    scheduler = Scheduler(args.file_path, args.test_ids)
+
+    dashboard_host_address = ""
+    if args.dashboard_host:
+        dashboard_host_address = args.dashboard_host
+    scheduler = Scheduler(
+        args.file_path, args.test_ids, dashboard_host_address=dashboard_host_address
+    )
 
     demo_interface = DemoInterface(scheduler)
     demo_interface.start()
