@@ -29,9 +29,11 @@ nav:
         - Comments: pfdl/comments.md
     - Scheduler Reference:
         - Introduction: scheduler/index.md
-        - Scheduler: scheduler/scheduler_class.md
-        - Scheduler API: scheduler/api.md
-        - Model classes: scheduler/model_classes.md
+        - Scheduler:
+            - Scheduler Class: scheduler/scheduler_class.md
+            - Scheduler API: scheduler/api.md
+            - Model classes: scheduler/model_classes.md
+        - Dashboard API: scheduler/dashboard.md
         - Developer Reference: scheduler/developer_reference.md
     - Examples:
         - Introduction: examples/introduction.md
@@ -85,6 +87,7 @@ theme:
 
 plugins:
     - search
+    - swagger-ui-tag
     - mkdocstrings:
         handlers:
             python:
