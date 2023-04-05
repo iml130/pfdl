@@ -1,0 +1,223 @@
+openapi: 3.0.3
+info:
+  title: PFDL Scheduler Backend API
+  description: This is a HTTP REST Backend API for the Production Flow Description Language (PFDL)
+  version: 0.1.0a
+
+tags:
+  - name: pfdl_order
+    description: Create, update and receive PFDL orders
+  - name: petri_net
+    description: Send status updates of the Petri Net
+  - name: log_event
+    description: Send status updates of the Scheduler
+
+paths:
+  /pfdl_order:
+    post:
+      tags:
+        - pfdl_order
+      summary: Creates a new order
+      description: Creates a new order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PFDLOrder'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/PFDLOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PFDLOrder'
+        required: true
+      responses:
+          '200':
+            description: Successful operation
+    get:
+      tags:
+        - pfdl_order
+      summary: Get all orders
+      description: Get all orders
+      responses:
+          '200':
+            description: Successful operation
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/PFDLOrder'          
+              application/xml:
+                schema:
+                  $ref: '#/components/schemas/PFDLOrder'
+  /pfdl_order/{order_id}:
+    post:
+      tags:
+        - pfdl_order
+      summary: Update an existing order
+      description: Updates the order with the given id.
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          description: The id of the order to retrieve
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PFDLOrder'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/PFDLOrder'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PFDLOrder'
+        required: true
+      responses:
+          '200':
+            description: Successful operation
+                  
+    get:
+      tags:
+        - pfdl_order
+      summary: Get order by id
+      description: Get the order corresponding to the given id.
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          description: The id of the order to retrieve
+          schema:
+            type: string
+      responses:
+          '200':
+            description: Successful operation
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/PFDLOrder'          
+              application/xml:
+                schema:
+                  $ref: '#/components/schemas/PFDLOrder'
+  /petri_net:
+    post:
+      tags:
+        - petri_net
+      summary: Submit a new petri net
+      description: Submit a new petri net
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PetriNet'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/PetriNet'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PetriNet'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+  /log_event:
+    post:
+      tags:
+        - log_event
+      summary: Submit a new log entry
+      description: Submit a new log entry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogEvent'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/LogEvent'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogEvent'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+
+components:
+  schemas:
+    PFDLOrder:
+      type: object
+      properties:
+        order_id:
+          type: string
+          description: id of the order as uuid
+          example: 8bf4eb6a-74df-427c-a475-532392465f70
+        starting_date:
+          type: integer
+          description: Timestamp of the start of the order
+          example: 1276451619
+        last_update:
+          type: integer
+          description: Timestamp of the last update
+          example: 1676541642
+        status:
+          type: integer
+          description: The status of the order represents as integer. created -> 0, started -> 1, ....
+          example: started
+          enum: ["created", "started", "finished", "error", "unknown"]
+            
+      xml:
+        name: order
+    PetriNet:
+      type: object
+      properties:
+        order_id:
+          type: string
+          description: id of the corresponding order as uuid
+          example: 8bf4eb6a-74df-427c-a475-532392465f70
+        content:
+          type: string
+          description: representation of the petri net (type is specified by `format`)
+          example: digraph {...}
+        format:
+          type: string
+          example: dot
+          enum:
+            - "dot"
+            - "png"
+      xml:
+        name: customer
+    LogEvent:
+      type: object
+      properties:
+        order_id:
+          type: string
+          description: id of the corresponding order as uuid
+          example: 8bf4eb6a-74df-427c-a475-532392465f70
+        log_date:
+          type: integer
+          description: timestamp of the date of the log entry.
+          example: 2376545712
+        log_message:
+          type: string
+          description: Content of the log entry
+          example: Task started...
+        log_level:
+          type: integer
+          description: The level of the log event corresponding to https://docs.python.org/3/library/logging.html#logging-levels
+          example: 20
+      xml:
+        name: customer
+  securitySchemes:
+    petstore_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://petstore3.swagger.io/oauth/authorize
+          scopes:
+            write:pets: modify pets in your account
+            read:pets: read your pets
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
