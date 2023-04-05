@@ -1,0 +1,1 @@
+<swagger-ui src="../../api_spec/http-rest-api.yml"/>
