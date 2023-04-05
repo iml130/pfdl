@@ -52,7 +52,18 @@ Note that the transformation into a Petri Net is only one of many possible ways 
 
 The scheduler provides interfaces for interaction with the Petri net.
 The **Petri Net Logic** unit takes care of the evaluation of the petri net and the firing of events into it.
-You can register callback functions which will be called when specific states in the net are reached (e.g: a specific service has started or finished). It is also possible to pass Events to the Scheduler, e.g. when a service finished its execution. The net will then evaluate its state and call the correspondig callback functions for the new state.
+You can register callback functions which will be called when specific states in the net are reached (e.g: a specific service has started or finished). It is also possible to pass Events to the Scheduler, e.g. when a service finished its execution. The net will then evaluate its state and call the corresponding callback functions for the new state.
+
+## Dashboard Connection
+It is possible to connect the Scheduler with a Dashboard.
+This will add the corresponding Production Order to the Dashboard when the Scheduler is started.
+Now, all updates of the order are visualized in real time.
+
+To enable this functionality, an address to the dashboard can be passed to the `Scheduler` class.
+If such an address is given, the Scheduler will send log messages (e.g. Task started, Service finished, ...), Petri Net updates, and order updates to the corresponding address.
+You can, however, also send messages to the dashboard from outside of the scheduler.
+The API specification can be found in the [Dashboard API](../scheduler/dashboard.md) section.
+**Note:** Currently, our Dashboard is not open source, but you could also write your own visualization if you stick to the API specification.
 
 ## Execution Engine
 The **Execution Engine (EE)** provides an interface that connects the PFDL Scheduler to the Field Level Devices.
