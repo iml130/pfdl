@@ -109,7 +109,6 @@ class Scheduler(Subject):
         if self.pfdl_file_valid:
             self.petri_net_generator = PetriNetGenerator(
                 "",
-                used_in_extension=False,
                 generate_test_ids=generate_test_ids,
                 draw_net=draw_petri_net,
             )

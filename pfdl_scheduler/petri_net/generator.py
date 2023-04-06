@@ -11,6 +11,7 @@ from typing import Any, Callable, Dict, List, OrderedDict, Tuple
 import uuid
 import functools
 import json
+from pathlib import Path
 
 # 3rd party packages
 from snakes import plugins
@@ -92,8 +93,10 @@ class PetriNetGenerator:
         if used_in_extension:
             self.path_for_image: str = "../media/" + file_name
         elif path_for_image == "":
+            Path("./temp").mkdir(parents=True, exist_ok=True)
             self.path_for_image: str = "temp/" + file_name
         else:
+            Path("./temp").mkdir(parents=True, exist_ok=True)
             self.path_for_image: str = path_for_image + "/temp/" + file_name
 
         self.net: PetriNet = PetriNet("petri_net")
@@ -173,6 +176,9 @@ class PetriNetGenerator:
 
                 self.add_callback(second_connection_id, self.callbacks.task_finished, task_context)
 
+        # assign new clusters before drawing
+        self.net.clusters = self.tree.cluster
+
         if self.draw_net:
             json_string = json.dumps(self.tree.toJSON(), indent=4)
             draw_petri_net(self.net, self.path_for_image, ".dot")
@@ -181,7 +187,6 @@ class PetriNetGenerator:
                 file.write("\ncall_tree:")
                 file.write(json_string)
 
-        self.net.clusters = self.tree.cluster
         return self.net
 
     def generate_statements(
@@ -479,7 +484,7 @@ class PetriNetGenerator:
 
         if loop.parallel:
             return self.generate_parallel_loop(
-                loop, task_context, first_transition_id, second_transition_id, counting_loop_node
+                loop, task_context, first_transition_id, second_transition_id, node
             )
 
         loop_id = create_place("Loop", self.net, group_id)
@@ -562,6 +567,8 @@ class PetriNetGenerator:
             self.net,
             group_id,
         )
+
+        node.cluster.add_node(parallel_loop_started)
 
         self.net.add_output(parallel_loop_started, first_transition_id, Value(1))
         self.net.add_input(parallel_loop_started, second_transition_id, Value(1))

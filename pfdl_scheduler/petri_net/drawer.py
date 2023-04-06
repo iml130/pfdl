@@ -8,7 +8,6 @@
 
 # standard libraries
 import threading
-from pathlib import Path
 
 # 3rd party lib
 import snakes.plugins
@@ -83,7 +82,6 @@ def draw_clusters(clust, attr):
 def draw_petri_net(net, file_path, file_ending=".png"):
     """Calls the draw method form the Snakes module on the given PetriNet."""
     with draw_lock:
-        Path("./temp").mkdir(parents=True, exist_ok=True)
         net.draw(
             file_path + file_ending,
             LAYOUT_METHOD,
