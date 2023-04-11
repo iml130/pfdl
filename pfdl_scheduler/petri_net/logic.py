@@ -82,13 +82,12 @@ class PetriNetLogic:
                     temp = None
 
                     for callback in callbacks:
-                        # parallel loop functionallity stop evaluation
+                        # parallel loop functionality stop evaluation
                         if callback.func.__name__ == "on_parallel_loop_started":
                             temp = callback
                             callbacks.remove(temp)
 
                     if temp:
-                        # self.draw_petri_net(self.petri_net.name, self.petri_net)
                         for callback in list(callbacks):
                             callback()
                             callbacks.remove(callback)

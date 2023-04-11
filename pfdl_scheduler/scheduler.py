@@ -105,7 +105,7 @@ class Scheduler(Subject):
         self.awaited_events: List[Event] = []
         self.generate_test_ids: bool = generate_test_ids
         self.test_id_counters: List[int] = [0, 0]
-        self.pfdl_file_valid, self.process = parse_file(pfdl_file_path)
+        self.pfdl_file_valid, self.process, pfdl_string = parse_file(pfdl_file_path)
         if self.pfdl_file_valid:
             self.petri_net_generator = PetriNetGenerator(
                 "",
@@ -125,7 +125,7 @@ class Scheduler(Subject):
         self.attach(LogEntryObserver())
 
         if dashboard_host_address != "":
-            self.attach(DashboardObserver(dashboard_host_address, self.scheduler_id))
+            self.attach(DashboardObserver(dashboard_host_address, self.scheduler_id, pfdl_string))
 
     def attach(self, observer: Observer) -> None:
         """Attach (add) an observer object to the observers list."""
@@ -404,6 +404,7 @@ class Scheduler(Subject):
         """Executes Scheduling logic when a Parallel Loop is started."""
         task_count = self.get_loop_limit(loop, task_context)
 
+        # generate parallel tasks in petri net
         if task_count > 0:
             for i in range(task_count):
                 self.petri_net_generator.generate_task_call(
@@ -411,6 +412,7 @@ class Scheduler(Subject):
                     task_context,
                     first_transition_id,
                     second_transition_id,
+                    node,
                     False,
                 )
 
@@ -424,7 +426,6 @@ class Scheduler(Subject):
                 first_transition_id, second_transition_id
             )
 
-        # generate parallel tasks in petri net
         self.petri_net_generator.remove_place_on_runtime(parallel_loop_started)
 
         # start evaluation of net again
@@ -443,11 +444,14 @@ class Scheduler(Subject):
         """Executes Scheduling logic when a Task is finished."""
         for callback in self.task_callbacks.task_finished:
             callback(task_api)
+
+        order_finished = False
         if task_api.task.name == "productionTask":
             self.running = False
+            order_finished = True
 
         log_entry = "Task " + task_api.task.name + " with UUID '" + task_api.uuid + "' finished."
-        self.notify(NotificationType.LOG_EVENT, (log_entry, logging.INFO, True))
+        self.notify(NotificationType.LOG_EVENT, (log_entry, logging.INFO, order_finished))
 
     def register_for_petrinet_callbacks(self) -> None:
         """Register scheduler callback functions in the petri net."""

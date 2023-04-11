@@ -151,7 +151,9 @@ class PetriNetGenerator:
                 if self.generate_test_ids:
                     task_context.uuid = "0"
 
-                self.task_started_id = create_place(task.name + "_started", self.net, group_id)
+                self.task_started_id = create_place(
+                    task.name + "_started", self.net, group_id, [0, 0]
+                )
                 connection_id = create_transition("", "", self.net, group_id)
 
                 self.add_callback(connection_id, self.callbacks.task_started, task_context)
@@ -567,9 +569,9 @@ class PetriNetGenerator:
             self.net,
             group_id,
         )
-
-        node.cluster.add_node(parallel_loop_started)
-
+        cluster = Cluster([parallel_loop_started])
+        node.cluster.add_child(cluster)
+        parallel_loop_node.cluster = cluster
         self.net.add_output(parallel_loop_started, first_transition_id, Value(1))
         self.net.add_input(parallel_loop_started, second_transition_id, Value(1))
 
@@ -589,16 +591,20 @@ class PetriNetGenerator:
         """Removes a place from the petri net at runtime.
 
         Args:
-            place_id: The id as stringg of the task which should be removed from the net.
+            place_id: The id as string of the task which should be removed from the net.
         """
-        self.net.remove_place(place_id)
-        if self.draw_net:
-            draw_petri_net(self.net, self.path_for_image)
+        if self.net.has_place(place_id):
+            # temporary fix
+            # self.net.clusters.remove_node(self.task_started_id)
+            # self.net.remove_place(self.task_started_id)
+
+            if self.draw_net:
+                draw_petri_net(self.net, self.path_for_image)
 
     def generate_empty_parallel_loop(
         self, first_transition_id: str, second_transition_id: str
     ) -> None:
-        empty_loop_place = create_place("Exeute 0 tasks", self.net)
+        empty_loop_place = create_place("Execute 0 tasks", self.net)
         self.net.add_output(empty_loop_place, first_transition_id, Value(1))
         self.net.add_input(empty_loop_place, second_transition_id, Value(1))
 
@@ -702,7 +708,7 @@ class PetriNetGenerator:
         )
 
 
-def create_place(name: str, net: PetriNet, group_id: str) -> str:
+def create_place(name: str, net: PetriNet, group_id: str, cluster: List = []) -> str:
     """Utility function for creating a place with the snakes module.
 
     This function is used to add a place with the given name and to add labels for
@@ -717,7 +723,7 @@ def create_place(name: str, net: PetriNet, group_id: str) -> str:
         A UUID as string for the added place.
     """
     place_id = str(uuid.uuid4())
-    net.add_place(Place(place_id, []))
+    net.add_place(Place(place_id, []), cluster=cluster)
     net.place(place_id).label(name=name, group_id=group_id)
     return place_id
 

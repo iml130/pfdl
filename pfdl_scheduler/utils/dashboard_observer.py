@@ -39,12 +39,12 @@ class DashboardObserver(Observer):
     The Observer will send a post request to the dashboard with the data.
     """
 
-    def __init__(self, host: str, scheduler_id: str):
-        self.host = host
-        self.scheduler_id = scheduler_id
-        current_timestamp = int(round(datetime.timestamp(datetime.now())))
-        self.starting_date = current_timestamp
-
+    def __init__(self, host: str, scheduler_id: str, pfdl_string: str) -> None:
+        self.host: str = host
+        self.scheduler_id: str = scheduler_id
+        current_timestamp: int = int(round(datetime.timestamp(datetime.now())))
+        self.starting_date: int = current_timestamp
+        self.pfdl_string: str = pfdl_string
         threading.Thread(target=send_post_requests, daemon=True).start()
 
         request_data = {
@@ -52,6 +52,7 @@ class DashboardObserver(Observer):
             "starting_date": current_timestamp,
             "last_update": current_timestamp,
             "status": 2,
+            "pfdl_string": self.pfdl_string,
         }
 
         message_queue.put((self.host + "/pfdl_order", request_data))
@@ -90,5 +91,6 @@ class DashboardObserver(Observer):
                 "starting_date": self.starting_date,
                 "last_update": int(round(datetime.timestamp(datetime.now()))),
                 "status": order_status,
+                "pfdl_string": self.pfdl_string,
             }
-            message_queue.put((self.host + "/petri_net", request_data))
+            message_queue.put((self.host + "/pfdl_order", request_data))
