@@ -11,8 +11,8 @@ else:
 
 def serializedATN():
     with StringIO() as buf:
-        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3?")
-        buf.write("\u01a7\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7")
+        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3A")
+        buf.write("\u01a9\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7")
         buf.write("\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\4\f\t\f\4\r\t\r\4\16")
         buf.write("\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22\4\23\t\23")
         buf.write("\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30\4\31")
@@ -53,11 +53,11 @@ def serializedATN():
         buf.write("\3\33\3\33\3\34\3\34\3\35\3\35\3\35\3\35\7\35\u0180\n")
         buf.write("\35\f\35\16\35\u0183\13\35\3\35\3\35\3\35\3\35\3\35\5")
         buf.write("\35\u018a\n\35\3\36\3\36\3\36\3\36\3\37\3\37\3 \3 \3 ")
-        buf.write("\3 \5 \u0196\n \3!\3!\3!\3!\7!\u019c\n!\f!\16!\u019f\13")
-        buf.write("!\3!\3!\3!\3!\5!\u01a5\n!\3!\2\3\62\"\2\4\6\b\n\f\16\20")
-        buf.write("\22\24\26\30\32\34\36 \"$&(*,.\60\62\64\668:<>@\2\7\4")
-        buf.write("\2\22\24\64\64\4\2\60\60\63\63\3\2\60\61\3\2#(\4\2\32")
-        buf.write("\32>>\2\u01c9\2G\3\2\2\2\4L\3\2\2\2\6\\\3\2\2\2\bm\3\2")
+        buf.write("\3 \3 \3 \5 \u0198\n \3!\3!\3!\3!\7!\u019e\n!\f!\16!\u01a1")
+        buf.write("\13!\3!\3!\3!\3!\5!\u01a7\n!\3!\2\3\62\"\2\4\6\b\n\f\16")
+        buf.write("\20\22\24\26\30\32\34\36 \"$&(*,.\60\62\64\668:<>@\2\7")
+        buf.write("\4\2\22\24\64\64\4\2\60\60\63\63\3\2\60\61\3\2#(\4\2\32")
+        buf.write("\32@@\2\u01cd\2G\3\2\2\2\4L\3\2\2\2\6\\\3\2\2\2\bm\3\2")
         buf.write("\2\2\n{\3\2\2\2\f\u008f\3\2\2\2\16\u00a0\3\2\2\2\20\u00b1")
         buf.write("\3\2\2\2\22\u00b3\3\2\2\2\24\u00c2\3\2\2\2\26\u00d0\3")
         buf.write("\2\2\2\30\u00d9\3\2\2\2\32\u00e5\3\2\2\2\34\u00f3\3\2")
@@ -65,8 +65,8 @@ def serializedATN():
         buf.write("\u012e\3\2\2\2&\u0130\3\2\2\2(\u0136\3\2\2\2*\u0138\3")
         buf.write("\2\2\2,\u0142\3\2\2\2.\u0148\3\2\2\2\60\u014f\3\2\2\2")
         buf.write("\62\u015a\3\2\2\2\64\u0177\3\2\2\2\66\u0179\3\2\2\28\u0189")
-        buf.write("\3\2\2\2:\u018b\3\2\2\2<\u018f\3\2\2\2>\u0195\3\2\2\2")
-        buf.write("@\u01a4\3\2\2\2BF\7 \2\2CF\5\4\3\2DF\5\6\4\2EB\3\2\2\2")
+        buf.write("\3\2\2\2:\u018b\3\2\2\2<\u018f\3\2\2\2>\u0197\3\2\2\2")
+        buf.write("@\u01a6\3\2\2\2BF\7 \2\2CF\5\4\3\2DF\5\6\4\2EB\3\2\2\2")
         buf.write("EC\3\2\2\2ED\3\2\2\2FI\3\2\2\2GE\3\2\2\2GH\3\2\2\2HJ\3")
         buf.write("\2\2\2IG\3\2\2\2JK\7\2\2\3K\3\3\2\2\2LM\7\5\2\2MN\7\64")
         buf.write("\2\2NU\7\3\2\2OQ\5&\24\2PR\7 \2\2QP\3\2\2\2RS\3\2\2\2")
@@ -190,29 +190,30 @@ def serializedATN():
         buf.write("\2\2\2\u0174\u0172\3\2\2\2\u0174\u0175\3\2\2\2\u0175\63")
         buf.write("\3\2\2\2\u0176\u0174\3\2\2\2\u0177\u0178\t\5\2\2\u0178")
         buf.write("\65\3\2\2\2\u0179\u017a\7+\2\2\u017a\67\3\2\2\2\u017b")
-        buf.write("\u017c\5<\37\2\u017c\u0181\5:\36\2\u017d\u017e\7;\2\2")
+        buf.write("\u017c\5<\37\2\u017c\u0181\5:\36\2\u017d\u017e\7=\2\2")
         buf.write("\u017e\u0180\5:\36\2\u017f\u017d\3\2\2\2\u0180\u0183\3")
         buf.write("\2\2\2\u0181\u017f\3\2\2\2\u0181\u0182\3\2\2\2\u0182\u0184")
-        buf.write("\3\2\2\2\u0183\u0181\3\2\2\2\u0184\u0185\7?\2\2\u0185")
-        buf.write("\u018a\3\2\2\2\u0186\u0187\5<\37\2\u0187\u0188\7?\2\2")
+        buf.write("\3\2\2\2\u0183\u0181\3\2\2\2\u0184\u0185\7A\2\2\u0185")
+        buf.write("\u018a\3\2\2\2\u0186\u0187\5<\37\2\u0187\u0188\7A\2\2")
         buf.write("\u0188\u018a\3\2\2\2\u0189\u017b\3\2\2\2\u0189\u0186\3")
         buf.write("\2\2\2\u018a9\3\2\2\2\u018b\u018c\7\65\2\2\u018c\u018d")
-        buf.write("\7\66\2\2\u018d\u018e\5> \2\u018e;\3\2\2\2\u018f\u0190")
-        buf.write("\t\6\2\2\u0190=\3\2\2\2\u0191\u0196\7\65\2\2\u0192\u0196")
-        buf.write("\7<\2\2\u0193\u0196\58\35\2\u0194\u0196\5@!\2\u0195\u0191")
-        buf.write("\3\2\2\2\u0195\u0192\3\2\2\2\u0195\u0193\3\2\2\2\u0195")
-        buf.write("\u0194\3\2\2\2\u0196?\3\2\2\2\u0197\u0198\79\2\2\u0198")
-        buf.write("\u019d\5> \2\u0199\u019a\7;\2\2\u019a\u019c\5> \2\u019b")
-        buf.write("\u0199\3\2\2\2\u019c\u019f\3\2\2\2\u019d\u019b\3\2\2\2")
-        buf.write("\u019d\u019e\3\2\2\2\u019e\u01a0\3\2\2\2\u019f\u019d\3")
-        buf.write("\2\2\2\u01a0\u01a1\7:\2\2\u01a1\u01a5\3\2\2\2\u01a2\u01a3")
-        buf.write("\79\2\2\u01a3\u01a5\7:\2\2\u01a4\u0197\3\2\2\2\u01a4\u01a2")
-        buf.write("\3\2\2\2\u01a5A\3\2\2\2\65EGSW`ehsw\u0081\u0085\u008f")
-        buf.write("\u0095\u009a\u009d\u00a0\u00a6\u00ab\u00ae\u00b1\u00b9")
-        buf.write("\u00bc\u00be\u00c8\u00cc\u00d5\u00e0\u00e5\u00ef\u00f9")
-        buf.write("\u00fe\u0105\u010e\u0114\u011c\u0124\u012b\u012e\u0134")
-        buf.write("\u013c\u0140\u0144\u014f\u015a\u0172\u0174\u0181\u0189")
-        buf.write("\u0195\u019d\u01a4")
+        buf.write("\78\2\2\u018d\u018e\5> \2\u018e;\3\2\2\2\u018f\u0190\t")
+        buf.write("\6\2\2\u0190=\3\2\2\2\u0191\u0198\7\65\2\2\u0192\u0198")
+        buf.write("\7\66\2\2\u0193\u0198\7\67\2\2\u0194\u0198\7>\2\2\u0195")
+        buf.write("\u0198\58\35\2\u0196\u0198\5@!\2\u0197\u0191\3\2\2\2\u0197")
+        buf.write("\u0192\3\2\2\2\u0197\u0193\3\2\2\2\u0197\u0194\3\2\2\2")
+        buf.write("\u0197\u0195\3\2\2\2\u0197\u0196\3\2\2\2\u0198?\3\2\2")
+        buf.write("\2\u0199\u019a\7;\2\2\u019a\u019f\5> \2\u019b\u019c\7")
+        buf.write("=\2\2\u019c\u019e\5> \2\u019d\u019b\3\2\2\2\u019e\u01a1")
+        buf.write("\3\2\2\2\u019f\u019d\3\2\2\2\u019f\u01a0\3\2\2\2\u01a0")
+        buf.write("\u01a2\3\2\2\2\u01a1\u019f\3\2\2\2\u01a2\u01a3\7<\2\2")
+        buf.write("\u01a3\u01a7\3\2\2\2\u01a4\u01a5\7;\2\2\u01a5\u01a7\7")
+        buf.write("<\2\2\u01a6\u0199\3\2\2\2\u01a6\u01a4\3\2\2\2\u01a7A\3")
+        buf.write("\2\2\2\65EGSW`ehsw\u0081\u0085\u008f\u0095\u009a\u009d")
+        buf.write("\u00a0\u00a6\u00ab\u00ae\u00b1\u00b9\u00bc\u00be\u00c8")
+        buf.write("\u00cc\u00d5\u00e0\u00e5\u00ef\u00f9\u00fe\u0105\u010e")
+        buf.write("\u0114\u011c\u0124\u012b\u012e\u0134\u013c\u0140\u0144")
+        buf.write("\u014f\u015a\u0172\u0174\u0181\u0189\u0197\u019f\u01a6")
         return buf.getvalue()
 
 
@@ -230,7 +231,7 @@ class PFDLParser ( Parser ):
                      "'Task'", "'In'", "'Out'", "'Loop'", "'While'", "'To'", 
                      "'Parallel'", "'Condition'", "'Passed'", "'Failed'", 
                      "'OnDone'", "'End'", "'number'", "'string'", "'boolean'", 
-                     "'true'", "'false'", "<INVALID>", "'.'", "<INVALID>", 
+                     "<INVALID>", "<INVALID>", "<INVALID>", "'.'", "<INVALID>", 
                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                      "<INVALID>", "<INVALID>", "<INVALID>", "'('", "')'", 
                      "'<'", "'<='", "'>'", "'>='", "'=='", "'!='", "'And'", 
@@ -238,7 +239,8 @@ class PFDLParser ( Parser ):
                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "'}'" ]
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
+                     "'}'" ]
 
     symbolicNames = [ "<INVALID>", "INDENT", "DEDENT", "STRUCT", "TASK", 
                       "IN", "OUT", "LOOP", "WHILE", "TO", "PARALLEL", "CONDITION", 
@@ -251,9 +253,9 @@ class PFDLParser ( Parser ):
                       "NOT_EQUAL", "BOOLEAN_AND", "BOOLEAN_OR", "BOOLEAN_NOT", 
                       "STAR", "SLASH", "MINUS", "PLUS", "INTEGER", "FLOAT", 
                       "STRING", "STARTS_WITH_LOWER_C_STR", "STARTS_WITH_UPPER_C_STR", 
-                      "JSON_STRING", "JSON_COLON", "JSON_QUOTE", "JSON_COMMENT", 
-                      "JSON_ARRAY_LEFT", "JSON_ARRAY_RIGHT", "JSON_COMMA", 
-                      "NUMBER", "WS", "JSON_OPEN_2", "JSON_CLOSE" ]
+                      "JSON_STRING", "JSON_TRUE", "JSON_FALSE", "JSON_COLON", 
+                      "JSON_QUOTE", "JSON_COMMENT", "JSON_ARRAY_LEFT", "JSON_ARRAY_RIGHT", 
+                      "JSON_COMMA", "NUMBER", "WS", "JSON_OPEN_2", "JSON_CLOSE" ]
 
     RULE_program = 0
     RULE_struct = 1
@@ -349,16 +351,18 @@ class PFDLParser ( Parser ):
     STARTS_WITH_LOWER_C_STR=49
     STARTS_WITH_UPPER_C_STR=50
     JSON_STRING=51
-    JSON_COLON=52
-    JSON_QUOTE=53
-    JSON_COMMENT=54
-    JSON_ARRAY_LEFT=55
-    JSON_ARRAY_RIGHT=56
-    JSON_COMMA=57
-    NUMBER=58
-    WS=59
-    JSON_OPEN_2=60
-    JSON_CLOSE=61
+    JSON_TRUE=52
+    JSON_FALSE=53
+    JSON_COLON=54
+    JSON_QUOTE=55
+    JSON_COMMENT=56
+    JSON_ARRAY_LEFT=57
+    JSON_ARRAY_RIGHT=58
+    JSON_COMMA=59
+    NUMBER=60
+    WS=61
+    JSON_OPEN_2=62
+    JSON_CLOSE=63
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
@@ -3103,6 +3107,12 @@ class PFDLParser ( Parser ):
         def JSON_STRING(self):
             return self.getToken(PFDLParser.JSON_STRING, 0)
 
+        def JSON_TRUE(self):
+            return self.getToken(PFDLParser.JSON_TRUE, 0)
+
+        def JSON_FALSE(self):
+            return self.getToken(PFDLParser.JSON_FALSE, 0)
+
         def NUMBER(self):
             return self.getToken(PFDLParser.NUMBER, 0)
 
@@ -3139,7 +3149,7 @@ class PFDLParser ( Parser ):
         localctx = PFDLParser.Json_valueContext(self, self._ctx, self.state)
         self.enterRule(localctx, 60, self.RULE_json_value)
         try:
-            self.state = 403
+            self.state = 405
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [PFDLParser.JSON_STRING]:
@@ -3147,19 +3157,29 @@ class PFDLParser ( Parser ):
                 self.state = 399
                 self.match(PFDLParser.JSON_STRING)
                 pass
-            elif token in [PFDLParser.NUMBER]:
+            elif token in [PFDLParser.JSON_TRUE]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 400
+                self.match(PFDLParser.JSON_TRUE)
+                pass
+            elif token in [PFDLParser.JSON_FALSE]:
+                self.enterOuterAlt(localctx, 3)
+                self.state = 401
+                self.match(PFDLParser.JSON_FALSE)
+                pass
+            elif token in [PFDLParser.NUMBER]:
+                self.enterOuterAlt(localctx, 4)
+                self.state = 402
                 self.match(PFDLParser.NUMBER)
                 pass
             elif token in [PFDLParser.JSON_OPEN, PFDLParser.JSON_OPEN_2]:
-                self.enterOuterAlt(localctx, 3)
-                self.state = 401
+                self.enterOuterAlt(localctx, 5)
+                self.state = 403
                 self.json_object()
                 pass
             elif token in [PFDLParser.JSON_ARRAY_LEFT]:
-                self.enterOuterAlt(localctx, 4)
-                self.state = 402
+                self.enterOuterAlt(localctx, 6)
+                self.state = 404
                 self.json_array()
                 pass
             else:
@@ -3226,36 +3246,36 @@ class PFDLParser ( Parser ):
         self.enterRule(localctx, 62, self.RULE_json_array)
         self._la = 0 # Token type
         try:
-            self.state = 418
+            self.state = 420
             self._errHandler.sync(self)
             la_ = self._interp.adaptivePredict(self._input,50,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 405
+                self.state = 407
                 self.match(PFDLParser.JSON_ARRAY_LEFT)
-                self.state = 406
+                self.state = 408
                 self.json_value()
-                self.state = 411
+                self.state = 413
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 while _la==PFDLParser.JSON_COMMA:
-                    self.state = 407
+                    self.state = 409
                     self.match(PFDLParser.JSON_COMMA)
-                    self.state = 408
+                    self.state = 410
                     self.json_value()
-                    self.state = 413
+                    self.state = 415
                     self._errHandler.sync(self)
                     _la = self._input.LA(1)
 
-                self.state = 414
+                self.state = 416
                 self.match(PFDLParser.JSON_ARRAY_RIGHT)
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 416
+                self.state = 418
                 self.match(PFDLParser.JSON_ARRAY_LEFT)
-                self.state = 417
+                self.state = 419
                 self.match(PFDLParser.JSON_ARRAY_RIGHT)
                 pass
 
