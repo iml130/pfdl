@@ -129,6 +129,8 @@ json_open_bracket:
 
 json_value:
    JSON_STRING
+   | JSON_TRUE
+   | JSON_FALSE
    | NUMBER
    | json_object
    | json_array;

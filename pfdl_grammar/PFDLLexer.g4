@@ -88,6 +88,8 @@ STARTS_WITH_UPPER_C_STR: [A-Z][a-zA-Z0-9_]*;
 mode JSON;
 
 JSON_STRING: '"' ('\\"'|.)*? '"';
+JSON_TRUE: 'true';
+JSON_FALSE: 'false';
 
 JSON_COLON: ':';
 JSON_QUOTE: '"';
