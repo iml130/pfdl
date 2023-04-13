@@ -449,6 +449,8 @@ class Scheduler(Subject):
         if task_api.task.name == "productionTask":
             self.running = False
             order_finished = True
+            self.petri_net_logic.draw_petri_net()
+            self.notify(NotificationType.PETRI_NET, self.scheduler_id)
 
         log_entry = "Task " + task_api.task.name + " with UUID '" + task_api.uuid + "' finished."
         self.notify(NotificationType.LOG_EVENT, (log_entry, logging.INFO, order_finished))

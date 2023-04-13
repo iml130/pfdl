@@ -49,7 +49,7 @@ class PetriNetLogic:
         self.draw_net: bool = draw_net
         self.transition_dict: Dict = self.petri_net_generator.transition_dict
 
-    def draw_petri_net(self, petri_net: PetriNet) -> None:
+    def draw_petri_net(self) -> None:
         """Saves the given petri net as an image in the current working directory.
 
         Args:
@@ -60,8 +60,8 @@ class PetriNetLogic:
         file_path = "./temp/petri_net"
 
         if self.draw_net:
-            draw_petri_net(petri_net, file_path)
-            draw_petri_net(petri_net, file_path, ".dot")
+            draw_petri_net(self.petri_net, file_path)
+            draw_petri_net(self.petri_net, file_path, ".dot")
             with open(file_path + ".dot", "a") as file:
                 file.write("\ncall_tree:")
                 file.write(json.dumps(self.petri_net_generator.tree.toJSON(), indent=4))
@@ -105,7 +105,7 @@ class PetriNetLogic:
             else:
                 index = index + 1
 
-        self.draw_petri_net(self.petri_net)
+        self.draw_petri_net()
 
     def fire_event(self, event: Event) -> bool:
         """Adds a token to the corresponding place of the event in the petri net.
@@ -124,7 +124,7 @@ class PetriNetLogic:
 
         if self.petri_net.has_place(name_in_petri_net):
             self.petri_net.place(name_in_petri_net).add(1)
-            self.draw_petri_net(self.petri_net)
+            self.draw_petri_net()
             self.evaluate_petri_net()
             return True
 

@@ -143,7 +143,6 @@ class PetriNetGenerator:
         self.tasks = process.tasks
         for task in process.tasks.values():
             if task.name == "productionTask":
-
                 group_id = str(uuid.uuid4())
                 self.tree = Node(group_id, task.name)
 
@@ -481,14 +480,13 @@ class PetriNetGenerator:
         Returns:
             The id of the last transition of the CountingLoop petri net component.
         """
-        group_id = str(uuid.uuid4())
-        counting_loop_node = Node(group_id, "Counting Loop", node)
-
         if loop.parallel:
             return self.generate_parallel_loop(
                 loop, task_context, first_transition_id, second_transition_id, node
             )
 
+        group_id = str(uuid.uuid4())
+        counting_loop_node = Node(group_id, "Counting Loop", node)
         loop_id = create_place("Loop", self.net, group_id)
 
         loop_text = "Loop"

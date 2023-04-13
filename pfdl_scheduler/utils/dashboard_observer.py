@@ -45,6 +45,8 @@ class DashboardObserver(Observer):
         current_timestamp: int = int(round(datetime.timestamp(datetime.now())))
         self.starting_date: int = current_timestamp
         self.pfdl_string: str = pfdl_string
+        self.order_finished: bool = False
+
         threading.Thread(target=send_post_requests, daemon=True).start()
 
         request_data = {
@@ -59,21 +61,26 @@ class DashboardObserver(Observer):
 
     def update(self, notification_type: NotificationType, data: Any) -> None:
         if notification_type == NotificationType.PETRI_NET:
-            content = ""
-            with open("temp/petri_net.dot") as file:
-                content = file.read()
+            if not self.order_finished:
+                content = ""
+                with open("temp/petri_net.dot") as file:
+                    content = file.read()
 
-            request_data = {
-                "order_id": self.scheduler_id,
-                "content": content,
-                "type_pn": "dot",
-            }
-            message_queue.put((self.host + "/petri_net", request_data))
+                request_data = {
+                    "order_id": self.scheduler_id,
+                    "content": content,
+                    "type_pn": "dot",
+                }
+                message_queue.put((self.host + "/petri_net", request_data))
 
         elif notification_type == NotificationType.LOG_EVENT:
             log_event = data[0]
             log_level = data[1]
             order_finished = data[2]
+
+            if order_finished:
+                self.order_finished = True
+
             request_data = {
                 "order_id": self.scheduler_id,
                 "log_message": log_event,
