@@ -76,7 +76,7 @@ class Scheduler(Subject):
         pfdl_file_path: str,
         generate_test_ids: bool = False,
         draw_petri_net: bool = True,
-        scheduler_id: str = str(uuid.uuid4()),
+        scheduler_id: str = "",
         dashboard_host_address: str = "",
     ) -> None:
         """Initialize the object.
@@ -93,7 +93,10 @@ class Scheduler(Subject):
             scheduler_id: A unique ID to identify the Scheduer / Production Order
             dashboard_host_address: The address of the Dashboard (if existing)
         """
-        self.scheduler_id = scheduler_id
+        if scheduler_id == "":
+            self.scheduler_id: str = str(uuid.uuid4())
+        else:
+            self.scheduler_id: str = scheduler_id
         self.running: bool = False
         self.pfdl_file_valid: bool = False
         self.process: Process = None
@@ -125,7 +128,7 @@ class Scheduler(Subject):
         self.observers: List[Observer] = []
 
         # enable logging
-        self.attach(LogEntryObserver())
+        self.attach(LogEntryObserver(self.scheduler_id))
 
         if dashboard_host_address != "":
             self.attach(DashboardObserver(dashboard_host_address, self.scheduler_id, pfdl_string))
