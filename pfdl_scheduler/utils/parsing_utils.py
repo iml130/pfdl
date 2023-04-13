@@ -54,8 +54,6 @@ def parse_string(
 
     tree = parser.program()
 
-    write_tokens_to_file(token_stream)
-
     if error_handler.has_error() is False:
         visitor = PFDLTreeVisitor(error_handler)
         process = visitor.visit(tree)
