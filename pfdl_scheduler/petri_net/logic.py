@@ -34,9 +34,7 @@ class PetriNetLogic:
     """
 
     def __init__(
-        self,
-        petri_net_generator: PetriNetGenerator,
-        draw_net: bool = True,
+        self, petri_net_generator: PetriNetGenerator, draw_net: bool = True, file_name: str = ""
     ):
         """Initialize the object.
 
@@ -48,6 +46,7 @@ class PetriNetLogic:
         self.petri_net: PetriNet = petri_net_generator.net
         self.draw_net: bool = draw_net
         self.transition_dict: Dict = self.petri_net_generator.transition_dict
+        self.file_name = file_name
 
     def draw_petri_net(self) -> None:
         """Saves the given petri net as an image in the current working directory.
@@ -57,7 +56,7 @@ class PetriNetLogic:
             petri_net: The petri net instance that should be drawn.
         """
 
-        file_path = "./temp/petri_net"
+        file_path = "./temp/" + self.file_name
 
         if self.draw_net:
             draw_petri_net(self.petri_net, file_path)

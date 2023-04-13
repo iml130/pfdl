@@ -111,11 +111,14 @@ class Scheduler(Subject):
                 "",
                 generate_test_ids=generate_test_ids,
                 draw_net=draw_petri_net,
+                file_name=self.scheduler_id,
             )
             self.register_for_petrinet_callbacks()
 
             self.petri_net_generator.generate_petri_net(self.process)
-            self.petri_net_logic = PetriNetLogic(self.petri_net_generator, draw_petri_net)
+            self.petri_net_logic = PetriNetLogic(
+                self.petri_net_generator, draw_petri_net, file_name=self.scheduler_id
+            )
 
         awaited_event = Event(event_type=START_PRODUCTION_TASK, data={})
         self.awaited_events.append(awaited_event)

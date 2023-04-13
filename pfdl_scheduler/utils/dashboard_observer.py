@@ -63,7 +63,7 @@ class DashboardObserver(Observer):
         if notification_type == NotificationType.PETRI_NET:
             if not self.order_finished:
                 content = ""
-                with open("temp/petri_net.dot") as file:
+                with open("temp/" + self.scheduler_id + ".dot") as file:
                     content = file.read()
 
                 request_data = {
