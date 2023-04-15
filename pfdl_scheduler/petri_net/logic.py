@@ -72,7 +72,7 @@ class PetriNetLogic:
         index = 0
 
         transitions = list(self.petri_net._trans)
-        while index < len(self.petri_net._trans):
+        while index < len(transitions):
             transition_id = transitions[index]
 
             if self.petri_net.transition(transition_id).enabled(Value(1)):
