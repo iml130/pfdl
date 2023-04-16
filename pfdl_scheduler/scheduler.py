@@ -412,7 +412,7 @@ class Scheduler(Subject):
 
         # generate parallel tasks in petri net
         if task_count > 0:
-            for i in int(range(task_count)):
+            for i in range(int(task_count)):
                 self.petri_net_generator.generate_task_call(
                     parallelTask,
                     task_context,
