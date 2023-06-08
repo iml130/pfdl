@@ -17,6 +17,12 @@ from pfdl_scheduler.api.observer_api import Observer
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
+# constants
+LOG_FILE_LOCATION = "temp/"
+LOG_FILE_FORMAT = ".log"
+LOG_FILE_ENCODING = "utf-8"
+LOG_FILE_FILEMODE = "w"
+
 
 class LogEntryObserver(Observer):
     """LogEntryObserver for receiving logging information from the Scheduler.
@@ -26,10 +32,10 @@ class LogEntryObserver(Observer):
 
     def __init__(self, scheduler_id: str):
         logging.basicConfig(
-            filename="temp/" + scheduler_id + ".log",
-            encoding="utf-8",
+            filename=LOG_FILE_LOCATION + scheduler_id + LOG_FILE_FORMAT,
+            encoding=LOG_FILE_ENCODING,
             level=logging.DEBUG,
-            filemode="w",
+            filemode=LOG_FILE_FILEMODE,
         )
 
     def update(self, notification_type: NotificationType, data: Any) -> None:
