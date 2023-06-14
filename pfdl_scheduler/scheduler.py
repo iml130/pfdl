@@ -93,6 +93,27 @@ class Scheduler(Subject):
             scheduler_id: A unique ID to identify the Scheduer / Production Order
             dashboard_host_address: The address of the Dashboard (if existing)
         """
+        self.init_scheduler(scheduler_id, generate_test_ids)
+        self.pfdl_file_valid, self.process, pfdl_string = parse_file(pfdl_file_path)
+
+        if self.pfdl_file_valid:
+            self.petri_net_generator = PetriNetGenerator(
+                "",
+                generate_test_ids=self.generate_test_ids,
+                draw_net=draw_petri_net,
+                file_name=self.scheduler_id,
+            )
+            self.setup_scheduling(draw_petri_net)
+
+            # enable logging
+            # self.attach(LogEntryObserver(self.scheduler_id))
+
+            if dashboard_host_address != "":
+                self.attach(
+                    DashboardObserver(dashboard_host_address, self.scheduler_id, pfdl_string)
+                )
+
+    def init_scheduler(self, scheduler_id: str, generate_test_ids: bool):
         if scheduler_id == "":
             self.scheduler_id: str = str(uuid.uuid4())
         else:
@@ -108,30 +129,18 @@ class Scheduler(Subject):
         self.awaited_events: List[Event] = []
         self.generate_test_ids: bool = generate_test_ids
         self.test_id_counters: List[int] = [0, 0]
-        self.pfdl_file_valid, self.process, pfdl_string = parse_file(pfdl_file_path)
-        if self.pfdl_file_valid:
-            self.petri_net_generator = PetriNetGenerator(
-                "",
-                generate_test_ids=generate_test_ids,
-                draw_net=draw_petri_net,
-                file_name=self.scheduler_id,
-            )
-            self.register_for_petrinet_callbacks()
+        self.observers: List[Observer] = []
 
-            self.petri_net_generator.generate_petri_net(self.process)
-            self.petri_net_logic = PetriNetLogic(
-                self.petri_net_generator, draw_petri_net, file_name=self.scheduler_id
-            )
+    def setup_scheduling(self, draw_petri_net: bool):
+        self.register_for_petrinet_callbacks()
+
+        self.petri_net_generator.generate_petri_net(self.process)
+        self.petri_net_logic = PetriNetLogic(
+            self.petri_net_generator, draw_petri_net, file_name=self.scheduler_id
+        )
 
         awaited_event = Event(event_type=START_PRODUCTION_TASK, data={})
         self.awaited_events.append(awaited_event)
-        self.observers: List[Observer] = []
-
-        # enable logging
-        self.attach(LogEntryObserver(self.scheduler_id))
-
-        if dashboard_host_address != "":
-            self.attach(DashboardObserver(dashboard_host_address, self.scheduler_id, pfdl_string))
 
     def attach(self, observer: Observer) -> None:
         """Attach (add) an observer object to the observers list."""
