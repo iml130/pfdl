@@ -48,7 +48,7 @@ while_loop:
     LOOP WHILE expression INDENT statement+ DEDENT;
 
 counting_loop:
-    PARALLEL? LOOP STARTS_WITH_LOWER_C_STR TO attribute_access INDENT statement+ DEDENT;
+    PARALLEL? LOOP STARTS_WITH_LOWER_C_STR TO (attribute_access | INTEGER) INDENT statement+ DEDENT;
 
 condition:
     CONDITION INDENT expression NL+ DEDENT condition_passed condition_failed?;

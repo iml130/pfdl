@@ -262,7 +262,11 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         counting_loop.context = ctx
 
         counting_loop.counting_variable = ctx.STARTS_WITH_LOWER_C_STR().getText()
-        counting_loop.limit = self.visitAttribute_access(ctx.attribute_access())
+
+        if ctx.attribute_access():
+            counting_loop.limit = self.visitAttribute_access(ctx.attribute_access())
+        else:
+            counting_loop.limit = int(ctx.INTEGER().getText())
 
         # check if parallel keyword is there
         if ctx.PARALLEL():
