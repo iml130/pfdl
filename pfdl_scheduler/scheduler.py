@@ -438,6 +438,9 @@ class Scheduler(Subject):
         self.petri_net_logic.evaluate_petri_net()
 
     def get_loop_limit(self, loop: CountingLoop, task_context: TaskAPI) -> int:
+        # loop limit is already a number so just return it
+        if isinstance(loop.limit, int):
+            return loop.limit
         loop_limit = 0
         variable = loop.limit[0]
         loop_limit = self.variable_access_function(variable, task_context)
