@@ -241,19 +241,40 @@ class PetriNetGenerator:
             if isinstance(statement, Service):
                 connection_ids = [self.generate_service(*args)]
             elif isinstance(statement, TaskCall):
-                connection_ids = self.generate_task_call(*args)
+                connection_ids, new_task_context = self.generate_task_call(*args)
             elif isinstance(statement, Parallel):
                 connection_ids = [self.generate_parallel(*args)]
             elif isinstance(statement, CountingLoop):
                 connection_ids = [self.generate_counting_loop(*args)]
             elif isinstance(statement, WhileLoop):
                 connection_ids = [self.generate_while_loop(*args)]
-            else:
+            elif isinstance(statement, Condition):
                 connection_ids = self.generate_condition(*args)
+            else:
+                connection_ids = self.handle_other_statements(*args)
 
             previous_connection_id = current_connection_id
 
         return connection_ids
+
+    def handle_other_statements(
+        self,
+        statement: Any,
+        task_context: TaskAPI,
+        first_transition_id: str,
+        second_transition_id: str,
+        node: Node,
+        in_loop: bool = False,
+    ) -> List[str]:
+        """Generates Petri Net components for newly added PFDL components.
+
+        This function can be used by plugin developers to generate Petri Net components
+        if they add new components through their plugin.
+
+        Returns:
+            A list of ids of the last transition in the respective component.
+        """
+        return None
 
     def generate_service(
         self,
@@ -344,7 +365,7 @@ class PetriNetGenerator:
         for last_connection_id in last_connection_ids:
             self.add_callback(last_connection_id, self.callbacks.task_finished, new_task_context)
 
-        return last_connection_ids
+        return last_connection_ids, new_task_context
 
     def generate_parallel(
         self,
