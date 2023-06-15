@@ -54,8 +54,6 @@ def parse_string(
 
     tree = parser.program()
 
-    write_tokens_to_file(token_stream)
-
     if error_handler.has_error() is False:
         visitor = PFDLTreeVisitor(error_handler)
         process = visitor.visit(tree)
@@ -69,17 +67,18 @@ def parse_string(
     return (False, None)
 
 
-def parse_file(file_path: str) -> Tuple[bool, Union[None, Process]]:
+def parse_file(file_path: str) -> Tuple[bool, Union[None, Process], str]:
     """Loads the content of the file from the given path and calls the parse_string function.
 
     Args:
         file_path: The path to the PFDL file.
 
     Returns:
-        A boolan indicating validity of the PFDL file and the process object if so, otherwise None.
+        A boolan indicating validity of the PFDL file, the content of the file, and the
+        process object if so, otherwise None.
     """
     pfdl_string = load_file(file_path)
-    return parse_string(pfdl_string, file_path)
+    return *parse_string(pfdl_string, file_path), pfdl_string
 
 
 def write_tokens_to_file(token_stream: CommonTokenStream) -> None:

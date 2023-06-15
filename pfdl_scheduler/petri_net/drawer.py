@@ -8,7 +8,6 @@
 
 # standard libraries
 import threading
-from pathlib import Path
 
 # 3rd party lib
 import snakes.plugins
@@ -18,26 +17,38 @@ snakes.plugins.load(["labels", "gv"], "snakes.nets", "nets")
 draw_lock = threading.Lock()
 
 
-"""Constants that are used in the drawer functions"""
-NODE_SEP_VALUE = 5
+# Constants that are used in the drawer functions below.
+# They are used by Snakes to pass the values to the dot engine
+# Attribute overview: https://graphviz.org/doc/info/attrs.html
 
+LAYOUT_METHOD = "dot"  # the preferred layout engine (changes the position of the nodes)
+
+# Graph attributes
+GRAPH_MARGIN = 15  # margin of the graph to the canvas (in inches)
+NEW_RANK_VALUE = "true"  # allow different positioning for clustering
+
+# Place attributes
 PLACE_SHAPE = "circle"
 PLACE_LABEL = ""
 
+# Transition attributes
 TRANSITION_SHAPE = "rect"
 TRANSITION_FILL_COLOR = "black"
 TRANSITION_WIDTH = 1
 TRANSITION_HEIGHT = 0.1
 TRANSITION_LABEL = ""
 
+# Arc attributes
 INHIBITOR_ARC_ARROW_HEAD = "odot"
+DEFAULT_ARC_LABEL = ""
 
-LAYOUT_METHOD = "dot"
+DEFAULT_CLUSTER_STYLE = ""
 
 
 def draw_graph(graph, attr):
     """Set attributes for drawing the net."""
-    attr["nodesep"] = NODE_SEP_VALUE
+    attr["margin"] = GRAPH_MARGIN
+    attr["newrank"] = NEW_RANK_VALUE
 
 
 def draw_place(place, attr):
@@ -46,6 +57,8 @@ def draw_place(place, attr):
         attr["xlabel"] = place.label("name")
     else:
         attr["xlabel"] = place.name
+
+    attr["group"] = place.label("group_id")
 
     if 1 in place:
         attr["label"] = "&bull;"
@@ -57,24 +70,28 @@ def draw_place(place, attr):
 def draw_transition(trans, attr):
     """Set attributes for drawing transitions."""
 
-    attr["label"] = TRANSITION_LABEL
+    attr["label"] = ""  # TRANSITION_LABEL
     attr["shape"] = TRANSITION_SHAPE
     attr["height"] = TRANSITION_HEIGHT
     attr["width"] = TRANSITION_WIDTH
     attr["fillcolor"] = TRANSITION_FILL_COLOR
+    attr["group"] = trans.label("group_id")
 
 
 def draw_arcs(arc, attr):
     """Set attributes for drawing arcs."""
     if isinstance(arc, snakes.nets.Inhibitor):
         attr["arrowhead"] = INHIBITOR_ARC_ARROW_HEAD
-    attr["label"] = ""
+    attr["label"] = DEFAULT_ARC_LABEL
+
+
+def draw_clusters(clust, attr):
+    attr["style"] = DEFAULT_CLUSTER_STYLE
 
 
 def draw_petri_net(net, file_path, file_ending=".png"):
     """Calls the draw method form the Snakes module on the given PetriNet."""
     with draw_lock:
-        Path("./temp").mkdir(parents=True, exist_ok=True)
         net.draw(
             file_path + file_ending,
             LAYOUT_METHOD,
@@ -82,4 +99,5 @@ def draw_petri_net(net, file_path, file_ending=".png"):
             arc_attr=draw_arcs,
             place_attr=draw_place,
             trans_attr=draw_transition,
+            cluster_attr=draw_clusters,
         )

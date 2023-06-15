@@ -7,6 +7,7 @@
 """Contains the PetriNetLogic class."""
 
 # standard libraries
+import json
 from typing import Dict
 
 # 3rd party packages
@@ -32,7 +33,9 @@ class PetriNetLogic:
         transition_dict: A reference to the dict in the generator which maps the ids to callbacks.
     """
 
-    def __init__(self, petri_net_generator: PetriNetGenerator, draw_net: bool = True):
+    def __init__(
+        self, petri_net_generator: PetriNetGenerator, draw_net: bool = True, file_name: str = ""
+    ):
         """Initialize the object.
 
         Args:
@@ -43,18 +46,24 @@ class PetriNetLogic:
         self.petri_net: PetriNet = petri_net_generator.net
         self.draw_net: bool = draw_net
         self.transition_dict: Dict = self.petri_net_generator.transition_dict
+        self.file_name = file_name
 
-    def draw_petri_net(self, name: str, petri_net: PetriNet) -> None:
+    def draw_petri_net(self) -> None:
         """Saves the given petri net as an image in the current working directory.
 
         Args:
             name: The name of the image.
             petri_net: The petri net instance that should be drawn.
         """
-        file_path = "./temp/" + name
+
+        file_path = "./temp/" + self.file_name
 
         if self.draw_net:
-            draw_petri_net(petri_net, file_path)
+            draw_petri_net(self.petri_net, file_path)
+            draw_petri_net(self.petri_net, file_path, ".dot")
+            with open(file_path + ".dot", "a") as file:
+                file.write("\ncall_tree:")
+                file.write(json.dumps(self.petri_net_generator.tree.toJSON(), indent=4))
 
     def evaluate_petri_net(self) -> None:
         """Tries to fire every transition as long as all transitions
@@ -63,7 +72,7 @@ class PetriNetLogic:
         index = 0
 
         transitions = list(self.petri_net._trans)
-        while index < len(self.petri_net._trans):
+        while index < len(transitions):
             transition_id = transitions[index]
 
             if self.petri_net.transition(transition_id).enabled(Value(1)):
@@ -72,13 +81,12 @@ class PetriNetLogic:
                     temp = None
 
                     for callback in callbacks:
-                        # parallel loop functionallity stop evaluation
+                        # parallel loop functionality stop evaluation
                         if callback.func.__name__ == "on_parallel_loop_started":
                             temp = callback
                             callbacks.remove(temp)
 
                     if temp:
-                        # self.draw_petri_net(self.petri_net.name, self.petri_net)
                         for callback in list(callbacks):
                             callback()
                             callbacks.remove(callback)
@@ -96,7 +104,7 @@ class PetriNetLogic:
             else:
                 index = index + 1
 
-        self.draw_petri_net(self.petri_net.name, self.petri_net)
+        self.draw_petri_net()
 
     def fire_event(self, event: Event) -> bool:
         """Adds a token to the corresponding place of the event in the petri net.
@@ -115,7 +123,7 @@ class PetriNetLogic:
 
         if self.petri_net.has_place(name_in_petri_net):
             self.petri_net.place(name_in_petri_net).add(1)
-            self.draw_petri_net(self.petri_net.name, self.petri_net)
+            self.draw_petri_net()
             self.evaluate_petri_net()
             return True
 
