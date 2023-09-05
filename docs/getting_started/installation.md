@@ -200,7 +200,7 @@ You can view the source code of the whole file here:
 Within the scheduler_demo.py file the Scheduler is created and started with the given PFDL file.
 The start method of the interface registers the callback functions to the Scheduler so they are called when specific events occur.
 After the registration the scheduler is started and then executed in a while loop.
-In this loop an input to the Scheduler is emulated with the help of pythons input function.
+In this loop an input to the Scheduler is emulated with the help of Python's input function.
 The given event of the user is then fired to the Scheduler.
 
 ```python3 linenums="1"
@@ -226,7 +226,7 @@ There are four methods which serve as callback functions for the scheduler.
 The `cb_task_started` method for example gets called when a Task is started in the Scheduler.
 A [TaskAPI](../scheduler/api.md#pfdl_scheduler.api.task_api.TaskAPI) object is passed to the function which gives context information about the started Task.
 In this simple example the UUID of the started Task and its name are being printed to the console.
-The UUID gets created when the Task is started and identifies the specific instane of the Task.
+The UUID gets created when the Task is started and identifies the specific instance of the Task.
 If the same [Task](../scheduler/developer_reference.md#pfdl_scheduler.model.task) is called multiple times, for example in a loop, each instance get a unique ID for identification.
 The TaskAPI object consists of the called Task (or: Task definition), the unique ID and the TaskContext which is also a TaskAPI object.
 This TaskContext represents the calling Task (can also be none, if the TaskAPI object describes the `productionTask`).
@@ -283,9 +283,9 @@ Before you start the Scheduler we explain in short the used PFDL file.
 In this simple scenario there is only the service `Painting`.
 This service could command a painting machine to paint the piece that is currently on it.
 To customize the painting process a `Color` parameter is passed to the service.
-The Struct `Color` whihch is used as a description for Color variables consists of the color name and a RGB value in form of an array.
+The Struct `Color`, which is used as a description for Color variables, consists of the color name and a RGB value in form of an array.
 As the painting machine can measure the wetness of the piece, the service will return a `PaintResult` which contains the wetness.
-The whole production order starts with the productionTask and so from it the Task `painTask` is called which executes the `Painting` service.
+The whole production order starts with the `productionTask` and so from it the Task `paintingTask` is called which executes the `Painting` service.
 The example PFDL file looks like the following:
 
 ```text linenums="1"
@@ -328,11 +328,11 @@ A token should be in the `Painting started` place.
 The demo waits for user input.
 As it is for testing purposes only, the syntax for firing an event is simplified.
 You can copy the UUID of the started service and seperate it with a comma and write `service_finished`.
-This will tell the scheduler that the service with the given uuid is finished.
-Substitute the uuid with the one of the service and enter the command.
+This will tell the scheduler that the service with the given UUID is finished.
+Substitute the UUID with the one of the service and enter the command.
 
 ```text
-    <uuid of the task>,service_finished
+    <uuid of the service>,service_finished
 ```
 
 After entering this command the token should be in the last place of the petri net as the service has finished now and no other statement is inside the `paintingTask`.
