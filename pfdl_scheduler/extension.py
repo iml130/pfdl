@@ -21,6 +21,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="A program that shall be executed in the VS Code extension which has a string containing a PFDL program as input as well as the name of the corresponding file."
     )
+    parser.add_argument("file_path", type=str, help="The requesters filepath.")
     parser.add_argument("pfdl_string", type=str, help="The content of a given PFDL file as string.")
     parser.add_argument("file_name", type=str, help="The name of the given PFDL file.")
     args = parser.parse_args()
