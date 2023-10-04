@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 # Service
 
 A Service in the PFDL corresponds to a service in a service oriented architecture.

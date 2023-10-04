@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 # Task input and output
 
 Tasks can define an Input and an Output to pass data when calling each other.

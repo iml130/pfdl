@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 # Task
 A Task is an executable unit which executes the statements within sequentially.
 The name of the Task should be a [lowercase string](../#allowed-characters).

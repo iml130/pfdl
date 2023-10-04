@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 # Loop
 To execute statements for a specified number of repetitions, the usage of the `Loop` keyword is required.
 There are two types of loops available: Counting Loops and While Loops.

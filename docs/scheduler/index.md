@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 # Using the PFDL scheduler
 
 This section can be used as a reference while developing software with the PFDL Scheduler.
