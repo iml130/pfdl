@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: The PFDL Contributors
+# SPDX-License-Identifier: MIT
+
 Struct TestStruct
     attribute: number
     attribute: string # Name of the attribute is already assigned
