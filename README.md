@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 <div align="center">
   
 Production Flow Description Language

@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 <style>
 .figure{
     width: 70%;

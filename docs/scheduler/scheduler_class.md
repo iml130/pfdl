@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 # The Scheduler class
 
 The PFDL scheduler is the interface between the PFDL core (model, petri net) and the outside world. If you want to receive the current state of the Production Order or push it further by sending status updates of the services you can register callback functions and fire events.

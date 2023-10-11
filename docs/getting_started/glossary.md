@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 # Glossary
 
 ## Data Life Cycle Object (DLCO)

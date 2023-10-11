@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 # Parallel
 To exexute Tasks in parallel the `Parallel` keyword is used.
 All Tasks within a Parallel block will be executed concurrently by the Scheduler.

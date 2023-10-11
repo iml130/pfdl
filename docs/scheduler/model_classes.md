@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 # Model classes
 
 This page provides an overview over the model classes which are extracted from the parsed PFDL file. For an overview visit the [architecture section](../getting_started/architecture.md#model-creation-and-validation).

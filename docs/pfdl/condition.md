@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 # Condition
 Because some production steps needs to fulfill conditions sometimes there is a control structure `Condition` for this specific case.
 The `Condition` block consists of a `Condition` which includes a boolean expression, a `Passed` block in which instructions are given for the case that the boolean expression evaluates to True.
