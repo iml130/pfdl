@@ -1,8 +1,7 @@
-<!--
-SPDX-FileCopyrightText: The PFDL Contributors
-SPDX-License-Identifier: MIT
--->
 ---
+# SPDX-FileCopyrightText: The PFDL Contributors
+# SPDX-License-Identifier: MIT
+
 hide:
   - navigation
   - toc
