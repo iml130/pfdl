@@ -9,6 +9,8 @@
 # standard libraries
 from dataclasses import dataclass
 from typing import List, Union
+import uuid
+import hashlib
 
 # 3rd party libraries
 from antlr4.ParserRuleContext import ParserRuleContext
@@ -58,3 +60,7 @@ class CountingLoop(Loop):
         self.counting_variable: str = counting_variable
         self.limit: str = limit
         self.parallel: bool = parallel
+        self.uuid = str(uuid.uuid4())
+
+    def __hash__(self) -> int:
+        return int(uuid.UUID(self.uuid))
