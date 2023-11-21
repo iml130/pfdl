@@ -267,16 +267,21 @@ class Scheduler(Subject):
 
     def on_task_started(self, task_api: TaskAPI) -> None:
         """Executes Scheduling logic when a Task is started."""
-        new_uuid = str(uuid.uuid4())
-        if self.generate_test_ids:
+        if task_api.in_loop:
+            if self.generate_test_ids:
+                task_api.uuid = str(self.test_id_counters[0])
+                self.test_id_counters[0] = self.test_id_counters[0] + 1
+            else:
+                task_api.uuid = str(uuid.uuid4())
+
+            if task_api.task_call:
+                task_api.input_parameters = copy.deepcopy(task_api.task_call.input_parameters)
+            self.substitute_loop_indexes(task_api)
+        elif self.generate_test_ids:
             new_uuid = str(self.test_id_counters[0])
             self.test_id_counters[0] = self.test_id_counters[0] + 1
+            task_api.uuid = new_uuid
 
-        task_api.uuid = new_uuid
-        if task_api.task_call:
-            task_api.input_parameters = copy.deepcopy(task_api.task_call.input_parameters)
-
-        self.substitute_loop_indexes(task_api)
         for callback in self.task_callbacks.task_started:
             callback(task_api)
 
@@ -308,22 +313,33 @@ class Scheduler(Subject):
     def on_service_started(self, service_api: ServiceAPI) -> None:
         """Executes Scheduling logic when a Service is started."""
 
-        new_uuid = str(uuid.uuid4())
-        if self.generate_test_ids:
+        if service_api.in_loop:
+            new_uuid = str(uuid.uuid4())
+            if self.generate_test_ids:
+                new_uuid = str(self.test_id_counters[1])
+                self.test_id_counters[1] = self.test_id_counters[1] + 1
+
+            self.petri_net_generator.place_dict[new_uuid] = self.petri_net_generator.place_dict[
+                service_api.uuid
+            ]
+            service_api.uuid = new_uuid
+
+            if service_api.input_parameters:
+                service_api.input_parameters = copy.deepcopy(service_api.service.input_parameters)
+    
+            self.substitute_loop_indexes(service_api)
+        elif self.generate_test_ids:
             new_uuid = str(self.test_id_counters[1])
             self.test_id_counters[1] = self.test_id_counters[1] + 1
-        self.petri_net_generator.place_dict[new_uuid] = self.petri_net_generator.place_dict[
-            service_api.uuid
-        ]
 
-        service_api.uuid = new_uuid
-        if service_api.input_parameters:
-            service_api.input_parameters = copy.deepcopy(service_api.service.input_parameters)
+            self.petri_net_generator.place_dict[new_uuid] = self.petri_net_generator.place_dict[
+                service_api.uuid
+            ]
+            service_api.uuid = new_uuid
 
         awaited_event = Event(event_type=SERVICE_FINISHED, data={"service_id": service_api.uuid})
         self.awaited_events.append(awaited_event)
 
-        self.substitute_loop_indexes(service_api)
         for callback in self.task_callbacks.service_started:
             callback(service_api)
 
