@@ -11,9 +11,9 @@ from antlr4.ParserRuleContext import ParserRuleContext
 
 
 class ErrorHandler:
-    """Keeps track of the total error amount in an PFDL file.
+    """Keeps track of the total error amount in a PFDL file.
 
-    Provides a method for printing an erro which counts the errors.
+    Provides a method for printing an error which counts the errors.
 
     Attributes:
         total_error_count: Total number of errors.

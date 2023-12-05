@@ -35,14 +35,16 @@ class TestScheduling(unittest.TestCase):
         self.task_started_triggered: List[str] = []
         self.task_finished_triggered: List[str] = []
 
-    def load_file(self, test_file_name: str) -> None:
+    def load_file(self, test_file_name: str, is_pfdl_string: bool) -> None:
         """Loads a file from the given path and parses it if it is a PFDL program."""
+        if is_pfdl_string:
+            pfdl_program = test_file_name
+        else:
+            pfdl_program = TEST_FILE_FOLDER_PATH + test_file_name + ".pfdl"
+        self.scheduler = Scheduler(pfdl_program, True, False)
 
-        file_path = TEST_FILE_FOLDER_PATH + test_file_name + ".pfdl"
-        self.scheduler = Scheduler(file_path, True, False)
-
-    def setup(self, test_case_name: str) -> None:
-        self.load_file(test_case_name)
+    def setup(self, test_case_name: str, is_pfdl_string: bool = False) -> None:
+        self.load_file(test_case_name, is_pfdl_string)
 
         self.assertFalse(self.scheduler.running)
         self.scheduler.start()
@@ -66,6 +68,20 @@ class TestScheduling(unittest.TestCase):
 
     def test_simple_task(self) -> None:
         self.setup("simple_task")
+
+        event = Event("service_finished", data={"service_id": "0"})
+        self.fire_event(event)
+
+        self.assertTrue(self.token_in_last_place())
+
+    def test_simple_task_with_pfdl_string(self) -> None:
+        file_path = TEST_FILE_FOLDER_PATH + "simple_task.pfdl"
+        file_content = ""
+        with open(file_path, "r", encoding="utf-8") as file:
+            file_content = file.read()
+
+        # directly pass the pfdl string to the scheduler
+        self.setup(file_content, True)
 
         event = Event("service_finished", data={"service_id": "0"})
         self.fire_event(event)

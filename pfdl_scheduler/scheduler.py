@@ -22,8 +22,7 @@ from pfdl_scheduler.model.counting_loop import CountingLoop
 from pfdl_scheduler.api.task_api import TaskAPI
 from pfdl_scheduler.api.service_api import ServiceAPI
 
-from pfdl_scheduler.utils.parsing_utils import load_file
-from pfdl_scheduler.utils.parsing_utils import parse_file
+from pfdl_scheduler.utils.parsing_utils import parse_program
 
 from pfdl_scheduler.petri_net.generator import Node, PetriNetGenerator
 from pfdl_scheduler.petri_net.logic import PetriNetLogic
@@ -73,7 +72,7 @@ class Scheduler(Subject):
 
     def __init__(
         self,
-        pfdl_file_path: str,
+        pfdl_program: str,
         generate_test_ids: bool = False,
         draw_petri_net: bool = True,
         scheduler_id: str = "",
@@ -81,20 +80,21 @@ class Scheduler(Subject):
     ) -> None:
         """Initialize the object.
 
-        If the given path leads to a valid PFDL file the parsing will be started. If no errors
-        occur the model of the PFDL File will be transformed into a petri net and be drawn if
-        the `draw_petri_net` flag is set. If `generate_test_ids` is set the ids of the called
+        If the given program contains a path that leads to a valid PFDL file or consists of a
+        valid PFDL string directly, the parsing will be started. If no errors occur the model
+        of the PFDL file will be transformed into a petri net and be drawn if the
+        `draw_petri_net` flag is set. If `generate_test_ids` is set the ids of the called
         tasks and services will be an enumeration starting at 0.
 
         Args:
-            pfdl_file_path: The path to the PFDL file.
+            pfdl_program: A path to the PFDL file or directly the PFDL program as a string.
             generate_test_ids: A boolean indicating whether test ids should be generated.
             draw_petri_net: A boolean indicating whether the petri net should be drawn.
             scheduler_id: A unique ID to identify the Scheduer / Production Order
             dashboard_host_address: The address of the Dashboard (if existing)
         """
         self.init_scheduler(scheduler_id, generate_test_ids)
-        self.pfdl_file_valid, self.process, pfdl_string = parse_file(pfdl_file_path)
+        self.pfdl_file_valid, self.process, pfdl_string = parse_program(pfdl_program)
 
         if self.pfdl_file_valid:
             self.petri_net_generator = PetriNetGenerator(
@@ -326,7 +326,7 @@ class Scheduler(Subject):
 
             if service_api.input_parameters:
                 service_api.input_parameters = copy.deepcopy(service_api.service.input_parameters)
-    
+
             self.substitute_loop_indexes(service_api)
         elif self.generate_test_ids:
             new_uuid = str(self.test_id_counters[1])
