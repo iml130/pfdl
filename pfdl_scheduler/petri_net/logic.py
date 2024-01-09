@@ -30,7 +30,7 @@ class PetriNetLogic:
         petri_net_generator:  A reference to the PetriNetGenerator.
         petri_net: A reference to the generated petri net.
         draw_net: Indiciating whether the net should be drawn.
-        transition_dict: A reference to the dict in the generator which maps the ids to callbacks.
+        transition_dict: A reference to the dict in the generator which maps the uuids to callbacks.
     """
 
     def __init__(
@@ -73,11 +73,11 @@ class PetriNetLogic:
 
         transitions = list(self.petri_net._trans)
         while index < len(transitions):
-            transition_id = transitions[index]
+            transition_uuid = transitions[index]
 
-            if self.petri_net.transition(transition_id).enabled(Value(1)):
-                if transition_id in self.transition_dict:
-                    callbacks = self.transition_dict[transition_id]
+            if self.petri_net.transition(transition_uuid).enabled(Value(1)):
+                if transition_uuid in self.transition_dict:
+                    callbacks = self.transition_dict[transition_uuid]
                     temp = None
 
                     for callback in callbacks:
@@ -93,12 +93,12 @@ class PetriNetLogic:
                         temp()
                         return
                     else:
-                        self.petri_net.transition(transition_id).fire(Value(1))
+                        self.petri_net.transition(transition_uuid).fire(Value(1))
 
                         for callback in callbacks:
                             callback()
                 else:
-                    self.petri_net.transition(transition_id).fire(Value(1))
+                    self.petri_net.transition(transition_uuid).fire(Value(1))
 
                 index = 0
             else:
@@ -115,11 +115,11 @@ class PetriNetLogic:
 
         name_in_petri_net = ""
         if event.event_type == START_PRODUCTION_TASK:
-            name_in_petri_net = self.petri_net_generator.task_started_id
+            name_in_petri_net = self.petri_net_generator.task_started_uuid
         elif event.event_type == SET_PLACE:
-            name_in_petri_net = event.data["place_id"]
+            name_in_petri_net = event.data["place_uuid"]
         elif event.event_type == SERVICE_FINISHED:
-            name_in_petri_net = self.petri_net_generator.place_dict[event.data["service_id"]]
+            name_in_petri_net = self.petri_net_generator.place_dict[event.data["service_uuid"]]
 
         if self.petri_net.has_place(name_in_petri_net):
             self.petri_net.place(name_in_petri_net).add(1)
