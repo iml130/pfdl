@@ -358,12 +358,12 @@ class PFDLTreeVisitor(PFDLParserVisitor):
             ele = self.get_content(ctx.children[0])
             if isinstance(ele, List):
                 return ele
-            if helpers.is_int(ele):
-                return int(ele)
-            if helpers.is_float(ele):
-                return float(ele)
-            if helpers.is_boolean(ele):
-                return ele == "true"
+            elif not helpers.is_string(ele):
+                # strings should not appear here
+                casted_element = helpers.cast_element(ele)
+                # check if ele is a primitve datatype (number or bool)
+                if casted_element != ele:
+                    return casted_element
         if length == 2:
             un_op = self.get_content(ctx.children[0])
             ele = self.get_content(ctx.children[1])

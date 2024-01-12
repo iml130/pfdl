@@ -7,7 +7,7 @@
 """Helper functions used in the project (especially in the SemanticErrorChecker)."""
 
 # standard libraries
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 import operator
 
 # local sources
@@ -121,6 +121,23 @@ def is_int(string: str) -> bool:
         return False
     else:
         return True
+
+
+def cast_element(string: str) -> Union[str, int, float, bool]:
+    """Tries to cast the given string to a primitive datatype.
+
+    Returns:
+        The casted element if casting was successful, otherwise the input string
+    """
+    if is_int(string):
+        return int(string)
+    elif is_float(string):
+        return float(string)
+    elif is_boolean(string):
+        return string == "true"
+    elif is_string(string):
+        return string.replace('"', "")
+    return string
 
 
 def parse_operator(op: str) -> operator:
