@@ -1,11 +1,14 @@
 lexer grammar PFDLLexer;
 
-// DenterHelper for generating INDENT AND DEDENT tokens to realize
-// a python-like grammar with Indentations
+// DenterHelper for generating INDENT AND DEDENT tokens to realize a python-like grammar with
+// Indentations
 
-tokens { INDENT, DEDENT }
+tokens {
+	INDENT,
+	DEDENT
+}
 
-@lexer::header{
+@lexer::header {
 from antlr_denter.DenterHelper import DenterHelper
 from PFDLParser import PFDLParser
 }
@@ -56,7 +59,7 @@ QUOTE: '"';
 ARRAY_LEFT: '[';
 ARRAY_RIGHT: ']';
 
-COMMENT : '#' ~[\n]+  -> skip;
+COMMENT: '#' ~[\n]* -> skip;
 WHITESPACE: [ \t]+ -> skip;
 NL: ('\r'? '\n' ' '*);
 
@@ -76,48 +79,39 @@ SLASH: '/';
 MINUS: '-';
 PLUS: '+';
 
-
 INTEGER: [0-9]+;
-FLOAT: INTEGER '.'INTEGER;
+FLOAT: INTEGER '.' INTEGER;
 
-STRING: '"' ('\\"'|.)*? '"';
+STRING: '"' ('\\"' | .)*? '"';
 STARTS_WITH_LOWER_C_STR: [a-z][a-zA-Z0-9_]*;
 STARTS_WITH_UPPER_C_STR: [A-Z][a-zA-Z0-9_]*;
 
 // JSON Grammar
 mode JSON;
 
-JSON_STRING: '"' ('\\"'|.)*? '"';
+JSON_STRING: '"' ('\\"' | .)*? '"';
 JSON_TRUE: 'true';
 JSON_FALSE: 'false';
 
 JSON_COLON: ':';
 JSON_QUOTE: '"';
 
-JSON_COMMENT : '#' ~[\n]+  -> skip;
+JSON_COMMENT: '#' ~[\n]+ -> skip;
 
 JSON_ARRAY_LEFT: '[';
 JSON_ARRAY_RIGHT: ']';
 
 JSON_COMMA: ',';
 
-NUMBER
-   : '-'? INT ('.' [0-9] +)? EXP?
-   ;
+NUMBER: '-'? INT ('.' [0-9]+)? EXP?;
 
-fragment INT
-   : '0' | [1-9] [0-9]*
-   ;
+fragment INT: '0' | [1-9] [0-9]*;
 
 // no leading zeros
 
-fragment EXP
-   : [Ee] [+\-]? INT
-   ;
+fragment EXP: [Ee] [+\-]? INT;
 
-WS
-   : [ \t\n\r] + -> skip
-   ;
+WS: [ \t\n\r]+ -> skip;
 
 JSON_OPEN_2: '{' -> pushMode(JSON);
 JSON_CLOSE: '}' -> popMode;
