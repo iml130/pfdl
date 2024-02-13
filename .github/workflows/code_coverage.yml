@@ -10,6 +10,9 @@ on:
     paths:
       - 'tests/**'
 
+permissions:
+  contents: read
+
 jobs:
   code-coverage:
       name: Code Coverage
