@@ -12,6 +12,9 @@ on:
     paths:
       - 'pfdl_scheduler/**'
 
+permissions:
+  contents: read
+
 jobs:
   lint-check:
     name: Lint Check
