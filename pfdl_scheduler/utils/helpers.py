@@ -7,33 +7,12 @@
 """Helper functions used in the project (especially in the SemanticErrorChecker)."""
 
 # standard libraries
-from typing import Any, Dict, List, Union
+from typing import Dict, List, Union
 import operator
 
 # local sources
 from pfdl_scheduler.model.struct import Struct
 from pfdl_scheduler.model.task import Task
-
-
-def check_type_of_value(value: Any, value_type: str) -> bool:
-    """Checks if the given value is the given type in the DSL.
-
-    Returns:
-        True if the value is from the given value type.
-    """
-    if value_type == "number":
-        # bool is a subclass of int so check it before
-        if isinstance(value, bool):
-            return False
-        return isinstance(value, (int, float))
-    if value_type == "boolean":
-        return isinstance(value, bool)
-    if value_type == "string":
-        return isinstance(value, str)
-    if isinstance(value, Struct):
-        return value.name == value_type
-    # value was a string
-    return True
 
 
 def get_type_of_variable_list(
