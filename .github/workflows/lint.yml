@@ -1,13 +1,11 @@
 name: Lint
 
-on:
+on: 
   push:
-    branches:
-      - 'main'
     paths:
       - 'pfdl_scheduler/**'
       - '.github/workflows/**'
-  pull_request: 
+  pull_request:
     branches:
       - 'main'
     paths:
