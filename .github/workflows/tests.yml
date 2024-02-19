@@ -4,11 +4,13 @@ on:
   push:
     paths:
       - 'pfdl_scheduler/**'
+      - '.github/workflows/**'
   pull_request:
     branches:
       - 'main'
     paths:
       - 'pfdl_scheduler/**'
+      - '.github/workflows/**'
 
 permissions:
   contents: read
