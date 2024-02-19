@@ -2,6 +2,8 @@ name: Build and deploy docu
 
 on:
   push:
+    branches:
+      - 'main'
     paths:
       - 'docs/**'
       - '.github/workflows/**'
