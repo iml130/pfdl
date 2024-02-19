@@ -2,14 +2,18 @@ name: Lint
 
 on:
   push:
+    branches:
+      - 'main'
     paths:
       - 'pfdl_scheduler/**'
+      - 'tests/**'
       - '.github/workflows/**'
   pull_request:
     branches:
       - 'main'
     paths:
       - 'pfdl_scheduler/**'
+      - 'tests/**'
       - '.github/workflows/**'
 
 permissions:
