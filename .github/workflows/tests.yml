@@ -1,7 +1,9 @@
 name: Tests
 
-on: 
+on:
   push:
+    branches:
+      - 'main'
     paths:
       - 'pfdl_scheduler/**'
       - 'tests/**'
@@ -33,8 +35,8 @@ jobs:
           sudo apt -qq update
           sudo apt -qq install -y graphviz
           pip3 install -r requirements.txt
-          pip3 install unittest-xml-reporting --upgrade 
-  
+          pip3 install unittest-xml-reporting --upgrade
+
       - name: Run Unit Tests
         run: python3 -m xmlrunner discover -s tests/unit_test -v -o tmp/build/unittest-reports
 
@@ -42,7 +44,7 @@ jobs:
         with:
           name: Unit Test results
           path: tmp/build/unittest-reports/*.xml
-    
+
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-22.04
@@ -58,7 +60,7 @@ jobs:
           sudo apt -qq update
           sudo apt -qq install -y graphviz
           pip3 install -r requirements.txt
-          pip3 install unittest-xml-reporting --upgrade 
+          pip3 install unittest-xml-reporting --upgrade
 
       - name: Run Unit Tests
         run: python3 -m xmlrunner discover -s tests/integration_tests -v -o tmp/build/integrationtest-reports
