@@ -1,3 +1,9 @@
+# Copyright The PFDL Contributors
+#
+# Licensed under the MIT License.
+# For details on the licensing terms, see the LICENSE file.
+# SPDX-License-Identifier: MIT
+
 """This module provides the LogEntryObserver which implements the Observer pattern.
 
 The scheduler notifies about log entries, so this class is used to catch these
