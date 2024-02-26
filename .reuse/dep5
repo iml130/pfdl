@@ -6,3 +6,7 @@ Source: https://github.com/iml130/pfd
 Files: docs/img/*
 Copyright: The PFDL Contributors
 License: CC-BY-4.0
+
+Files: pfdl_grammar/*
+Copyright: The PFDL Contributors
+License: MIT
