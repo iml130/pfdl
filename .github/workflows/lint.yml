@@ -4,19 +4,9 @@ on:
   push:
     branches:
       - 'main'
-    paths:
-      - 'pfdl_scheduler/**'
-      - 'tests/**'
-      - 'ci_lint_runner.py'
-      - '.github/workflows/**'
   pull_request:
     branches:
       - 'main'
-    paths:
-      - 'pfdl_scheduler/**'
-      - 'tests/**'
-      - 'ci_lint_runner.py'
-      - '.github/workflows/**'
 
 permissions:
   contents: read
