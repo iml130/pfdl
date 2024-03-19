@@ -552,6 +552,26 @@ class TestPFDLTreeVisitor(unittest.TestCase):
         mock.assert_called_once_with(attribute_access_context)
         mock_2.assert_called_with(statement_context_2)
 
+        # with integer as loop limit
+        counting_loop_context.children = [
+            statement_context_1,
+            statement_context_2,
+        ]
+        create_and_add_token(PFDLParser.STARTS_WITH_LOWER_C_STR, "i", counting_loop_context)
+        create_and_add_token(PFDLParser.INTEGER, "5", counting_loop_context)
+        with patch.object(
+                self.visitor, "visitStatement", MagicMock(side_effect=[service, condition])
+            ) as mock_2:
+                counting_loop = self.visitor.visitCounting_loop(counting_loop_context)
+                self.assertEqual(counting_loop.counting_variable, "i")
+                self.assertEqual(counting_loop.limit, 5)
+                self.assertFalse(counting_loop.parallel)
+                self.assertEqual(len(counting_loop.statements), 2)
+                self.assertEqual(counting_loop.statements[0], service)
+                self.assertEqual(counting_loop.statements[1], condition)
+                self.assertEqual(counting_loop.context, counting_loop_context)
+        mock_2.assert_called_with(statement_context_2)
+
     def test_visitCondition(self):
         condition_context = PFDLParser.ConditionContext(None)
         expression_context = PFDLParser.ExpressionContext(None)
