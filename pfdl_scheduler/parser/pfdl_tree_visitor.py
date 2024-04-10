@@ -367,7 +367,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         if length == 2:
             un_op = self.get_content(ctx.children[0])
             ele = self.get_content(ctx.children[1])
-            return dict(unop=un_op, value=ele)
+            return dict(unOp=un_op, value=ele)
 
         if length == 3:
             left = self.get_content(ctx.children[0])

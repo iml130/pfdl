@@ -1714,10 +1714,10 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertFalse(self.checker.check_expression(variable_list_2, None, task))
 
         self.assertTrue(
-            self.checker.check_expression({"unop": "!", "value": variable_list}, None, task)
+            self.checker.check_expression({"unOp": "!", "value": variable_list}, None, task)
         )
         self.assertTrue(
-            self.checker.check_expression({"unop": "!", "value": variable_list_3}, None, task)
+            self.checker.check_expression({"unOp": "!", "value": variable_list_3}, None, task)
         )
 
         expression = {
@@ -1726,7 +1726,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
             "right": {"left": 5, "binOp": "<", "right": variable_list},
         }
         self.assertTrue(
-            self.checker.check_expression({"unop": "!", "value": expression}, None, task)
+            self.checker.check_expression({"unOp": "!", "value": expression}, None, task)
         )
         expression = {
             "left": variable_list_3,
@@ -1734,7 +1734,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
             "right": {"left": "(", "binOp": "true", "right": ")"},
         }
         self.assertTrue(
-            self.checker.check_expression({"unop": "!", "value": expression}, None, task)
+            self.checker.check_expression({"unOp": "!", "value": expression}, None, task)
         )
         expression = {
             "left": variable_list_3,
@@ -1746,14 +1746,14 @@ class TestSemanticErrorChecker(unittest.TestCase):
             },
         }
         self.assertTrue(
-            self.checker.check_expression({"unop": "!", "value": expression}, None, task)
+            self.checker.check_expression({"unOp": "!", "value": expression}, None, task)
         )
 
         self.assertFalse(
-            self.checker.check_expression({"unop": "!", "value": variable_list_2}, None, task)
+            self.checker.check_expression({"unOp": "!", "value": variable_list_2}, None, task)
         )
         self.check_if_print_error_is_called(
-            self.checker.check_expression, {"unop": "!", "value": variable_list_2}, None, task
+            self.checker.check_expression, {"unOp": "!", "value": variable_list_2}, None, task
         )
 
         expression = {
@@ -1762,10 +1762,10 @@ class TestSemanticErrorChecker(unittest.TestCase):
             "right": {"left": 5, "binOp": "<", "right": variable_list},
         }
         self.assertFalse(
-            self.checker.check_expression({"unop": "!", "value": expression}, None, task)
+            self.checker.check_expression({"unOp": "!", "value": expression}, None, task)
         )
         self.check_if_print_error_is_called(
-            self.checker.check_expression, {"unop": "!", "value": expression}, None, task
+            self.checker.check_expression, {"unOp": "!", "value": expression}, None, task
         )
 
         expression = {
@@ -1774,10 +1774,10 @@ class TestSemanticErrorChecker(unittest.TestCase):
             "right": {"left": "True", "binOp": "<", "right": variable_list},
         }
         self.assertFalse(
-            self.checker.check_expression({"unop": "!", "value": expression}, None, task)
+            self.checker.check_expression({"unOp": "!", "value": expression}, None, task)
         )
         self.check_if_print_error_is_called(
-            self.checker.check_expression, {"unop": "!", "value": expression}, None, task
+            self.checker.check_expression, {"unOp": "!", "value": expression}, None, task
         )
 
         expression = {
@@ -1790,10 +1790,10 @@ class TestSemanticErrorChecker(unittest.TestCase):
             },
         }
         self.assertFalse(
-            self.checker.check_expression({"unop": "!", "value": expression}, None, task)
+            self.checker.check_expression({"unOp": "!", "value": expression}, None, task)
         )
         self.check_if_print_error_is_called(
-            self.checker.check_expression, {"unop": "!", "value": expression}, None, task
+            self.checker.check_expression, {"unOp": "!", "value": expression}, None, task
         )
 
         self.assertTrue(
@@ -1990,10 +1990,10 @@ class TestSemanticErrorChecker(unittest.TestCase):
         variable_list_3 = ["variable", "attribute_3"]
 
         self.assertTrue(
-            self.checker.check_unary_operation({"unop": "!", "value": variable_list}, None, task)
+            self.checker.check_unary_operation({"unOp": "!", "value": variable_list}, None, task)
         )
         self.assertTrue(
-            self.checker.check_unary_operation({"unop": "!", "value": variable_list_3}, None, task)
+            self.checker.check_unary_operation({"unOp": "!", "value": variable_list_3}, None, task)
         )
 
         expression = {
@@ -2002,7 +2002,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
             "right": {"left": 5, "binOp": "<", "right": variable_list},
         }
         self.assertTrue(
-            self.checker.check_unary_operation({"unop": "!", "value": expression}, None, task)
+            self.checker.check_unary_operation({"unOp": "!", "value": expression}, None, task)
         )
         expression = {
             "left": variable_list_3,
@@ -2010,7 +2010,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
             "right": {"left": "(", "binOp": "true", "right": ")"},
         }
         self.assertTrue(
-            self.checker.check_unary_operation({"unop": "!", "value": expression}, None, task)
+            self.checker.check_unary_operation({"unOp": "!", "value": expression}, None, task)
         )
         expression = {
             "left": variable_list_3,
@@ -2022,11 +2022,11 @@ class TestSemanticErrorChecker(unittest.TestCase):
             },
         }
         self.assertTrue(
-            self.checker.check_unary_operation({"unop": "!", "value": expression}, None, task)
+            self.checker.check_unary_operation({"unOp": "!", "value": expression}, None, task)
         )
 
         self.assertFalse(
-            self.checker.check_unary_operation({"unop": "!", "value": variable_list_2}, None, task)
+            self.checker.check_unary_operation({"unOp": "!", "value": variable_list_2}, None, task)
         )
         expression = {
             "left": variable_list_2,
@@ -2034,7 +2034,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
             "right": {"left": 5, "binOp": "<", "right": variable_list},
         }
         self.assertFalse(
-            self.checker.check_unary_operation({"unop": "!", "value": expression}, None, task)
+            self.checker.check_unary_operation({"unOp": "!", "value": expression}, None, task)
         )
         expression = {
             "left": variable_list_3,
@@ -2042,7 +2042,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
             "right": {"left": "True", "binOp": "<", "right": variable_list},
         }
         self.assertFalse(
-            self.checker.check_unary_operation({"unop": "!", "value": expression}, None, task)
+            self.checker.check_unary_operation({"unOp": "!", "value": expression}, None, task)
         )
         expression = {
             "left": variable_list_3,
@@ -2054,7 +2054,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
             },
         }
         self.assertFalse(
-            self.checker.check_unary_operation({"unop": "!", "value": expression}, None, task)
+            self.checker.check_unary_operation({"unOp": "!", "value": expression}, None, task)
         )
 
     def test_check_binary_operation(self):

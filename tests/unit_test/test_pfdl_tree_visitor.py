@@ -489,7 +489,7 @@ class TestPFDLTreeVisitor(unittest.TestCase):
         service = Service()
         condition = Condition()
 
-        expression = {"unop": "!", "value": "True"}
+        expression = {"unOp": "!", "value": "True"}
         with patch.object(self.visitor, "visitExpression", return_value=expression) as mock:
             with patch.object(
                 self.visitor, "visitStatement", MagicMock(side_effect=[service, condition])
@@ -584,7 +584,7 @@ class TestPFDLTreeVisitor(unittest.TestCase):
 
         passed_statements = [service, while_loop]
 
-        expression = {"unop": "!", "value": "True"}
+        expression = {"unOp": "!", "value": "True"}
 
         # without failed
         with patch.object(self.visitor, "visitExpression", return_value=expression) as mock:
@@ -834,9 +834,9 @@ class TestPFDLTreeVisitor(unittest.TestCase):
         ):
             expression = self.visitor.visitExpression(expression_context)
             self.assertEqual(len(expression), 2)
-            self.assertTrue("unop" in expression)
+            self.assertTrue("unOp" in expression)
             self.assertTrue("value" in expression)
-            self.assertEqual(expression, {"unop": "!", "value": "value"})
+            self.assertEqual(expression, {"unOp": "!", "value": "value"})
 
         # case length = 3
         expression_context.children = [
