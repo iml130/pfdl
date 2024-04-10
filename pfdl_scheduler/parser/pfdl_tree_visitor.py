@@ -313,23 +313,27 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         variable_type = self.visitPrimitive(ctx.primitive())
 
         if ctx.array():
-            array = Array()
-            array.type_of_elements = variable_type
-            array.context = ctx.array()
-            length = self.visitArray(ctx.array())
-            if not isinstance(length, int):
-                self.error_handler.print_error(
-                    "Array length has to be specified by an integer", syntax_error=True
-                )
-            else:
-                array.length = length
-
+            array = self.initializeArray(ctx.array(), variable_type)
             variable_type = array
 
         return (identifier, variable_type)
 
     def visitPrimitive(self, ctx: PFDLParser.PrimitiveContext):
         return ctx.getText()
+
+    def initializeArray(self, array_ctx: PFDLParser.ArrayContext, variable_type: str) -> Array:
+        array = Array()
+        array.type_of_elements = variable_type
+        array.context = array_ctx
+        length = self.visitArray(array_ctx)
+        if not isinstance(length, int):
+            self.error_handler.print_error(
+                "Array length has to be specified by an integer", syntax_error=True
+            )
+        else:
+            array.length = length
+
+        return array
 
     def visitAttribute_access(self, ctx: PFDLParser.Attribute_accessContext) -> List[str]:
         access_list = []
