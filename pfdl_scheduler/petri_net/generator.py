@@ -75,6 +75,7 @@ class PetriNetGenerator:
     Attributes:
         path_for_image: The path where the image of the generated Petri Net is saved.
         net: The snakes Petri Net instance.
+        draw_net: A boolean indiciating whether the net should be drawn.
         tasks: A dict representing the Tasks of the given Process object.
         transition_dict: A dict for mapping the UUIDs of the Transitions to their behavior.
         place_dict: A dict for mapping the service uuid to the place name.
@@ -82,6 +83,8 @@ class PetriNetGenerator:
         callbacks: A PetriNetCallbacks instance representing functions called while execution.
         generate_test_ids: A boolean indicating if test ids (counting from 0) should be generated.
         used_in_extension: A boolean indicating if the Generator is used within the extension.
+        tree: The Node representing the productionTask and therefore the tree including all program components.
+        file_name: The filename of the petri net image.
     """
 
     def __init__(
@@ -99,6 +102,7 @@ class PetriNetGenerator:
             used_in_extension: A boolean indicating if the Generator is used within the extension.
             generate_test_ids: A boolean indicating if test ids (counting from 0) should be generated.
             draw_net: A boolean indicating if the petri net should be drawn.
+            file_name: The desired filename of the petri net image.
         """
 
         if used_in_extension:
