@@ -68,7 +68,9 @@ struct_initialization:
     | STARTS_WITH_UPPER_C_STR NL* json_object NL*;
 
 variable_definition:
-    STARTS_WITH_LOWER_C_STR COLON primitive array?;
+    STARTS_WITH_LOWER_C_STR COLON variable_type;
+
+variable_type: primitive array?;
 
 primitive:
     NUMBER_P

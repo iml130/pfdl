@@ -309,14 +309,18 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         self, ctx: PFDLParser.Variable_definitionContext
     ) -> Tuple[str, Union[str, Array]]:
         identifier = ctx.STARTS_WITH_LOWER_C_STR().getText()
+        variable_type = self.visitVariable_type(ctx.variable_type())
 
+        return (identifier, variable_type)
+
+    def visitVariable_type(self, ctx: PFDLParser.Variable_typeContext) -> Union[str, Array]:
         variable_type = self.visitPrimitive(ctx.primitive())
 
         if ctx.array():
             array = self.initializeArray(ctx.array(), variable_type)
             variable_type = array
 
-        return (identifier, variable_type)
+        return variable_type
 
     def visitPrimitive(self, ctx: PFDLParser.PrimitiveContext):
         return ctx.getText()
