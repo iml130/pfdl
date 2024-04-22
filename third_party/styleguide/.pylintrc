@@ -1,10 +1,14 @@
+# SPDX-FileCopyrightText: Google LLC
+# SPDX-FileCopyrightText: The PFDL Contributors
+# SPDX-License-Identifier: CC-BY-3.0 AND Apache-2.0
+#
 # This Pylint rcfile contains a best-effort configuration to uphold the
 # best-practices and style described in the Google Python style guide
 #   https://google.github.io/styleguide/pyguide.html
 # and was further slightly adapted to our needs.
 #
 # Its original open-source location is:
-#   https://google.github.io/styleguide/pylintrc
+#   https://github.com/google/styleguide/blob/ea180f7259da4ae90ae086c1eefbeb5f440dbea2/pylintrc
 
 [MASTER]
 
