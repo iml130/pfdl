@@ -75,7 +75,6 @@ class PetriNetGenerator:
     Attributes:
         path_for_image: The path where the image of the generated Petri Net is saved.
         net: The snakes Petri Net instance.
-        draw_net: A boolean indiciating whether the net should be drawn.
         tasks: A dict representing the Tasks of the given Process object.
         transition_dict: A dict for mapping the UUIDs of the Transitions to their behavior.
         place_dict: A dict for mapping the service uuid to the place name.
@@ -83,8 +82,6 @@ class PetriNetGenerator:
         callbacks: A PetriNetCallbacks instance representing functions called while execution.
         generate_test_ids: A boolean indicating if test ids (counting from 0) should be generated.
         used_in_extension: A boolean indicating if the Generator is used within the extension.
-        tree: The Node representing the productionTask and therefore the tree including all program components.
-        file_name: The filename of the petri net image.
     """
 
     def __init__(
@@ -102,7 +99,6 @@ class PetriNetGenerator:
             used_in_extension: A boolean indicating if the Generator is used within the extension.
             generate_test_ids: A boolean indicating if test ids (counting from 0) should be generated.
             draw_net: A boolean indicating if the petri net should be drawn.
-            file_name: The desired filename of the petri net image.
         """
 
         if used_in_extension:
@@ -374,7 +370,7 @@ class PetriNetGenerator:
         group_uuid = str(uuid.uuid4())
         parallel_node = Node(group_uuid, "Parallel", node)
 
-        sync_uuid = create_transition("", "", self.net, group_uuid)
+        sync_uuid = create_transition("", "", self.net, parallel_node)
         parallel_finished_uuid = create_place("Parallel finished", self.net, parallel_node)
 
         cluster = Cluster([], Cluster([sync_uuid, parallel_finished_uuid]))
@@ -434,7 +430,6 @@ class PetriNetGenerator:
         self.net.add_output(finished_uuid, second_passed_transition_uuid, Value(1))
 
         cluster = Cluster([passed_uuid, failed_uuid, expression_uuid, finished_uuid])
-        node.cluster.add_child(cluster)
 
         cluster_passed = Cluster([first_passed_transition_uuid, second_passed_transition_uuid])
         cluster_failed = Cluster([first_failed_transition_uuid])
@@ -497,7 +492,7 @@ class PetriNetGenerator:
 
         group_uuid = str(uuid.uuid4())
         counting_loop_node = Node(group_uuid, "Counting Loop", node)
-        loop_uuid = create_place("Loop", self.net, group_uuid)
+        loop_uuid = create_place("Loop", self.net, counting_loop_node)
 
         loop_text = "Loop"
 
@@ -529,8 +524,6 @@ class PetriNetGenerator:
                 loop_done_uuid,
             ]
         )
-
-        node.cluster.add_child(cluster)
         counting_loop_node.cluster = cluster
 
         self.generate_statements(
@@ -686,8 +679,6 @@ class PetriNetGenerator:
                 iteration_step_done_transition_uuid,
             ]
         )
-
-        node.cluster.add_child(cluster)
         while_loop_node.cluster = cluster
         self.generate_statements(
             task_context,
