@@ -12,7 +12,7 @@ import subprocess
 
 folder_path = sys.argv[1]
 threshold = float(sys.argv[2])
-args = "--rcfile=./third_party/styleguide/.pylintrc"
+args = "--rcfile=.pylintrc"
 
 cmd = "pylint " + folder_path + " " + args
 
