@@ -2,7 +2,6 @@
 from antlr4 import *
 from io import StringIO
 import sys
-
 if sys.version_info[1] > 5:
     from typing import TextIO
 else:
@@ -13,6 +12,7 @@ from antlr_denter.DenterHelper import DenterHelper
 from pfdl_scheduler.parser.PFDLParser import PFDLParser
 
 
+
 def serializedATN():
     with StringIO() as buf:
         buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\2A")
@@ -21,8 +21,8 @@ def serializedATN():
         buf.write("\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22")
         buf.write("\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30")
         buf.write("\t\30\4\31\t\31\4\32\t\32\4\33\t\33\4\34\t\34\4\35\t\35")
-        buf.write('\4\36\t\36\4\37\t\37\4 \t \4!\t!\4"\t"\4#\t#\4$\t$\4')
-        buf.write("%\t%\4&\t&\4'\t'\4(\t(\4)\t)\4*\t*\4+\t+\4,\t,\4-\t")
+        buf.write("\4\36\t\36\4\37\t\37\4 \t \4!\t!\4\"\t\"\4#\t#\4$\t$\4")
+        buf.write("%\t%\4&\t&\4\'\t\'\4(\t(\4)\t)\4*\t*\4+\t+\4,\t,\4-\t")
         buf.write("-\4.\t.\4/\t/\4\60\t\60\4\61\t\61\4\62\t\62\4\63\t\63")
         buf.write("\4\64\t\64\4\65\t\65\4\66\t\66\4\67\t\67\48\t8\49\t9\4")
         buf.write(":\t:\4;\t;\4<\t<\4=\t=\4>\t>\4?\t?\4@\t@\3\2\3\2\3\2\3")
@@ -40,8 +40,8 @@ def serializedATN():
         buf.write("\13\33\3\33\3\33\3\34\6\34\u010b\n\34\r\34\16\34\u010c")
         buf.write("\3\34\3\34\3\35\5\35\u0112\n\35\3\35\3\35\7\35\u0116\n")
         buf.write("\35\f\35\16\35\u0119\13\35\3\36\3\36\3\37\3\37\3 \3 \3")
-        buf.write('!\3!\3!\3"\3"\3#\3#\3#\3$\3$\3$\3%\3%\3%\3&\3&\3&\3')
-        buf.write("&\3'\3'\3'\3(\3(\3)\3)\3*\3*\3+\3+\3,\3,\3-\6-\u0141")
+        buf.write("!\3!\3!\3\"\3\"\3#\3#\3#\3$\3$\3$\3%\3%\3%\3&\3&\3&\3")
+        buf.write("&\3\'\3\'\3\'\3(\3(\3)\3)\3*\3*\3+\3+\3,\3,\3-\6-\u0141")
         buf.write("\n-\r-\16-\u0142\3.\3.\3.\3.\3/\3/\3/\3/\7/\u014d\n/\f")
         buf.write("/\16/\u0150\13/\3/\3/\3\60\3\60\7\60\u0156\n\60\f\60\16")
         buf.write("\60\u0159\13\60\3\61\3\61\7\61\u015d\n\61\f\61\16\61\u0160")
@@ -54,16 +54,16 @@ def serializedATN():
         buf.write("<\u019f\13<\5<\u01a1\n<\3=\3=\5=\u01a5\n=\3=\3=\3>\6>")
         buf.write("\u01aa\n>\r>\16>\u01ab\3>\3>\3?\3?\3?\3?\3@\3@\3@\3@\4")
         buf.write("\u014e\u0167\2A\4\5\6\6\b\7\n\b\f\t\16\n\20\13\22\f\24")
-        buf.write('\r\26\16\30\17\32\20\34\21\36\22 \23"\24$\25&\26(\27')
-        buf.write('*\30,\31.\32\60\33\62\34\64\35\66\368\37: <!>"@#B$D%')
-        buf.write("F&H'J(L)N*P+R,T-V.X/Z\60\\\61^\62`\63b\64d\65f\66h\67")
+        buf.write("\r\26\16\30\17\32\20\34\21\36\22 \23\"\24$\25&\26(\27")
+        buf.write("*\30,\31.\32\60\33\62\34\64\35\66\368\37: <!>\"@#B$D%")
+        buf.write("F&H\'J(L)N*P+R,T-V.X/Z\60\\\61^\62`\63b\64d\65f\66h\67")
         buf.write("j8l9n:p;r<t=v>x\2z\2|?~@\u0080A\4\2\3\f\3\2\f\f\4\2\13")
-        buf.write('\13""\3\2\62;\3\2c|\6\2\62;C\\aac|\3\2C\\\3\2\63;\4')
-        buf.write('\2GGgg\4\2--//\5\2\13\f\17\17""\2\u01c7\2\4\3\2\2\2')
+        buf.write("\13\"\"\3\2\62;\3\2c|\6\2\62;C\\aac|\3\2C\\\3\2\63;\4")
+        buf.write("\2GGgg\4\2--//\5\2\13\f\17\17\"\"\2\u01c7\2\4\3\2\2\2")
         buf.write("\2\6\3\2\2\2\2\b\3\2\2\2\2\n\3\2\2\2\2\f\3\2\2\2\2\16")
         buf.write("\3\2\2\2\2\20\3\2\2\2\2\22\3\2\2\2\2\24\3\2\2\2\2\26\3")
         buf.write("\2\2\2\2\30\3\2\2\2\2\32\3\2\2\2\2\34\3\2\2\2\2\36\3\2")
-        buf.write('\2\2\2 \3\2\2\2\2"\3\2\2\2\2$\3\2\2\2\2&\3\2\2\2\2(\3')
+        buf.write("\2\2\2 \3\2\2\2\2\"\3\2\2\2\2$\3\2\2\2\2&\3\2\2\2\2(\3")
         buf.write("\2\2\2\2*\3\2\2\2\2,\3\2\2\2\2.\3\2\2\2\2\60\3\2\2\2\2")
         buf.write("\62\3\2\2\2\2\64\3\2\2\2\2\66\3\2\2\2\28\3\2\2\2\2:\3")
         buf.write("\2\2\2\2<\3\2\2\2\2>\3\2\2\2\2@\3\2\2\2\2B\3\2\2\2\2D")
@@ -77,7 +77,7 @@ def serializedATN():
         buf.write("\3\2\2\2\f\u0095\3\2\2\2\16\u009a\3\2\2\2\20\u00a0\3\2")
         buf.write("\2\2\22\u00a3\3\2\2\2\24\u00ac\3\2\2\2\26\u00b6\3\2\2")
         buf.write("\2\30\u00bd\3\2\2\2\32\u00c4\3\2\2\2\34\u00cb\3\2\2\2")
-        buf.write('\36\u00cf\3\2\2\2 \u00d6\3\2\2\2"\u00dd\3\2\2\2$\u00e5')
+        buf.write("\36\u00cf\3\2\2\2 \u00d6\3\2\2\2\"\u00dd\3\2\2\2$\u00e5")
         buf.write("\3\2\2\2&\u00ea\3\2\2\2(\u00f0\3\2\2\2*\u00f2\3\2\2\2")
         buf.write(",\u00f4\3\2\2\2.\u00f6\3\2\2\2\60\u00fa\3\2\2\2\62\u00fc")
         buf.write("\3\2\2\2\64\u00fe\3\2\2\2\66\u0100\3\2\2\28\u010a\3\2")
@@ -127,7 +127,7 @@ def serializedATN():
         buf.write("\2\2\2\u00e5\u00e6\7v\2\2\u00e6\u00e7\7t\2\2\u00e7\u00e8")
         buf.write("\7w\2\2\u00e8\u00e9\7g\2\2\u00e9%\3\2\2\2\u00ea\u00eb")
         buf.write("\7h\2\2\u00eb\u00ec\7c\2\2\u00ec\u00ed\7n\2\2\u00ed\u00ee")
-        buf.write("\7u\2\2\u00ee\u00ef\7g\2\2\u00ef'\3\2\2\2\u00f0\u00f1")
+        buf.write("\7u\2\2\u00ee\u00ef\7g\2\2\u00ef\'\3\2\2\2\u00f0\u00f1")
         buf.write("\7<\2\2\u00f1)\3\2\2\2\u00f2\u00f3\7\60\2\2\u00f3+\3\2")
         buf.write("\2\2\u00f4\u00f5\7.\2\2\u00f5-\3\2\2\2\u00f6\u00f7\7}")
         buf.write("\2\2\u00f7\u00f8\3\2\2\2\u00f8\u00f9\b\27\2\2\u00f9/\3")
@@ -141,7 +141,7 @@ def serializedATN():
         buf.write("\3\2\2\2\u010c\u010d\3\2\2\2\u010d\u010e\3\2\2\2\u010e")
         buf.write("\u010f\b\34\3\2\u010f9\3\2\2\2\u0110\u0112\7\17\2\2\u0111")
         buf.write("\u0110\3\2\2\2\u0111\u0112\3\2\2\2\u0112\u0113\3\2\2\2")
-        buf.write('\u0113\u0117\7\f\2\2\u0114\u0116\7"\2\2\u0115\u0114\3')
+        buf.write("\u0113\u0117\7\f\2\2\u0114\u0116\7\"\2\2\u0115\u0114\3")
         buf.write("\2\2\2\u0116\u0119\3\2\2\2\u0117\u0115\3\2\2\2\u0117\u0118")
         buf.write("\3\2\2\2\u0118;\3\2\2\2\u0119\u0117\3\2\2\2\u011a\u011b")
         buf.write("\7*\2\2\u011b=\3\2\2\2\u011c\u011d\7+\2\2\u011d?\3\2\2")
@@ -211,9 +211,10 @@ def serializedATN():
 
 
 class PFDLLexer(Lexer):
+
     atn = ATNDeserializer().deserialize(serializedATN())
 
-    decisionsToDFA = [DFA(ds, i) for i, ds in enumerate(atn.decisionToState)]
+    decisionsToDFA = [ DFA(ds, i) for i, ds in enumerate(atn.decisionToState) ]
 
     JSON = 1
 
@@ -281,190 +282,54 @@ class PFDLLexer(Lexer):
     JSON_OPEN_2 = 62
     JSON_CLOSE = 63
 
-    channelNames = ["DEFAULT_TOKEN_CHANNEL", "HIDDEN"]
+    channelNames = [ u"DEFAULT_TOKEN_CHANNEL", u"HIDDEN" ]
 
-    modeNames = ["DEFAULT_MODE", "JSON"]
+    modeNames = [ "DEFAULT_MODE", "JSON" ]
 
-    literalNames = [
-        "<INVALID>",
-        "'Struct'",
-        "'Task'",
-        "'In'",
-        "'Out'",
-        "'Loop'",
-        "'While'",
-        "'To'",
-        "'Parallel'",
-        "'Condition'",
-        "'Passed'",
-        "'Failed'",
-        "'OnDone'",
-        "'End'",
-        "'number'",
-        "'string'",
-        "'boolean'",
-        "'.'",
-        "'('",
-        "')'",
-        "'<'",
-        "'<='",
-        "'>'",
-        "'>='",
-        "'=='",
-        "'!='",
-        "'And'",
-        "'Or'",
-        "'!'",
-        "'*'",
-        "'/'",
-        "'-'",
-        "'+'",
-        "'}'",
-    ]
+    literalNames = [ "<INVALID>",
+            "'Struct'", "'Task'", "'In'", "'Out'", "'Loop'", "'While'", 
+            "'To'", "'Parallel'", "'Condition'", "'Passed'", "'Failed'", 
+            "'OnDone'", "'End'", "'number'", "'string'", "'boolean'", "'.'", 
+            "'('", "')'", "'<'", "'<='", "'>'", "'>='", "'=='", "'!='", 
+            "'And'", "'Or'", "'!'", "'*'", "'/'", "'-'", "'+'", "'}'" ]
 
-    symbolicNames = [
-        "<INVALID>",
-        "INDENT",
-        "DEDENT",
-        "STRUCT",
-        "TASK",
-        "IN",
-        "OUT",
-        "LOOP",
-        "WHILE",
-        "TO",
-        "PARALLEL",
-        "CONDITION",
-        "PASSED",
-        "FAILED",
-        "ON_DONE",
-        "END",
-        "NUMBER_P",
-        "STRING_P",
-        "BOOLEAN_P",
-        "TRUE",
-        "FALSE",
-        "COLON",
-        "DOT",
-        "COMMA",
-        "JSON_OPEN",
-        "QUOTE",
-        "ARRAY_LEFT",
-        "ARRAY_RIGHT",
-        "COMMENT",
-        "WHITESPACE",
-        "NL",
-        "LEFT_PARENTHESIS",
-        "RIGHT_PARENTHESIS",
-        "LESS_THAN",
-        "LESS_THAN_OR_EQUAL",
-        "GREATER_THAN",
-        "GREATER_THAN_OR_EQUAL",
-        "EQUAL",
-        "NOT_EQUAL",
-        "BOOLEAN_AND",
-        "BOOLEAN_OR",
-        "BOOLEAN_NOT",
-        "STAR",
-        "SLASH",
-        "MINUS",
-        "PLUS",
-        "INTEGER",
-        "FLOAT",
-        "STRING",
-        "STARTS_WITH_LOWER_C_STR",
-        "STARTS_WITH_UPPER_C_STR",
-        "JSON_STRING",
-        "JSON_TRUE",
-        "JSON_FALSE",
-        "JSON_COLON",
-        "JSON_QUOTE",
-        "JSON_COMMENT",
-        "JSON_ARRAY_LEFT",
-        "JSON_ARRAY_RIGHT",
-        "JSON_COMMA",
-        "NUMBER",
-        "WS",
-        "JSON_OPEN_2",
-        "JSON_CLOSE",
-    ]
+    symbolicNames = [ "<INVALID>",
+            "INDENT", "DEDENT", "STRUCT", "TASK", "IN", "OUT", "LOOP", "WHILE", 
+            "TO", "PARALLEL", "CONDITION", "PASSED", "FAILED", "ON_DONE", 
+            "END", "NUMBER_P", "STRING_P", "BOOLEAN_P", "TRUE", "FALSE", 
+            "COLON", "DOT", "COMMA", "JSON_OPEN", "QUOTE", "ARRAY_LEFT", 
+            "ARRAY_RIGHT", "COMMENT", "WHITESPACE", "NL", "LEFT_PARENTHESIS", 
+            "RIGHT_PARENTHESIS", "LESS_THAN", "LESS_THAN_OR_EQUAL", "GREATER_THAN", 
+            "GREATER_THAN_OR_EQUAL", "EQUAL", "NOT_EQUAL", "BOOLEAN_AND", 
+            "BOOLEAN_OR", "BOOLEAN_NOT", "STAR", "SLASH", "MINUS", "PLUS", 
+            "INTEGER", "FLOAT", "STRING", "STARTS_WITH_LOWER_C_STR", "STARTS_WITH_UPPER_C_STR", 
+            "JSON_STRING", "JSON_TRUE", "JSON_FALSE", "JSON_COLON", "JSON_QUOTE", 
+            "JSON_COMMENT", "JSON_ARRAY_LEFT", "JSON_ARRAY_RIGHT", "JSON_COMMA", 
+            "NUMBER", "WS", "JSON_OPEN_2", "JSON_CLOSE" ]
 
-    ruleNames = [
-        "STRUCT",
-        "TASK",
-        "IN",
-        "OUT",
-        "LOOP",
-        "WHILE",
-        "TO",
-        "PARALLEL",
-        "CONDITION",
-        "PASSED",
-        "FAILED",
-        "ON_DONE",
-        "END",
-        "NUMBER_P",
-        "STRING_P",
-        "BOOLEAN_P",
-        "TRUE",
-        "FALSE",
-        "COLON",
-        "DOT",
-        "COMMA",
-        "JSON_OPEN",
-        "QUOTE",
-        "ARRAY_LEFT",
-        "ARRAY_RIGHT",
-        "COMMENT",
-        "WHITESPACE",
-        "NL",
-        "LEFT_PARENTHESIS",
-        "RIGHT_PARENTHESIS",
-        "LESS_THAN",
-        "LESS_THAN_OR_EQUAL",
-        "GREATER_THAN",
-        "GREATER_THAN_OR_EQUAL",
-        "EQUAL",
-        "NOT_EQUAL",
-        "BOOLEAN_AND",
-        "BOOLEAN_OR",
-        "BOOLEAN_NOT",
-        "STAR",
-        "SLASH",
-        "MINUS",
-        "PLUS",
-        "INTEGER",
-        "FLOAT",
-        "STRING",
-        "STARTS_WITH_LOWER_C_STR",
-        "STARTS_WITH_UPPER_C_STR",
-        "JSON_STRING",
-        "JSON_TRUE",
-        "JSON_FALSE",
-        "JSON_COLON",
-        "JSON_QUOTE",
-        "JSON_COMMENT",
-        "JSON_ARRAY_LEFT",
-        "JSON_ARRAY_RIGHT",
-        "JSON_COMMA",
-        "NUMBER",
-        "INT",
-        "EXP",
-        "WS",
-        "JSON_OPEN_2",
-        "JSON_CLOSE",
-    ]
+    ruleNames = [ "STRUCT", "TASK", "IN", "OUT", "LOOP", "WHILE", "TO", 
+                  "PARALLEL", "CONDITION", "PASSED", "FAILED", "ON_DONE", 
+                  "END", "NUMBER_P", "STRING_P", "BOOLEAN_P", "TRUE", "FALSE", 
+                  "COLON", "DOT", "COMMA", "JSON_OPEN", "QUOTE", "ARRAY_LEFT", 
+                  "ARRAY_RIGHT", "COMMENT", "WHITESPACE", "NL", "LEFT_PARENTHESIS", 
+                  "RIGHT_PARENTHESIS", "LESS_THAN", "LESS_THAN_OR_EQUAL", 
+                  "GREATER_THAN", "GREATER_THAN_OR_EQUAL", "EQUAL", "NOT_EQUAL", 
+                  "BOOLEAN_AND", "BOOLEAN_OR", "BOOLEAN_NOT", "STAR", "SLASH", 
+                  "MINUS", "PLUS", "INTEGER", "FLOAT", "STRING", "STARTS_WITH_LOWER_C_STR", 
+                  "STARTS_WITH_UPPER_C_STR", "JSON_STRING", "JSON_TRUE", 
+                  "JSON_FALSE", "JSON_COLON", "JSON_QUOTE", "JSON_COMMENT", 
+                  "JSON_ARRAY_LEFT", "JSON_ARRAY_RIGHT", "JSON_COMMA", "NUMBER", 
+                  "INT", "EXP", "WS", "JSON_OPEN_2", "JSON_CLOSE" ]
 
     grammarFileName = "PFDLLexer.g4"
 
-    def __init__(self, input=None, output: TextIO = sys.stdout):
+    def __init__(self, input=None, output:TextIO = sys.stdout):
         super().__init__(input, output)
         self.checkVersion("4.9.3")
-        self._interp = LexerATNSimulator(
-            self, self.atn, self.decisionsToDFA, PredictionContextCache()
-        )
+        self._interp = LexerATNSimulator(self, self.atn, self.decisionsToDFA, PredictionContextCache())
         self._actions = None
         self._predicates = None
+
 
     class PFDLDenter(DenterHelper):
         def __init__(self, lexer, nl_token, indent_token, dedent_token, ignore_eof):
@@ -478,7 +343,7 @@ class PFDLLexer(Lexer):
 
     def nextToken(self):
         if not self.denter:
-            self.denter = self.PFDLDenter(
-                self, self.NL, PFDLLexer.INDENT, PFDLLexer.DEDENT, ignore_eof=False
-            )
+            self.denter = self.PFDLDenter(self, self.NL, PFDLLexer.INDENT, PFDLLexer.DEDENT, ignore_eof=False)
         return self.denter.next_token()
+
+
