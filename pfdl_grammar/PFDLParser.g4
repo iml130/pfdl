@@ -60,8 +60,7 @@ condition_failed:
     FAILED INDENT statement+ DEDENT;
 
 parameter:
-    STARTS_WITH_LOWER_C_STR
-    | attribute_access;
+    STARTS_WITH_LOWER_C_STR | attribute_access;
 
 struct_initialization:
     STARTS_WITH_UPPER_C_STR INDENT json_object NL+ DEDENT
@@ -84,9 +83,7 @@ attribute_access:
 array:
     ARRAY_LEFT (INTEGER | STARTS_WITH_LOWER_C_STR)? ARRAY_RIGHT;
 
-number:
-    INTEGER
-    | FLOAT;
+number: MINUS? (INTEGER | FLOAT);
 
 value:
     TRUE 
@@ -130,13 +127,13 @@ json_open_bracket:
     JSON_OPEN | JSON_OPEN_2;
 
 json_value:
-   JSON_STRING
-   | JSON_TRUE
-   | JSON_FALSE
-   | NUMBER
-   | json_object
-   | json_array;
+    JSON_STRING
+    | JSON_TRUE
+    | JSON_FALSE
+    | NUMBER
+    | json_object
+    | json_array;
 
-json_array
-   : JSON_ARRAY_LEFT json_value (JSON_COMMA json_value)* JSON_ARRAY_RIGHT
-   | JSON_ARRAY_LEFT JSON_ARRAY_RIGHT;
+json_array:
+    JSON_ARRAY_LEFT json_value (JSON_COMMA json_value)* JSON_ARRAY_RIGHT
+    | JSON_ARRAY_LEFT JSON_ARRAY_RIGHT;
