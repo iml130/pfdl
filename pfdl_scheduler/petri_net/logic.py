@@ -11,7 +11,7 @@ import json
 from typing import Dict
 
 # 3rd party packages
-from nets import Value, PetriNet
+from nets import PetriNet, Value
 
 # local sources
 from pfdl_scheduler.petri_net.drawer import draw_petri_net
@@ -35,7 +35,7 @@ class PetriNetLogic:
 
     def __init__(
         self, petri_net_generator: PetriNetGenerator, draw_net: bool = True, file_name: str = ""
-    ):
+    ) -> None:
         """Initialize the object.
 
         Args:
@@ -49,7 +49,12 @@ class PetriNetLogic:
         self.file_name = file_name
 
     def draw_petri_net(self) -> None:
-        """Saves the given petri net as an image in the current working directory.
+        """Saves the given petri net in the current working directory.
+
+        If the `draw_net` flag is set, this method will save the petri net in a "temp" folder
+        inside the root folder of the project. The petri net is saved as an image and as a dot
+        file to allow further processing. The dot file contains also the "call_tree" a tree
+        structure that describes the call hierarchy of PFDL tasks.
 
         Args:
             name: The name of the image.
@@ -66,8 +71,12 @@ class PetriNetLogic:
                 file.write(json.dumps(self.petri_net_generator.tree.toJSON(), indent=4))
 
     def evaluate_petri_net(self) -> None:
-        """Tries to fire every transition as long as all transitions
-        were tried and nothing can be done anymore.
+        """Triggers the evaluation of the petri net and its tokens.
+
+        This method tries to fire every transition successively until no transition
+        can be fired anymore. If a transition is fired, the whole loop starts again, as
+        a new petri net state could allow past transitions to be fired now.
+        Each method call also calls the `draw_petri_net` method.
         """
         index = 0
 
@@ -87,6 +96,7 @@ class PetriNetLogic:
                             callbacks.remove(temp)
 
                     if temp:
+                        # execute other callbacks first before handling parallel loop functionality
                         for callback in list(callbacks):
                             callback()
                             callbacks.remove(callback)
@@ -111,6 +121,9 @@ class PetriNetLogic:
 
         Args:
             event: The Event object that is fired.
+
+        Returns:
+            True if the given event could be resolved into an existing place in the petri net.
         """
 
         name_in_petri_net = ""
