@@ -14,6 +14,7 @@ Production Flow Description Language
 ![Lint Check](https://github.com/iml130/pfdl/actions/workflows/lint.yml/badge.svg?branch=main)
 ![Code Coverage](https://github.com/iml130/pfdl/actions/workflows/code_coverage.yml/badge.svg?branch=main)
 ![Build and deploy Docu](https://github.com/iml130/pfdl/actions/workflows/build_and_deploy_docu.yml/badge.svg?branch=main)
+[![REUSE status](https://api.reuse.software/badge/github.com/iml130/pfdl)](https://api.reuse.software/info/github.com/iml130/pfdl)
 
 **DISCLAIMER**:
 This project is not intended for everyday use and made available without any support.
