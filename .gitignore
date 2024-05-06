@@ -35,5 +35,8 @@ coverage.xml
 *.vscode
 *.antlr
 
+# ignore docu build folder
+site/
+
 # ignore log files
 temp/
