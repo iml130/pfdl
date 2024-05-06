@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: The PFDL Contributors
+# SPDX-License-Identifier: CC0-1.0
+
 name: Measure code coverage
 
 on:
