@@ -6,8 +6,7 @@ SPDX-License-Identifier: MIT
   
 Production Flow Description Language
 ===========================
-
-<img src="docs/img/pfdl_logo_without_font.png" alt="pfdl_logo" width="600"/>
+<img src="https://github.com/iml130/pfdl/blob/main/docs/img/pfdl_logo_without_font.png?raw=true" alt="pfdl_logo" width="600"/>
 <br><br>
 
 ![Tests](https://github.com/iml130/pfdl/actions/workflows/tests.yml/badge.svg?branch=main)
@@ -31,6 +30,12 @@ This project consists of the PFDL Grammar and Scheduler.
 The Scheduler is the main part of the language. It parses PFDL files and generates a Petri net for scheduling the production task if the given file is valid.
 
 For more infos visit the official :books: [Documentation](https://iml130.github.io/pfdl/).
+
+## Quick Installation
+The fastest way to get the PFDL Scheduler running is by installing the [PyPi package](https://pypi.org/project/pfdl-scheduler/) via pip in a [virtual environment](https://docs.python.org/3/library/venv.html):
+> python3 -m venv venv-pfdl
+> source venv-pfdl/bin/activate
+> pip install pfdl-scheduler
 
 ## Requirements
 - Pip packages from requirements.txt (`pip install -r requirements.txt`)
@@ -79,7 +84,7 @@ No PetriNet is generated / there is an error while generating the net
 > Check if you correctly installed GraphViz (On Windows you need to put the bin folder inside the GraphViz folder into the PATH environment variable. On Ubuntu it should be fine if you install GraphViz via apt-get)
 
 ## License
-PDFL is licensed under the MIT License. See [LICENSE](LICENSE) for details on the licensing terms.
+PDFL is licensed under the MIT License. See [LICENSE](https://github.com/iml130/pfdl/blob/main/LICENSE) for details on the licensing terms.
 
 ## Academic Attribution
 If you use the PFDL for research, please include the following reference in any resulting publication.
