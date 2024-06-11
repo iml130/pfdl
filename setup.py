@@ -12,7 +12,7 @@ long_description = (this_directory / "README.md").read_text()
 setup(
     name="pfdl_scheduler",
     version="0.9.0",
-    description="Parser and Scheduler of Production Flow Description Language (PFDL) files.",
+    description="Parser and Scheduler for Production Flow Description Language (PFDL) files.",
     long_description=long_description,
     long_description_content_type='text/markdown',
     author="Peter Detzner, Maximilian Hoerstrup",
