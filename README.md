@@ -31,6 +31,10 @@ The Scheduler is the main part of the language. It parses PFDL files and generat
 
 For more infos visit the official :books: [Documentation](https://iml130.github.io/pfdl/).
 
+## Quick Installation
+The fastest way to get the PFDL Scheduler running is by installing the [PyPi package](https://pypi.org/project/pfdl-scheduler/) via pip:
+> pip install pfdl-scheduler
+
 ## Requirements
 - Pip packages from requirements.txt (`pip install -r requirements.txt`)
 - [GraphViz](https://graphviz.org/) (if you want to use the scheduler/run the scheduler_demo.py)
