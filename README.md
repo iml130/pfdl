@@ -32,7 +32,9 @@ The Scheduler is the main part of the language. It parses PFDL files and generat
 For more infos visit the official :books: [Documentation](https://iml130.github.io/pfdl/).
 
 ## Quick Installation
-The fastest way to get the PFDL Scheduler running is by installing the [PyPi package](https://pypi.org/project/pfdl-scheduler/) via pip:
+The fastest way to get the PFDL Scheduler running is by installing the [PyPi package](https://pypi.org/project/pfdl-scheduler/) via pip in a virtual environment:
+> python3 -m venv venv-pfdl
+> source venv-pfdl/bin/activate
 > pip install pfdl-scheduler
 
 However, we recommend the user to install the package inside a [virtual environment](https://docs.python.org/3/library/venv.html).
