@@ -6,8 +6,7 @@ SPDX-License-Identifier: MIT
   
 Production Flow Description Language
 ===========================
-
-<img src="docs/img/pfdl_logo_without_font.png" alt="pfdl_logo" width="600"/>
+<img src="https://github.com/iml130/pfdl/blob/main/docs/img/pfdl_logo_without_font.png?raw=true" alt="pfdl_logo" width="600"/>
 <br><br>
 
 ![Tests](https://github.com/iml130/pfdl/actions/workflows/tests.yml/badge.svg?branch=main)
@@ -79,7 +78,7 @@ No PetriNet is generated / there is an error while generating the net
 > Check if you correctly installed GraphViz (On Windows you need to put the bin folder inside the GraphViz folder into the PATH environment variable. On Ubuntu it should be fine if you install GraphViz via apt-get)
 
 ## License
-PDFL is licensed under the MIT License. See [LICENSE](LICENSE) for details on the licensing terms.
+PDFL is licensed under the MIT License. See [LICENSE](https://github.com/iml130/pfdl/blob/main/LICENSE) for details on the licensing terms.
 
 ## Academic Attribution
 If you use the PFDL for research, please include the following reference in any resulting publication.
