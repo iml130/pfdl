@@ -35,6 +35,8 @@ For more infos visit the official :books: [Documentation](https://iml130.github.
 The fastest way to get the PFDL Scheduler running is by installing the [PyPi package](https://pypi.org/project/pfdl-scheduler/) via pip:
 > pip install pfdl-scheduler
 
+However, we recommend the user to install the package inside a [virtual environment](https://docs.python.org/3/library/venv.html).
+
 ## Requirements
 - Pip packages from requirements.txt (`pip install -r requirements.txt`)
 - [GraphViz](https://graphviz.org/) (if you want to use the scheduler/run the scheduler_demo.py)
