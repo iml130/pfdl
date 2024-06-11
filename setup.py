@@ -15,7 +15,7 @@ setup(
     description="Parser and Scheduler for Production Flow Description Language (PFDL) files.",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    author="Peter Detzner, Maximilian Hoerstrup",
+    author="The PFDL Contributors",
     author_email="maximilian.hoerstrup@iml.fraunhofer.de",
     python_requires = ">=3.10",
     packages=find_packages(),
