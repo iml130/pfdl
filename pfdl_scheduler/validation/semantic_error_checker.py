@@ -29,7 +29,7 @@ from pfdl_scheduler.validation.error_handler import ErrorHandler
 from pfdl_scheduler.utils import helpers
 
 # global defines
-from pfdl_scheduler.parser.pfdl_tree_visitor import IN_KEY, OUT_KEY, START_TASK
+from pfdl_scheduler.parser.pfdl_tree_visitor import IN_KEY, OUT_KEY
 
 
 class SemanticErrorChecker:
@@ -105,7 +105,7 @@ class SemanticErrorChecker:
 
         start_task_found = False
         for task in self.tasks.values():
-            if task.name == START_TASK:
+            if task.name == self.process.start_task_name:
                 start_task_found = True
 
             # use & so all methods will be executed even if a method returns False
@@ -117,7 +117,7 @@ class SemanticErrorChecker:
                 valid = False
 
         if not start_task_found:
-            error_msg = "The file contains no 'productionTask' (Starting Point)"
+            error_msg = f"The file contains no '{self.process.start_task_name}' (Starting Point)"
             self.error_handler.print_error(error_msg, line=1, column=0, off_symbol_length=5)
             return False
 

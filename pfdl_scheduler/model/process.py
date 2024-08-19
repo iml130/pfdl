@@ -25,14 +25,21 @@ class Process:
     Attributes:
         structs: A dict for mapping the Struct names to the Struct objects.
         task: A dict for mapping the Task names to the Task objects.
+        start_task_name: the name of the start task of the PFDL program (typically "productionTask").
     """
 
-    def __init__(self, structs: Dict[str, Struct] = None, tasks: Dict[str, Task] = None) -> None:
+    def __init__(
+        self,
+        structs: Dict[str, Struct] = None,
+        tasks: Dict[str, Task] = None,
+        start_task_name: str = "productionTask",
+    ) -> None:
         """Initialize the object.
 
         Args:
             structs: A dict for mapping the Struct names to the Struct objects.
             tasks: A dict for mapping the Task names to the Task objects.
+            start_task_name: the name of the start task of the PFDL program (typically "productionTask").
         """
         if structs:
             self.structs: Dict[str, Struct] = structs
@@ -42,3 +49,4 @@ class Process:
             self.tasks: Dict[str, Task] = tasks
         else:
             self.tasks: Dict[str, Task] = {}
+        self.start_task_name = start_task_name

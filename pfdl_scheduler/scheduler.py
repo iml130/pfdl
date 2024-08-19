@@ -480,7 +480,7 @@ class Scheduler(Subject):
             callback(task_api)
 
         order_finished = False
-        if task_api.task.name == "productionTask":
+        if task_api.task.name == self.process.start_task_name:
             self.running = False
             order_finished = True
             self.petri_net_logic.draw_petri_net()

@@ -99,6 +99,7 @@ class PetriNetGenerator:
             used_in_extension: A boolean indicating if the Generator is used within the extension.
             generate_test_ids: A boolean indicating if test ids (counting from 0) should be generated.
             draw_net: A boolean indicating if the petri net should be drawn.
+            file_name: The desired filename of the petri net image.
         """
 
         if used_in_extension:
@@ -143,7 +144,7 @@ class PetriNetGenerator:
     def generate_petri_net(self, process: Process) -> PetriNet:
         """Generates a Petri Net from the given Process object.
 
-        Starts from the 'productionTask' and iterates over his statements.
+        Starts from the start task of the PFDL program and iterates over his statements.
         For each statement type like Condition or TaskCall a Petri Net component
         is generated. All components get connected at the end.
 
@@ -151,25 +152,21 @@ class PetriNetGenerator:
             A PetriNet instance representing the generated net.
         """
         self.tasks = process.tasks
-        production_task = process.tasks["productionTask"]
+        start_task = process.tasks[process.start_task_name]
         group_uuid = str(uuid.uuid4())
-        self.tree = Node(group_uuid, production_task.name)
+        self.tree = Node(group_uuid, start_task.name)
 
-        task_context = TaskAPI(production_task, None)
+        task_context = TaskAPI(start_task, None)
         if self.generate_test_ids:
             task_context.uuid = "0"
 
-        self.task_started_uuid = create_place(
-            production_task.name + "_started", self.net, self.tree
-        )
+        self.task_started_uuid = create_place(start_task.name + "_started", self.net, self.tree)
         connection_uuid = create_transition("", "", self.net, self.tree)
 
         self.add_callback(connection_uuid, self.callbacks.task_started, task_context)
 
         self.net.add_input(self.task_started_uuid, connection_uuid, Value(1))
-        self.task_finished_uuid = create_place(
-            production_task.name + "_finished", self.net, self.tree
-        )
+        self.task_finished_uuid = create_place(start_task.name + "_finished", self.net, self.tree)
 
         second_connection_uuid = create_transition("", "", self.net, self.tree)
 
@@ -183,7 +180,7 @@ class PetriNetGenerator:
         )
         self.generate_statements(
             task_context,
-            production_task.statements,
+            start_task.statements,
             connection_uuid,
             second_connection_uuid,
             self.tree,
