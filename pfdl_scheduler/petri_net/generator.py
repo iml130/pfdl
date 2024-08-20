@@ -189,9 +189,6 @@ class PetriNetGenerator:
 
         self.add_callback(second_connection_uuid, self.callbacks.task_finished, task_context)
 
-        # assign new clusters before drawing
-        self.net.clusters = self.tree.cluster
-
         if self.draw_net:
             json_string = json.dumps(self.tree.toJSON(), indent=4)
             draw_petri_net(self.net, self.path_for_image, ".dot")
@@ -430,15 +427,6 @@ class PetriNetGenerator:
         self.net.add_output(finished_uuid, second_passed_transition_uuid, Value(1))
 
         cluster = Cluster([passed_uuid, failed_uuid, expression_uuid, finished_uuid])
-
-        cluster_passed = Cluster([first_passed_transition_uuid, second_passed_transition_uuid])
-        cluster_failed = Cluster([first_failed_transition_uuid])
-        cluster.add_child(cluster_passed)
-        cluster.add_child(cluster_failed)
-        condition_node.cluster = cluster_passed
-
-        cluster = Cluster([passed_uuid, failed_uuid, expression_uuid, finished_uuid])
-        node.cluster.add_child(cluster)
 
         cluster_passed = Cluster([first_passed_transition_uuid, second_passed_transition_uuid])
         cluster_failed = Cluster([first_failed_transition_uuid])
