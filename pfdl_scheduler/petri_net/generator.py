@@ -437,11 +437,11 @@ class PetriNetGenerator:
         cluster.add_child(cluster_failed)
         condition_node.cluster = cluster_passed
 
-        cluster = Cluster([passed_id, failed_id, expression_id, finished_id])
+        cluster = Cluster([passed_uuid, failed_uuid, expression_uuid, finished_uuid])
         node.cluster.add_child(cluster)
 
-        cluster_passed = Cluster([first_passed_transition_id, second_passed_transition_id])
-        cluster_failed = Cluster([first_failed_transition_id])
+        cluster_passed = Cluster([first_passed_transition_uuid, second_passed_transition_uuid])
+        cluster_failed = Cluster([first_failed_transition_uuid])
         cluster.add_child(cluster_passed)
         cluster.add_child(cluster_failed)
         condition_node.cluster = cluster_passed
