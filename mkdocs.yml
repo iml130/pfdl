@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: The PFDL Contributors
+# SPDX-License-Identifier: CC0-1.0
+
 site_name: Production Flow Description Language
 site_url: https://example.com/
 
@@ -93,7 +96,6 @@ plugins:
             python:
                 import:
                     - https://docs.python.org/3/objects.inv
-                paths: [pfdl_scheduler]  # search packages in the src folder
                 options:
                     merge_init_into_class: True
                     show_source: False

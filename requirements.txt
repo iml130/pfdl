@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: The PFDL Contributors
+# SPDX-License-Identifier: CC0-1.0
+
 antlr4-python3-runtime==4.9.3
 antlr-denter
 snakes

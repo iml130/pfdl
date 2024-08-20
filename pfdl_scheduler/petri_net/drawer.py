@@ -17,27 +17,38 @@ snakes.plugins.load(["labels", "gv"], "snakes.nets", "nets")
 draw_lock = threading.Lock()
 
 
-"""Constants that are used in the drawer functions"""
-NODE_SEP_VALUE = 5
+# Constants that are used in the drawer functions below.
+# They are used by Snakes to pass the values to the dot engine
+# Attribute overview: https://graphviz.org/doc/info/attrs.html
 
+LAYOUT_METHOD = "dot"  # the preferred layout engine (changes the position of the nodes)
+
+# Graph attributes
+GRAPH_MARGIN = 15  # margin of the graph to the canvas (in inches)
+NEW_RANK_VALUE = "true"  # allow different positioning for clustering
+
+# Place attributes
 PLACE_SHAPE = "circle"
 PLACE_LABEL = ""
 
+# Transition attributes
 TRANSITION_SHAPE = "rect"
 TRANSITION_FILL_COLOR = "black"
 TRANSITION_WIDTH = 1
 TRANSITION_HEIGHT = 0.1
 TRANSITION_LABEL = ""
 
+# Arc attributes
 INHIBITOR_ARC_ARROW_HEAD = "odot"
+DEFAULT_ARC_LABEL = ""
 
-LAYOUT_METHOD = "dot"
+DEFAULT_CLUSTER_STYLE = ""
 
 
 def draw_graph(graph, attr):
     """Set attributes for drawing the net."""
-    attr["margin"] = 15
-    attr["newrank"] = "true"
+    attr["margin"] = GRAPH_MARGIN
+    attr["newrank"] = NEW_RANK_VALUE
 
 
 def draw_place(place, attr):
@@ -72,7 +83,11 @@ def draw_arcs(arc, attr):
     """Set attributes for drawing arcs."""
     if isinstance(arc, snakes.nets.Inhibitor):
         attr["arrowhead"] = INHIBITOR_ARC_ARROW_HEAD
-    attr["label"] = ""
+    attr["label"] = DEFAULT_ARC_LABEL
+
+
+def draw_clusters(clust, attr):
+    attr["style"] = DEFAULT_CLUSTER_STYLE
 
 
 def draw_clusters(clust, attr):

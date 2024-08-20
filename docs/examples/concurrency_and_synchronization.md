@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 # Concurrency and Synchronization
 
 As already stated in the [parallel](../pfdl/parallel.md) section, there is no keyword for the synchronization. The next statement after a parallel block is only started if all concurrently running tasks are finished.

@@ -1,6 +1,10 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
 # Task
 A Task is an executable unit which executes the statements within sequentially.
-The name of the Task should be a [lowercase string](../#allowed-characters).
+The name of the Task should be a string that starts with a lowercase character.
 
 ## The Production Task
 A Task with the name `productionTask` serves as the starting point of the production order.

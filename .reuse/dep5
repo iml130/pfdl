@@ -1,0 +1,12 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: pfdl
+Upstream-Contact:
+Source: https://github.com/iml130/pfdl
+
+Files: docs/img/*
+Copyright: The PFDL Contributors
+License: CC-BY-4.0
+
+Files: pfdl_grammar/*
+Copyright: The PFDL Contributors
+License: MIT

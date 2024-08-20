@@ -22,6 +22,19 @@ import queue
 from pfdl_scheduler.api.observer_api import NotificationType
 from pfdl_scheduler.api.observer_api import Observer
 
+# constants and variables
+PETRI_NET_FILE_LOCATION = "temp/"  # the location of the petri net file
+PETRI_NET_TYPE = "dot"  # the format of the sent petri net file
+
+# http routes
+ORDER_ROUTE = "/pfdl_order"
+PETRI_NET_ROUTE = "/petri_net"
+LOG_EVENT_ROUTE = "/log_event"
+
+# order status
+ORDER_STARTED = 2
+ORDER_FINISHED = 4
+
 message_queue = queue.Queue()
 lock = threading.Lock()
 
@@ -53,11 +66,11 @@ class DashboardObserver(Observer):
             "order_uuid": scheduler_uuid,
             "starting_date": current_timestamp,
             "last_update": current_timestamp,
-            "status": 2,
+            "status": ORDER_STARTED,
             "pfdl_string": self.pfdl_string,
         }
 
-        message_queue.put((self.host + "/pfdl_order", request_data))
+        message_queue.put((self.host + ORDER_ROUTE, request_data))
 
     def update(self, notification_type: NotificationType, data: Any) -> None:
         if notification_type == NotificationType.PETRI_NET:
@@ -87,11 +100,11 @@ class DashboardObserver(Observer):
                 "log_date": int(round(datetime.timestamp(datetime.now()))),
                 "log_level": log_level,
             }
-            message_queue.put((self.host + "/log_event", request_data))
+            message_queue.put((self.host + LOG_EVENT_ROUTE, request_data))
 
-            order_status = 2
+            order_status = ORDER_STARTED
             if order_finished:
-                order_status = 4
+                order_status = ORDER_FINISHED
 
             request_data = {
                 "order_uuid": self.scheduler_uuid,
@@ -100,4 +113,4 @@ class DashboardObserver(Observer):
                 "status": order_status,
                 "pfdl_string": self.pfdl_string,
             }
-            message_queue.put((self.host + "/pfdl_order", request_data))
+            message_queue.put((self.host + ORDER_ROUTE, request_data))

@@ -396,14 +396,14 @@ class Scheduler(Subject):
         if self.loop_counters.get(task_context.uuid) is None:
             self.loop_counters[task_context.uuid] = {}
 
-        if self.loop_counters[task_context.uuid].get(loop.counting_variable) is None:
-            self.loop_counters[task_context.uuid][loop.counting_variable] = 0
+        if self.loop_counters[task_context.uuid].get(loop) is None:
+            self.loop_counters[task_context.uuid][loop] = 0
         else:
-            self.loop_counters[task_context.uuid][loop.counting_variable] = (
-                self.loop_counters[task_context.uuid][loop.counting_variable] + 1
+            self.loop_counters[task_context.uuid][loop] = (
+                self.loop_counters[task_context.uuid][loop] + 1
             )
 
-        loop_counter = self.loop_counters[task_context.uuid][loop.counting_variable]
+        loop_counter = self.loop_counters[task_context.uuid][loop]
         loop_limit = self.get_loop_limit(loop, task_context)
 
         if loop_counter < loop_limit:
@@ -414,10 +414,6 @@ class Scheduler(Subject):
         else:
             awaited_event = Event(event_type=SET_PLACE, data={"place_uuid": else_uuid})
             self.awaited_events.append(awaited_event)
-
-            # loop is done so reset loop counter for this task context
-            # set it to -1 because it exists now and will be incremented by 1
-            self.loop_counters[task_context.uuid][loop.counting_variable] = -1
 
             # has to be executed at last
             self.fire_event(awaited_event)

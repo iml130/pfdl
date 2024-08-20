@@ -1,3 +1,9 @@
+# Copyright The PFDL Contributors
+#
+# Licensed under the MIT License.
+# For details on the licensing terms, see the LICENSE file.
+# SPDX-License-Identifier: MIT
+
 openapi: 3.0.3
 info:
   title: PFDL Scheduler Backend API
