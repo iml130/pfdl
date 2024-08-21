@@ -76,15 +76,15 @@ class DashboardObserver(Observer):
         if notification_type == NotificationType.PETRI_NET:
             if not self.order_finished:
                 content = ""
-                with open("temp/" + self.scheduler_uuid + ".dot") as file:
+                with open(PETRI_NET_FILE_LOCATION + self.scheduler_uuid + "." + PETRI_NET_TYPE) as file:
                     content = file.read()
 
                 request_data = {
                     "order_uuid": self.scheduler_uuid,
                     "content": content,
-                    "type_pn": "dot",
+                    "type_pn": PETRI_NET_TYPE,
                 }
-                message_queue.put((self.host + "/petri_net", request_data))
+                message_queue.put((self.host + PETRI_NET_ROUTE, request_data))
 
         elif notification_type == NotificationType.LOG_EVENT:
             log_event = data[0]
