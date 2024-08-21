@@ -709,12 +709,19 @@ class SemanticErrorChecker:
         Returns:
             True if the Counting Loop statement is valid.
         """
-        valid = True
-        for statement in counting_loop.statements:
-            if not self.check_statement(statement, task):
-                valid = False
+        if counting_loop.parallel:
+            if len(counting_loop.statements) == 1 and isinstance(counting_loop.statements[0], TaskCall):
+                return True
+            error_msg = "Only a single task is allowed in a parallel loop statement!"
+            self.error_handler.print_error(error_msg, context=counting_loop.context)
+            return False
+        else:
+            valid = True
+            for statement in counting_loop.statements:
+                if not self.check_statement(statement, task):
+                    valid = False
 
-        return valid
+            return valid
 
     def check_conditional_statement(self, condition: Condition, task: Task) -> bool:
         """Calls check methods for the conditional statement.
