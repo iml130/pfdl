@@ -58,13 +58,14 @@ def draw_place(place, attr):
     else:
         attr["xlabel"] = place.name
 
-    attr["group"] = place.label("group_id")
+    attr["group"] = place.label("group_uuid")
 
     if 1 in place:
         attr["label"] = "&bull;"
     else:
         attr["label"] = PLACE_LABEL
     attr["shape"] = PLACE_SHAPE
+    attr["ordering"] = "out"
 
 
 def draw_transition(trans, attr):
@@ -75,7 +76,7 @@ def draw_transition(trans, attr):
     attr["height"] = TRANSITION_HEIGHT
     attr["width"] = TRANSITION_WIDTH
     attr["fillcolor"] = TRANSITION_FILL_COLOR
-    attr["group"] = trans.label("group_id")
+    attr["group"] = trans.label("group_uuid")
 
 
 def draw_arcs(arc, attr):

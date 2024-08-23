@@ -8,6 +8,7 @@
 
 # standard libraries
 import re
+import os
 from typing import Tuple, Union
 from pathlib import Path
 
@@ -67,17 +68,17 @@ def parse_string(
     return (False, None)
 
 
-def parse_file(file_path: str) -> Tuple[bool, Union[None, Process], str]:
-    """Loads the content of the file from the given path and calls the parse_string function.
+def parse_program(program: str) -> Tuple[bool, Union[None, Process], str]:
+    """Loads the content of the program from either the given path or the PFDL program directly and calls the parse_string function.
 
     Args:
-        file_path: The path to the PFDL file.
+        program: Either a path to the PFDL file or directly the PFDL program as a string.
 
     Returns:
         A boolan indicating validity of the PFDL file, the content of the file, and the
         process object if so, otherwise None.
     """
-    pfdl_string = load_file(file_path)
+    pfdl_string, file_path = extract_content_and_file_path(program)
     return *parse_string(pfdl_string, file_path), pfdl_string
 
 
@@ -91,6 +92,29 @@ def write_tokens_to_file(token_stream: CommonTokenStream) -> None:
             if re.match(pattern, token.text):
                 token_text = "NL"
             file.write(token_text + "\n")
+
+
+def extract_content_and_file_path(program: str) -> Tuple[str, str]:
+    """Extracts the file path and loads the PFDL string for a given program.
+
+    Args:
+        program: Either a path to the PFDL file or directly the PFDL program as a string.
+
+    Returns:
+        The content of the PFDL file as a string and the file path if it is contained in given the program,
+        otherwise an empty string.
+
+    """
+    file_path = ""
+    if os.path.exists(program):
+        # PFDL program was passed as a file path
+        file_path = program
+        pfdl_string = load_file(program)
+    else:
+        # expect program to contain a PFDL string
+        pfdl_string = program
+
+    return (pfdl_string, file_path)
 
 
 def load_file(file_path: str) -> str:

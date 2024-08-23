@@ -36,9 +36,9 @@ class LogEntryObserver(Observer):
     LogLevels are based of https://docs.python.org/3/library/logging.html#logging-levels
     """
 
-    def __init__(self, scheduler_id: str):
+    def __init__(self, scheduler_uuid: str):
         logging.basicConfig(
-            filename=LOG_FILE_LOCATION + scheduler_id + LOG_FILE_FORMAT,
+            filename=LOG_FILE_LOCATION + scheduler_uuid + LOG_FILE_FORMAT,
             encoding=LOG_FILE_ENCODING,
             level=logging.DEBUG,
             filemode=LOG_FILE_FILEMODE,

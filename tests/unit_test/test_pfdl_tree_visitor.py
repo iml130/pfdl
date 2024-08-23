@@ -12,7 +12,7 @@ Parser and Lexer beforehand.
 
 # standard libraries
 import unittest
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 from unittest.mock import patch
 from pfdl_scheduler.model.parallel import Parallel
 
@@ -20,7 +20,6 @@ from pfdl_scheduler.model.parallel import Parallel
 # local sources
 from pfdl_scheduler.validation.error_handler import ErrorHandler
 from pfdl_scheduler.parser.PFDLParser import PFDLParser
-from pfdl_scheduler.parser.PFDLParserVisitor import PFDLParserVisitor
 from pfdl_scheduler.model.process import Process
 from pfdl_scheduler.model.struct import Struct
 from pfdl_scheduler.model.task import Task
@@ -36,10 +35,8 @@ from antlr4.Token import Token
 
 from pfdl_scheduler.parser.pfdl_tree_visitor import (
     PFDLTreeVisitor,
-    PRIMITIVE_DATATYPES,
     IN_KEY,
     OUT_KEY,
-    START_TASK,
 )
 
 from antlr4 import ParserRuleContext
@@ -56,7 +53,7 @@ class TestPFDLTreeVisitor(unittest.TestCase):
         self.visitor: PFDLTreeVisitor = PFDLTreeVisitor(self.error_handler)
 
     def check_if_print_error_is_called(self, method, *args) -> None:
-        """Runs the given method wiht the help of a mock object and checks if print error is called.
+        """Runs the given method with the help of a mock object and checks if print error is called.
 
         Args:
             method: The method which should be tested.
@@ -489,7 +486,7 @@ class TestPFDLTreeVisitor(unittest.TestCase):
         service = Service()
         condition = Condition()
 
-        expression = {"unop": "!", "value": "True"}
+        expression = {"unOp": "!", "value": "True"}
         with patch.object(self.visitor, "visitExpression", return_value=expression) as mock:
             with patch.object(
                 self.visitor, "visitStatement", MagicMock(side_effect=[service, condition])
@@ -552,6 +549,26 @@ class TestPFDLTreeVisitor(unittest.TestCase):
         mock.assert_called_once_with(attribute_access_context)
         mock_2.assert_called_with(statement_context_2)
 
+        # with integer as loop limit
+        counting_loop_context.children = [
+            statement_context_1,
+            statement_context_2,
+        ]
+        create_and_add_token(PFDLParser.STARTS_WITH_LOWER_C_STR, "i", counting_loop_context)
+        create_and_add_token(PFDLParser.INTEGER, "5", counting_loop_context)
+        with patch.object(
+            self.visitor, "visitStatement", MagicMock(side_effect=[service, condition])
+        ) as mock_2:
+            counting_loop = self.visitor.visitCounting_loop(counting_loop_context)
+            self.assertEqual(counting_loop.counting_variable, "i")
+            self.assertEqual(counting_loop.limit, 5)
+            self.assertFalse(counting_loop.parallel)
+            self.assertEqual(len(counting_loop.statements), 2)
+            self.assertEqual(counting_loop.statements[0], service)
+            self.assertEqual(counting_loop.statements[1], condition)
+            self.assertEqual(counting_loop.context, counting_loop_context)
+        mock_2.assert_called_with(statement_context_2)
+
     def test_visitCondition(self):
         condition_context = PFDLParser.ConditionContext(None)
         expression_context = PFDLParser.ExpressionContext(None)
@@ -564,7 +581,7 @@ class TestPFDLTreeVisitor(unittest.TestCase):
 
         passed_statements = [service, while_loop]
 
-        expression = {"unop": "!", "value": "True"}
+        expression = {"unOp": "!", "value": "True"}
 
         # without failed
         with patch.object(self.visitor, "visitExpression", return_value=expression) as mock:
@@ -651,50 +668,74 @@ class TestPFDLTreeVisitor(unittest.TestCase):
         variable_definition_context = PFDLParser.Variable_definitionContext(None)
         # without array
         variable_definition_context.children = [
-            PFDLParser.PrimitiveContext(None),
+            PFDLParser.Variable_typeContext(None),
         ]
         create_and_add_token(
             PFDLParser.STARTS_WITH_LOWER_C_STR, "variable", variable_definition_context
         )
 
-        with patch.object(self.visitor, "visitPrimitive", return_value="number"):
+        with patch.object(self.visitor, "visitVariable_type", return_value="number"):
             self.assertEqual(
                 self.visitor.visitVariable_definition(variable_definition_context),
                 ("variable", "number"),
             )
 
-        # with array
-        variable_definition_context.children = [
+    def test_visitVariable_type(self):
+        variable_type_context = PFDLParser.Variable_typeContext(None)
+
+        # without array
+        variable_type_context.children = [
             PFDLParser.PrimitiveContext(None),
-            PFDLParser.ArrayContext(None),
         ]
-        create_and_add_token(
-            PFDLParser.STARTS_WITH_LOWER_C_STR, "variable", variable_definition_context
-        )
         with patch.object(self.visitor, "visitPrimitive", return_value="string"):
-            # without length
-            with patch.object(self.visitor, "visitArray", return_value=-1):
+            with patch.object(self.visitor, "initializeArray", return_value=-1) as mock:
+                self.assertEqual(self.visitor.visitVariable_type(variable_type_context), "string")
+
+        # no array to initialize
+        mock.assert_not_called()
+
+        # with array
+        array_context = PFDLParser.ArrayContext(None)
+        variable_type_context.children = [
+            PFDLParser.PrimitiveContext(None),
+            array_context,
+        ]
+        with patch.object(self.visitor, "visitPrimitive", return_value="string"):
+            with patch.object(
+                self.visitor, "initializeArray", return_value=Array("string")
+            ) as mock:
                 self.assertEqual(
-                    self.visitor.visitVariable_definition(variable_definition_context),
-                    ("variable", Array("string")),
+                    self.visitor.visitVariable_type(variable_type_context), Array("string")
                 )
-            # with length
-            with patch.object(self.visitor, "visitArray", return_value=10):
-                array = Array("string")
-                array.length = 10
-                self.assertEqual(
-                    self.visitor.visitVariable_definition(variable_definition_context),
-                    ("variable", array),
-                )
-            # with invalid length (string)
-            with patch.object(self.visitor, "visitArray", return_value="not a number"):
-                self.assertEqual(
-                    self.visitor.visitVariable_definition(variable_definition_context),
-                    ("variable", Array("string")),
-                )
-                self.check_if_print_error_is_called(
-                    self.visitor.visitVariable_definition, variable_definition_context
-                )
+
+        mock.assert_called_with(array_context, "string")
+
+    def test_initializeArray(self):
+        array_context = PFDLParser.ArrayContext(None)
+        variable_type = "string"
+
+        # without length
+        with patch.object(self.visitor, "visitArray", return_value=-1):
+            self.assertEqual(
+                self.visitor.initializeArray(array_context, variable_type), Array("string")
+            )
+
+        # with length
+        with patch.object(self.visitor, "visitArray", return_value=10):
+            expected_array = Array("string")
+            expected_array.length = 10
+            self.assertEqual(
+                self.visitor.initializeArray(array_context, variable_type), expected_array
+            )
+
+        # with invalid length (string)
+        with patch.object(self.visitor, "visitArray", return_value="not a number"):
+            self.assertEqual(
+                self.visitor.initializeArray(array_context, variable_type), Array("string")
+            )
+            self.check_if_print_error_is_called(
+                self.visitor.initializeArray, array_context, variable_type
+            )
 
     def test_visitPrimitive(self):
         primitive_context = PFDLParser.PrimitiveContext(None)
@@ -814,9 +855,9 @@ class TestPFDLTreeVisitor(unittest.TestCase):
         ):
             expression = self.visitor.visitExpression(expression_context)
             self.assertEqual(len(expression), 2)
-            self.assertTrue("unop" in expression)
+            self.assertTrue("unOp" in expression)
             self.assertTrue("value" in expression)
-            self.assertEqual(expression, {"unop": "!", "value": "value"})
+            self.assertEqual(expression, {"unOp": "!", "value": "value"})
 
         # case length = 3
         expression_context.children = [

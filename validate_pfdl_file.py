@@ -10,7 +10,7 @@ from os.path import isfile, join
 
 import argparse
 
-from pfdl_scheduler.utils.parsing_utils import parse_file
+from pfdl_scheduler.utils.parsing_utils import parse_program
 
 EXAMPLES_PATH = "examples/"
 
@@ -22,7 +22,7 @@ def main():
 
     args = parser.parse_args()
     if args.file_path != None:
-        parse_file(args.file_path)
+        parse_program(args.file_path)
     else:
         folder_path = EXAMPLES_PATH
         if args.folder_path != None:
@@ -32,7 +32,7 @@ def main():
 
         for example_filename in example_filenames:
             print("File " + example_filename + " parsed:")
-            parse_file(folder_path + example_filename)
+            parse_program(folder_path + example_filename)
             print("\n")
 
 

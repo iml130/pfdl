@@ -22,8 +22,7 @@ from pfdl_scheduler.model.counting_loop import CountingLoop
 from pfdl_scheduler.api.task_api import TaskAPI
 from pfdl_scheduler.api.service_api import ServiceAPI
 
-from pfdl_scheduler.utils.parsing_utils import load_file
-from pfdl_scheduler.utils.parsing_utils import parse_file
+from pfdl_scheduler.utils.parsing_utils import parse_program
 
 from pfdl_scheduler.petri_net.generator import Node, PetriNetGenerator
 from pfdl_scheduler.petri_net.logic import PetriNetLogic
@@ -64,7 +63,7 @@ class Scheduler(Subject):
         petri_net_logic: A PetriNetLogic instance for execution of the petri net.
         task_callbacks: TaskCallbacks instance which holds the registered callbacks.
         variable_access_function: The function which will be called when the scheduler needs a variable.
-        loop_counters: A dict for mapping task ids to the current loop counter (counting loops).
+        loop_counters: A dict for mapping task uuids to the current loop counter (counting loops).
         awaited_events: A list of awaited `Event`s. Only these events can be passed to the net.
         generate_test_ids: Indicates whether test ids should be generated.
         test_id_counters: A List consisting of counters for the test ids of tasks and services.
@@ -73,30 +72,48 @@ class Scheduler(Subject):
 
     def __init__(
         self,
-        pfdl_file_path: str,
+        pfdl_program: str,
         generate_test_ids: bool = False,
         draw_petri_net: bool = True,
-        scheduler_id: str = "",
+        scheduler_uuid: str = "",
         dashboard_host_address: str = "",
     ) -> None:
         """Initialize the object.
 
-        If the given path leads to a valid PFDL file the parsing will be started. If no errors
-        occur the model of the PFDL File will be transformed into a petri net and be drawn if
-        the `draw_petri_net` flag is set. If `generate_test_ids` is set the ids of the called
+        If the given program contains a path that leads to a valid PFDL file or consists of a
+        valid PFDL string directly, the parsing will be started. If no errors occur the model
+        of the PFDL file will be transformed into a petri net and be drawn if the
+        `draw_petri_net` flag is set. If `generate_test_ids` is set the ids of the called
         tasks and services will be an enumeration starting at 0.
 
         Args:
-            pfdl_file_path: The path to the PFDL file.
+            pfdl_program: A path to the PFDL file or directly the PFDL program as a string.
             generate_test_ids: A boolean indicating whether test ids should be generated.
             draw_petri_net: A boolean indicating whether the petri net should be drawn.
-            scheduler_id: A unique ID to identify the Scheduer / Production Order
+            scheduler_uuid: A unique ID to identify the Scheduer / Production Order
             dashboard_host_address: The address of the Dashboard (if existing)
         """
-        if scheduler_id == "":
-            self.scheduler_id: str = str(uuid.uuid4())
+        self.init_scheduler(scheduler_uuid, generate_test_ids)
+        self.pfdl_file_valid, self.process, pfdl_string = parse_program(pfdl_program)
+
+        if self.pfdl_file_valid:
+            self.petri_net_generator = PetriNetGenerator(
+                "",
+                generate_test_ids=self.generate_test_ids,
+                draw_net=draw_petri_net,
+                file_name=self.scheduler_uuid,
+            )
+            self.setup_scheduling(draw_petri_net)
+            if dashboard_host_address != "":
+                self.attach(
+                    DashboardObserver(dashboard_host_address, self.scheduler_uuid, pfdl_string)
+                )
+
+    def init_scheduler(self, scheduler_uuid: str, generate_test_ids: bool):
+        if scheduler_uuid == "":
+            self.scheduler_uuid: str = str(uuid.uuid4())
         else:
-            self.scheduler_id: str = scheduler_id
+            self.scheduler_uuid: str = scheduler_uuid
         self.running: bool = False
         self.pfdl_file_valid: bool = False
         self.process: Process = None
@@ -108,30 +125,18 @@ class Scheduler(Subject):
         self.awaited_events: List[Event] = []
         self.generate_test_ids: bool = generate_test_ids
         self.test_id_counters: List[int] = [0, 0]
-        self.pfdl_file_valid, self.process, pfdl_string = parse_file(pfdl_file_path)
-        if self.pfdl_file_valid:
-            self.petri_net_generator = PetriNetGenerator(
-                "",
-                generate_test_ids=generate_test_ids,
-                draw_net=draw_petri_net,
-                file_name=self.scheduler_id,
-            )
-            self.register_for_petrinet_callbacks()
+        self.observers: List[Observer] = []
 
-            self.petri_net_generator.generate_petri_net(self.process)
-            self.petri_net_logic = PetriNetLogic(
-                self.petri_net_generator, draw_petri_net, file_name=self.scheduler_id
-            )
+    def setup_scheduling(self, draw_petri_net: bool):
+        self.register_for_petrinet_callbacks()
+
+        self.petri_net_generator.generate_petri_net(self.process)
+        self.petri_net_logic = PetriNetLogic(
+            self.petri_net_generator, draw_petri_net, file_name=self.scheduler_uuid
+        )
 
         awaited_event = Event(event_type=START_PRODUCTION_TASK, data={})
         self.awaited_events.append(awaited_event)
-        self.observers: List[Observer] = []
-
-        # enable logging
-        self.attach(LogEntryObserver(self.scheduler_id))
-
-        if dashboard_host_address != "":
-            self.attach(DashboardObserver(dashboard_host_address, self.scheduler_id, pfdl_string))
 
     def attach(self, observer: Observer) -> None:
         """Attach (add) an observer object to the observers list."""
@@ -180,7 +185,7 @@ class Scheduler(Subject):
         if event in self.awaited_events:
             if self.petri_net_logic.fire_event(event):
                 self.awaited_events.remove(event)
-                self.notify(NotificationType.PETRI_NET, self.scheduler_id)
+                self.notify(NotificationType.PETRI_NET, self.scheduler_uuid)
                 return True
         return False
 
@@ -258,16 +263,21 @@ class Scheduler(Subject):
 
     def on_task_started(self, task_api: TaskAPI) -> None:
         """Executes Scheduling logic when a Task is started."""
-        new_uuid = str(uuid.uuid4())
-        if self.generate_test_ids:
+        if task_api.in_loop:
+            if self.generate_test_ids:
+                task_api.uuid = str(self.test_id_counters[0])
+                self.test_id_counters[0] = self.test_id_counters[0] + 1
+            else:
+                task_api.uuid = str(uuid.uuid4())
+
+            if task_api.task_call:
+                task_api.input_parameters = copy.deepcopy(task_api.task_call.input_parameters)
+            self.substitute_loop_indexes(task_api)
+        elif self.generate_test_ids:
             new_uuid = str(self.test_id_counters[0])
             self.test_id_counters[0] = self.test_id_counters[0] + 1
+            task_api.uuid = new_uuid
 
-        task_api.uuid = new_uuid
-        if task_api.task_call:
-            task_api.input_parameters = copy.deepcopy(task_api.task_call.input_parameters)
-
-        self.substitute_loop_indexes(task_api)
         for callback in self.task_callbacks.task_started:
             callback(task_api)
 
@@ -299,22 +309,33 @@ class Scheduler(Subject):
     def on_service_started(self, service_api: ServiceAPI) -> None:
         """Executes Scheduling logic when a Service is started."""
 
-        new_uuid = str(uuid.uuid4())
-        if self.generate_test_ids:
+        if service_api.in_loop:
+            new_uuid = str(uuid.uuid4())
+            if self.generate_test_ids:
+                new_uuid = str(self.test_id_counters[1])
+                self.test_id_counters[1] = self.test_id_counters[1] + 1
+
+            self.petri_net_generator.place_dict[new_uuid] = self.petri_net_generator.place_dict[
+                service_api.uuid
+            ]
+            service_api.uuid = new_uuid
+
+            if service_api.input_parameters:
+                service_api.input_parameters = copy.deepcopy(service_api.service.input_parameters)
+
+            self.substitute_loop_indexes(service_api)
+        elif self.generate_test_ids:
             new_uuid = str(self.test_id_counters[1])
             self.test_id_counters[1] = self.test_id_counters[1] + 1
-        self.petri_net_generator.place_dict[new_uuid] = self.petri_net_generator.place_dict[
-            service_api.uuid
-        ]
 
-        service_api.uuid = new_uuid
-        if service_api.input_parameters:
-            service_api.input_parameters = copy.deepcopy(service_api.service.input_parameters)
+            self.petri_net_generator.place_dict[new_uuid] = self.petri_net_generator.place_dict[
+                service_api.uuid
+            ]
+            service_api.uuid = new_uuid
 
-        awaited_event = Event(event_type=SERVICE_FINISHED, data={"service_id": service_api.uuid})
+        awaited_event = Event(event_type=SERVICE_FINISHED, data={"service_uuid": service_api.uuid})
         self.awaited_events.append(awaited_event)
 
-        self.substitute_loop_indexes(service_api)
         for callback in self.task_callbacks.service_started:
             callback(service_api)
 
@@ -342,11 +363,11 @@ class Scheduler(Subject):
     ) -> None:
         """Executes Scheduling logic when a Condition statement is started."""
         if self.check_expression(condition.expression, task_context):
-            awaited_event = Event(event_type=SET_PLACE, data={"place_id": then_uuid})
+            awaited_event = Event(event_type=SET_PLACE, data={"place_uuid": then_uuid})
             self.awaited_events.append(awaited_event)
             self.fire_event(awaited_event)
         else:
-            awaited_event = Event(event_type=SET_PLACE, data={"place_id": else_uuid})
+            awaited_event = Event(event_type=SET_PLACE, data={"place_uuid": else_uuid})
             self.awaited_events.append(awaited_event)
             self.fire_event(awaited_event)
 
@@ -355,11 +376,11 @@ class Scheduler(Subject):
     ) -> None:
         """Executes Scheduling logic when a While Loop is started."""
         if self.check_expression(loop.expression, task_context):
-            awaited_event = Event(event_type=SET_PLACE, data={"place_id": then_uuid})
+            awaited_event = Event(event_type=SET_PLACE, data={"place_uuid": then_uuid})
             self.awaited_events.append(awaited_event)
             self.fire_event(awaited_event)
         else:
-            awaited_event = Event(event_type=SET_PLACE, data={"place_id": else_uuid})
+            awaited_event = Event(event_type=SET_PLACE, data={"place_uuid": else_uuid})
             self.awaited_events.append(awaited_event)
             self.fire_event(awaited_event)
 
@@ -382,12 +403,12 @@ class Scheduler(Subject):
         loop_limit = self.get_loop_limit(loop, task_context)
 
         if loop_counter < loop_limit:
-            awaited_event = Event(event_type=SET_PLACE, data={"place_id": then_uuid})
+            awaited_event = Event(event_type=SET_PLACE, data={"place_uuid": then_uuid})
             self.awaited_events.append(awaited_event)
 
             self.fire_event(awaited_event)
         else:
-            awaited_event = Event(event_type=SET_PLACE, data={"place_id": else_uuid})
+            awaited_event = Event(event_type=SET_PLACE, data={"place_uuid": else_uuid})
             self.awaited_events.append(awaited_event)
 
             # has to be executed at last
@@ -399,8 +420,8 @@ class Scheduler(Subject):
         task_context: TaskAPI,
         parallelTask: Task,
         parallel_loop_started,
-        first_transition_id: str,
-        second_transition_id: str,
+        first_transition_uuid: str,
+        second_transition_uuid: str,
         node: Node,
     ) -> None:
         """Executes Scheduling logic when a Parallel Loop is started."""
@@ -412,8 +433,8 @@ class Scheduler(Subject):
                 self.petri_net_generator.generate_task_call(
                     parallelTask,
                     task_context,
-                    first_transition_id,
-                    second_transition_id,
+                    first_transition_uuid,
+                    second_transition_uuid,
                     node,
                     False,
                 )
@@ -425,7 +446,7 @@ class Scheduler(Subject):
                 ] = ParallelLoopCounter()
         else:
             self.petri_net_generator.generate_empty_parallel_loop(
-                first_transition_id, second_transition_id
+                first_transition_uuid, second_transition_uuid
             )
 
         self.petri_net_generator.remove_place_on_runtime(parallel_loop_started)
@@ -434,6 +455,9 @@ class Scheduler(Subject):
         self.petri_net_logic.evaluate_petri_net()
 
     def get_loop_limit(self, loop: CountingLoop, task_context: TaskAPI) -> int:
+        # loop limit is already a number so just return it
+        if isinstance(loop.limit, int):
+            return loop.limit
         loop_limit = 0
         variable = loop.limit[0]
         loop_limit = self.variable_access_function(variable, task_context)
@@ -448,11 +472,11 @@ class Scheduler(Subject):
             callback(task_api)
 
         order_finished = False
-        if task_api.task.name == "productionTask":
+        if task_api.task.name == self.process.start_task_name:
             self.running = False
             order_finished = True
             self.petri_net_logic.draw_petri_net()
-            self.notify(NotificationType.PETRI_NET, self.scheduler_id)
+            self.notify(NotificationType.PETRI_NET, self.scheduler_uuid)
 
         log_entry = "Task " + task_api.task.name + " with UUID '" + task_api.uuid + "' finished."
         self.notify(NotificationType.LOG_EVENT, (log_entry, logging.INFO, order_finished))

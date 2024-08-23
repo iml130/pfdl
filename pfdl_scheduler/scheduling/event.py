@@ -22,7 +22,7 @@ class Event:
     """Data class for controlling the PetriNet instance.
 
     Currently avaiable Events:
-        - Event(event_type="service_finished", data={"service_id": <service_id>})
+        - Event(event_type="service_finished", data={"service_uuid": <service_uuid>})
 
     Attributes:
         event_type: A string representing the type of the event.

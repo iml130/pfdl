@@ -37,23 +37,23 @@ class DemoInterface:
 
     def cb_task_started(self, task_api: TaskAPI) -> None:
         task_name = task_api.task.name
-        task_id = task_api.uuid
-        print("Task " + task_name + " with UUID '" + task_id + "' started")
+        task_uuid = task_api.uuid
+        print("Task " + task_name + " with UUID '" + task_uuid + "' started")
 
     def cb_service_started(self, service_api: ServiceAPI) -> None:
         service_name = service_api.service.name
-        service_id = service_api.uuid
-        print("Service " + service_name + " with UUID '" + service_id + "' started")
+        service_uuid = service_api.uuid
+        print("Service " + service_name + " with UUID '" + service_uuid + "' started")
 
     def cb_service_finished(self, service_api: ServiceAPI) -> None:
         service_name = service_api.service.name
-        service_id = service_api.uuid
-        print("Service " + service_name + " with UUID '" + service_id + "' finished")
+        service_uuid = service_api.uuid
+        print("Service " + service_name + " with UUID '" + service_uuid + "' finished")
 
     def cb_task_finished(self, task_api: TaskAPI) -> None:
         task_name = task_api.task.name
-        task_id = task_api.uuid
-        print("Task " + task_name + " with UUID '" + task_id + "' finished")
+        task_uuid = task_api.uuid
+        print("Task " + task_name + " with UUID '" + task_uuid + "' finished")
 
     def variable_access_function(self, var_name, task_context: TaskAPI) -> Struct:
         """Simulate a variable access function which returns a Struct variable.
@@ -84,10 +84,10 @@ class DemoInterface:
         while self.scheduler.running:
             input_str = str(input("Wait for input:>"))
             splitted = input_str.split(",")
-            service_id = splitted[0]
+            service_uuid = splitted[0]
             event_type = splitted[1]
 
-            event = Event(event_type=event_type, data={"service_id": service_id})
+            event = Event(event_type=event_type, data={"service_uuid": service_uuid})
             self.scheduler.fire_event(event)
 
 

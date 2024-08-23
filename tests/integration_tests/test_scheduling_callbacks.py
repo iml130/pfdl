@@ -86,7 +86,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(self.task_started_triggered, ["0", "1"])
         self.assertEqual(self.service_started_triggered, ["0"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
 
         self.assertEqual(self.service_finished_triggered, ["0"])
         self.assertEqual(self.task_finished_triggered, ["1", "0"])
@@ -97,7 +97,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(self.task_started_triggered, ["0", "1"])
         self.assertEqual(self.service_started_triggered, ["0"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
 
         self.assertEqual(self.task_started_triggered, [])
         self.assertEqual(self.task_finished_triggered, [])
@@ -105,7 +105,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(self.service_finished_triggered, ["0"])
         self.assertEqual(self.service_started_triggered, ["1"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
 
         self.assertEqual(self.service_finished_triggered, ["1"])
         self.assertEqual(self.task_finished_triggered, ["1", "0"])
@@ -120,7 +120,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(self.task_started_triggered, ["0"])
         self.assertEqual(self.service_started_triggered, ["0"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
 
         self.assertEqual(self.task_started_triggered, ["1", "2", "3"])
         self.assertEqual(self.task_finished_triggered, [])
@@ -128,17 +128,17 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(self.service_finished_triggered, ["0"])
         self.assertEqual(self.service_started_triggered, ["1", "2", "3"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
 
         self.assertEqual(self.service_finished_triggered, ["1"])
         self.assertEqual(self.task_finished_triggered, ["1"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "2"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "2"}))
 
         self.assertEqual(self.service_finished_triggered, ["2"])
         self.assertEqual(self.task_finished_triggered, ["2"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "3"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "3"}))
 
         self.assertEqual(self.service_finished_triggered, ["3"])
         self.assertEqual(self.task_finished_triggered, ["3", "0"])
@@ -149,12 +149,12 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(self.task_started_triggered, ["0", "1", "2"])
         self.assertEqual(self.service_started_triggered, ["0", "1"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
 
         self.assertEqual(self.service_finished_triggered, ["1"])
         self.assertEqual(self.task_finished_triggered, ["2"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
 
         self.assertEqual(self.service_finished_triggered, ["0"])
         self.assertEqual(self.task_finished_triggered, ["1", "0"])
@@ -168,17 +168,17 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(self.task_started_triggered, ["0", "1"])
         self.assertEqual(self.service_started_triggered, ["0"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
 
         self.assertEqual(self.service_finished_triggered, ["0"])
         self.assertEqual(self.task_finished_triggered, [])
 
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
 
         self.assertEqual(self.service_finished_triggered, ["1"])
         self.assertEqual(self.task_finished_triggered, [])
 
-        self.fire_event(Event("service_finished", data={"service_id": "2"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "2"}))
         self.assertEqual(self.service_finished_triggered, ["2"])
         self.assertEqual(self.task_finished_triggered, ["1", "0"])
 
@@ -190,22 +190,22 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(self.task_started_triggered, ["0", "1"])
         self.assertEqual(self.service_started_triggered, ["0"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
 
         self.assertEqual(self.service_finished_triggered, ["0"])
         self.assertEqual(self.task_finished_triggered, [])
 
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
 
         self.assertEqual(self.service_finished_triggered, ["1"])
         self.assertEqual(self.task_finished_triggered, [])
 
-        self.fire_event(Event("service_finished", data={"service_id": "2"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "2"}))
 
         self.assertEqual(self.service_finished_triggered, ["2"])
         self.assertEqual(self.task_finished_triggered, [])
 
-        self.fire_event(Event("service_finished", data={"service_id": "3"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "3"}))
 
         self.assertEqual(self.service_finished_triggered, ["3"])
         self.assertEqual(self.task_finished_triggered, ["1", "0"])
@@ -215,23 +215,23 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(self.task_started_triggered, ["0", "1", "2"])
         self.assertEqual(self.service_started_triggered, ["0", "1"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
 
         self.assertEqual(self.service_finished_triggered, ["1"])
         self.assertEqual(self.task_finished_triggered, ["2"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
 
         self.assertEqual(self.service_finished_triggered, ["0"])
         self.assertEqual(self.task_finished_triggered, ["1"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "2"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "2"}))
 
         self.assertEqual(self.service_finished_triggered, ["2"])
         self.assertEqual(self.task_finished_triggered, ["3", "0"])
 
     def test_counting_loop(self) -> None:
-        # service and task ids dont follow number order cause of scheduling logic for loops
+        # service and task uuids dont follow number order cause of scheduling logic for loops
         self.setup("task_with_counting_loop")
 
         # iterate 3 times
@@ -241,25 +241,25 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(self.task_started_triggered, ["0", "1"])
         self.assertEqual(self.service_started_triggered, ["0"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
 
         self.assertEqual(self.service_started_triggered, ["1"])
         self.assertEqual(self.service_finished_triggered, ["0"])
         self.assertEqual(self.task_started_triggered, ["2"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
 
         self.assertEqual(self.service_started_triggered, ["2"])
         self.assertEqual(self.service_finished_triggered, ["1"])
         self.assertEqual(self.task_started_triggered, ["3"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "2"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "2"}))
 
         self.assertEqual(self.service_started_triggered, ["3"])
         self.assertEqual(self.service_finished_triggered, ["2"])
         self.assertEqual(self.task_started_triggered, ["4"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "3"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "3"}))
 
         self.assertEqual(self.service_started_triggered, [])
         self.assertEqual(self.service_finished_triggered, ["3"])
@@ -277,7 +277,7 @@ class TestScheduling(unittest.TestCase):
         self.assertEqual(self.task_started_triggered, ["0", "1"])
         self.assertEqual(self.service_started_triggered, ["0"])
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
 
         self.assertEqual(self.service_started_triggered, ["1"])
         self.assertEqual(self.service_finished_triggered, ["0"])
@@ -285,7 +285,7 @@ class TestScheduling(unittest.TestCase):
 
         wetness = 2
 
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
 
         self.assertEqual(self.service_started_triggered, ["2"])
         self.assertEqual(self.service_finished_triggered, ["1"])
@@ -293,7 +293,7 @@ class TestScheduling(unittest.TestCase):
 
         wetness = 1
 
-        self.fire_event(Event("service_finished", data={"service_id": "2"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "2"}))
 
         self.assertEqual(self.service_started_triggered, [])
         self.assertEqual(self.service_finished_triggered, ["2"])

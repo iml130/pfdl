@@ -262,7 +262,11 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         counting_loop.context = ctx
 
         counting_loop.counting_variable = ctx.STARTS_WITH_LOWER_C_STR().getText()
-        counting_loop.limit = self.visitAttribute_access(ctx.attribute_access())
+
+        if ctx.attribute_access():
+            counting_loop.limit = self.visitAttribute_access(ctx.attribute_access())
+        else:
+            counting_loop.limit = int(ctx.INTEGER().getText())
 
         # check if parallel keyword is there
         if ctx.PARALLEL():
@@ -305,27 +309,35 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         self, ctx: PFDLParser.Variable_definitionContext
     ) -> Tuple[str, Union[str, Array]]:
         identifier = ctx.STARTS_WITH_LOWER_C_STR().getText()
-
-        variable_type = self.visitPrimitive(ctx.primitive())
-
-        if ctx.array():
-            array = Array()
-            array.type_of_elements = variable_type
-            array.context = ctx.array()
-            length = self.visitArray(ctx.array())
-            if not isinstance(length, int):
-                self.error_handler.print_error(
-                    "Array length has to be specified by an integer", syntax_error=True
-                )
-            else:
-                array.length = length
-
-            variable_type = array
+        variable_type = self.visitVariable_type(ctx.variable_type())
 
         return (identifier, variable_type)
 
+    def visitVariable_type(self, ctx: PFDLParser.Variable_typeContext) -> Union[str, Array]:
+        variable_type = self.visitPrimitive(ctx.primitive())
+
+        if ctx.array():
+            array = self.initializeArray(ctx.array(), variable_type)
+            variable_type = array
+
+        return variable_type
+
     def visitPrimitive(self, ctx: PFDLParser.PrimitiveContext):
         return ctx.getText()
+
+    def initializeArray(self, array_ctx: PFDLParser.ArrayContext, variable_type: str) -> Array:
+        array = Array()
+        array.type_of_elements = variable_type
+        array.context = array_ctx
+        length = self.visitArray(array_ctx)
+        if not isinstance(length, int):
+            self.error_handler.print_error(
+                "Array length has to be specified by an integer", syntax_error=True
+            )
+        else:
+            array.length = length
+
+        return array
 
     def visitAttribute_access(self, ctx: PFDLParser.Attribute_accessContext) -> List[str]:
         access_list = []
@@ -354,16 +366,16 @@ class PFDLTreeVisitor(PFDLParserVisitor):
             ele = self.get_content(ctx.children[0])
             if isinstance(ele, List):
                 return ele
-            if helpers.is_int(ele):
-                return int(ele)
-            if helpers.is_float(ele):
-                return float(ele)
-            if helpers.is_boolean(ele):
-                return ele == "true"
+            elif not helpers.is_string(ele):
+                # strings should not appear here
+                casted_element = helpers.cast_element(ele)
+                # check if ele is a primitve datatype (number or bool)
+                if casted_element != ele:
+                    return casted_element
         if length == 2:
             un_op = self.get_content(ctx.children[0])
             ele = self.get_content(ctx.children[1])
-            return dict(unop=un_op, value=ele)
+            return dict(unOp=un_op, value=ele)
 
         if length == 3:
             left = self.get_content(ctx.children[0])

@@ -48,7 +48,7 @@ while_loop:
     LOOP WHILE expression INDENT statement+ DEDENT;
 
 counting_loop:
-    PARALLEL? LOOP STARTS_WITH_LOWER_C_STR TO attribute_access INDENT statement+ DEDENT;
+    PARALLEL? LOOP STARTS_WITH_LOWER_C_STR TO (attribute_access | INTEGER) INDENT statement+ DEDENT;
 
 condition:
     CONDITION INDENT expression NL+ DEDENT condition_passed condition_failed?;
@@ -60,15 +60,16 @@ condition_failed:
     FAILED INDENT statement+ DEDENT;
 
 parameter:
-    STARTS_WITH_LOWER_C_STR
-    | attribute_access;
+    STARTS_WITH_LOWER_C_STR | attribute_access;
 
 struct_initialization:
     STARTS_WITH_UPPER_C_STR INDENT json_object NL+ DEDENT
     | STARTS_WITH_UPPER_C_STR NL* json_object NL*;
 
 variable_definition:
-    STARTS_WITH_LOWER_C_STR COLON primitive array?;
+    STARTS_WITH_LOWER_C_STR COLON variable_type;
+
+variable_type: primitive array?;
 
 primitive:
     NUMBER_P
@@ -82,9 +83,7 @@ attribute_access:
 array:
     ARRAY_LEFT (INTEGER | STARTS_WITH_LOWER_C_STR)? ARRAY_RIGHT;
 
-number:
-    INTEGER
-    | FLOAT;
+number: MINUS? (INTEGER | FLOAT);
 
 value:
     TRUE 
@@ -128,13 +127,13 @@ json_open_bracket:
     JSON_OPEN | JSON_OPEN_2;
 
 json_value:
-   JSON_STRING
-   | JSON_TRUE
-   | JSON_FALSE
-   | NUMBER
-   | json_object
-   | json_array;
+    JSON_STRING
+    | JSON_TRUE
+    | JSON_FALSE
+    | NUMBER
+    | json_object
+    | json_array;
 
-json_array
-   : JSON_ARRAY_LEFT json_value (JSON_COMMA json_value)* JSON_ARRAY_RIGHT
-   | JSON_ARRAY_LEFT JSON_ARRAY_RIGHT;
+json_array:
+    JSON_ARRAY_LEFT json_value (JSON_COMMA json_value)* JSON_ARRAY_RIGHT
+    | JSON_ARRAY_LEFT JSON_ARRAY_RIGHT;

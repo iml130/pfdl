@@ -7,7 +7,7 @@
 """Contains the SemanticErrorChecker class."""
 
 # standard libraries
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Any
 
 # 3rd party libraries
 from antlr4.ParserRuleContext import ParserRuleContext
@@ -29,7 +29,7 @@ from pfdl_scheduler.validation.error_handler import ErrorHandler
 from pfdl_scheduler.utils import helpers
 
 # global defines
-from pfdl_scheduler.parser.pfdl_tree_visitor import PRIMITIVE_DATATYPES, IN_KEY, OUT_KEY, START_TASK
+from pfdl_scheduler.parser.pfdl_tree_visitor import IN_KEY, OUT_KEY
 
 
 class SemanticErrorChecker:
@@ -105,7 +105,7 @@ class SemanticErrorChecker:
 
         start_task_found = False
         for task in self.tasks.values():
-            if task.name == START_TASK:
+            if task.name == self.process.start_task_name:
                 start_task_found = True
 
             # use & so all methods will be executed even if a method returns False
@@ -117,7 +117,7 @@ class SemanticErrorChecker:
                 valid = False
 
         if not start_task_found:
-            error_msg = "The file contains no 'productionTask' (Starting Point)"
+            error_msg = f"The file contains no '{self.process.start_task_name}' (Starting Point)"
             self.error_handler.print_error(error_msg, line=1, column=0, off_symbol_length=5)
             return False
 
@@ -602,7 +602,6 @@ class SemanticErrorChecker:
 
         if isinstance(correct_attribute_type, str):
             if correct_attribute_type in self.structs:
-
                 # check for structs which has structs as attribute
                 if isinstance(attribute, Struct):
                     attribute.name = correct_attribute_type
@@ -621,7 +620,7 @@ class SemanticErrorChecker:
                 )
                 self.error_handler.print_error(error_msg, context=struct_instance.context)
                 return False
-            if not helpers.check_type_of_value(attribute, correct_attribute_type):
+            if not self.check_type_of_value(attribute, correct_attribute_type):
                 error_msg = (
                     f"Attribute '{identifier}' has the wrong type in the instantiated"
                     f" Struct '{struct_instance.name}', expected '{correct_attribute_type}'"
@@ -656,7 +655,7 @@ class SemanticErrorChecker:
                     value.name = array_definition.type_of_elements
                 if not self.check_instantiated_struct_attributes(value):
                     return False
-            if not helpers.check_type_of_value(value, element_type):
+            if not self.check_type_of_value(value, element_type):
                 error_msg = (
                     f"Array has elements that does not match "
                     f"with the defined type '{element_type}'"
@@ -710,12 +709,19 @@ class SemanticErrorChecker:
         Returns:
             True if the Counting Loop statement is valid.
         """
-        valid = True
-        for statement in counting_loop.statements:
-            if not self.check_statement(statement, task):
-                valid = False
+        if counting_loop.parallel:
+            if len(counting_loop.statements) == 1 and isinstance(counting_loop.statements[0], TaskCall):
+                return True
+            error_msg = "Only a single task is allowed in a parallel loop statement!"
+            self.error_handler.print_error(error_msg, context=counting_loop.context)
+            return False
+        else:
+            valid = True
+            for statement in counting_loop.statements:
+                if not self.check_statement(statement, task):
+                    valid = False
 
-        return valid
+            return valid
 
     def check_conditional_statement(self, condition: Condition, task: Task) -> bool:
         """Calls check methods for the conditional statement.
@@ -773,6 +779,7 @@ class SemanticErrorChecker:
             if not self.check_attribute_access(expression, context, task):
                 return False
 
+            # only numbers and booleans are allowed, so check the variable type
             variable_type = helpers.get_type_of_variable_list(expression, task, self.structs)
             if not (isinstance(variable_type, str) and variable_type in ["number", "boolean"]):
                 msg = "The given attribute can not be resolved to a boolean expression"
@@ -806,7 +813,10 @@ class SemanticErrorChecker:
             if self.expression_is_string(left, task) and self.expression_is_string(right, task):
                 return True
 
-            msg = "Types of Right and left side of the comparison dont match"
+            msg = (
+                "Types of right and left side of the comparison dont match. "
+                "This might be caused by some of the Rule parameters that are not initialised."
+            )
             self.error_handler.print_error(msg, context=context)
             return False
         if expression["binOp"] in ["*", "/", "+", "-"]:
@@ -909,6 +919,26 @@ class SemanticErrorChecker:
                 return False
         elif variable_type not in ["number", "string", "boolean"]:
             return False
+        return True
+
+    def check_type_of_value(self, value: Any, value_type: str) -> bool:
+        """Checks if the given value is the given type in the DSL.
+
+        Returns:
+            True if the value is from the given value type.
+        """
+        if value_type == "number":
+            # bool is a subclass of int so check it before
+            if isinstance(value, bool):
+                return False
+            return isinstance(value, (int, float))
+        if value_type == "boolean":
+            return isinstance(value, bool)
+        if value_type == "string":
+            return isinstance(value, str)
+        if isinstance(value, Struct):
+            return value.name == value_type
+        # value was a string
         return True
 
     def instantiated_array_length_correct(

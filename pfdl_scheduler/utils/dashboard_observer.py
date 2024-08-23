@@ -52,9 +52,9 @@ class DashboardObserver(Observer):
     The Observer will send a post request to the dashboard with the data.
     """
 
-    def __init__(self, host: str, scheduler_id: str, pfdl_string: str) -> None:
+    def __init__(self, host: str, scheduler_uuid: str, pfdl_string: str) -> None:
         self.host: str = host
-        self.scheduler_id: str = scheduler_id
+        self.scheduler_uuid: str = scheduler_uuid
         current_timestamp: int = int(round(datetime.timestamp(datetime.now())))
         self.starting_date: int = current_timestamp
         self.pfdl_string: str = pfdl_string
@@ -63,7 +63,7 @@ class DashboardObserver(Observer):
         threading.Thread(target=send_post_requests, daemon=True).start()
 
         request_data = {
-            "order_id": scheduler_id,
+            "order_uuid": scheduler_uuid,
             "starting_date": current_timestamp,
             "last_update": current_timestamp,
             "status": ORDER_STARTED,
@@ -76,13 +76,11 @@ class DashboardObserver(Observer):
         if notification_type == NotificationType.PETRI_NET:
             if not self.order_finished:
                 content = ""
-                with open(
-                    PETRI_NET_FILE_LOCATION + self.scheduler_id + "." + PETRI_NET_TYPE
-                ) as file:
+                with open(PETRI_NET_FILE_LOCATION + self.scheduler_uuid + "." + PETRI_NET_TYPE) as file:
                     content = file.read()
 
                 request_data = {
-                    "order_id": self.scheduler_id,
+                    "order_uuid": self.scheduler_uuid,
                     "content": content,
                     "type_pn": PETRI_NET_TYPE,
                 }
@@ -97,7 +95,7 @@ class DashboardObserver(Observer):
                 self.order_finished = True
 
             request_data = {
-                "order_id": self.scheduler_id,
+                "order_uuid": self.scheduler_uuid,
                 "log_message": log_event,
                 "log_date": int(round(datetime.timestamp(datetime.now()))),
                 "log_level": log_level,
@@ -109,7 +107,7 @@ class DashboardObserver(Observer):
                 order_status = ORDER_FINISHED
 
             request_data = {
-                "order_id": self.scheduler_id,
+                "order_uuid": self.scheduler_uuid,
                 "starting_date": self.starting_date,
                 "last_update": int(round(datetime.timestamp(datetime.now()))),
                 "status": order_status,

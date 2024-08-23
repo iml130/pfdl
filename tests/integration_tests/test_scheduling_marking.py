@@ -41,14 +41,16 @@ class TestScheduling(unittest.TestCase):
         self.task_started_triggered: List[str] = []
         self.task_finished_triggered: List[str] = []
 
-    def load_file(self, test_file_name: str) -> None:
+    def load_file(self, test_file_name: str, is_pfdl_string: bool) -> None:
         """Loads a file from the given path and parses it if it is a PFDL program."""
+        if is_pfdl_string:
+            pfdl_program = test_file_name
+        else:
+            pfdl_program = TEST_FILE_FOLDER_PATH + test_file_name + ".pfdl"
+        self.scheduler = Scheduler(pfdl_program, True, False)
 
-        file_path = TEST_FILE_FOLDER_PATH + test_file_name + ".pfdl"
-        self.scheduler = Scheduler(file_path, True, False)
-
-    def setup(self, test_case_name: str) -> None:
-        self.load_file(test_case_name)
+    def setup(self, test_case_name: str, is_pfdl_string: bool = False) -> None:
+        self.load_file(test_case_name, is_pfdl_string)
 
         self.assertFalse(self.scheduler.running)
         self.scheduler.start()
@@ -65,7 +67,7 @@ class TestScheduling(unittest.TestCase):
         self.scheduler.fire_event(event)
 
     def token_in_last_place(self) -> bool:
-        last_place_marking = {self.scheduler.petri_net_generator.task_finished_id: MultiSet(1)}
+        last_place_marking = {self.scheduler.petri_net_generator.task_finished_uuid: MultiSet(1)}
 
         final_marking = Marking(last_place_marking)
         return self.petri_net.get_marking() == final_marking
@@ -73,7 +75,21 @@ class TestScheduling(unittest.TestCase):
     def test_simple_task(self) -> None:
         self.setup("simple_task")
 
-        event = Event("service_finished", data={"service_id": "0"})
+        event = Event("service_finished", data={"service_uuid": "0"})
+        self.fire_event(event)
+
+        self.assertTrue(self.token_in_last_place())
+
+    def test_simple_task_with_pfdl_string(self) -> None:
+        file_path = TEST_FILE_FOLDER_PATH + "simple_task.pfdl"
+        file_content = ""
+        with open(file_path, "r", encoding="utf-8") as file:
+            file_content = file.read()
+
+        # directly pass the pfdl string to the scheduler
+        self.setup(file_content, True)
+
+        event = Event("service_finished", data={"service_uuid": "0"})
         self.fire_event(event)
 
         self.assertTrue(self.token_in_last_place())
@@ -81,8 +97,8 @@ class TestScheduling(unittest.TestCase):
     def test_multiple_services(self) -> None:
         self.setup("multiple_services")
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
 
         self.assertTrue(self.token_in_last_place())
 
@@ -93,18 +109,18 @@ class TestScheduling(unittest.TestCase):
         access_func = lambda var, context: Struct(attributes={"parts_count": 3})
         self.scheduler.register_variable_access_function(access_func)
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
-        self.fire_event(Event("service_finished", data={"service_id": "2"}))
-        self.fire_event(Event("service_finished", data={"service_id": "3"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "2"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "3"}))
 
         self.assertTrue(self.token_in_last_place())
 
     def test_parallel_tasks(self) -> None:
         self.setup("parallel_tasks")
 
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
 
         self.assertTrue(self.token_in_last_place())
 
@@ -114,9 +130,9 @@ class TestScheduling(unittest.TestCase):
         access_func = lambda var, context: Struct(attributes={"wetness": 11})
         self.scheduler.register_variable_access_function(access_func)
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
-        self.fire_event(Event("service_finished", data={"service_id": "2"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "2"}))
 
         self.assertTrue(self.token_in_last_place())
 
@@ -125,34 +141,34 @@ class TestScheduling(unittest.TestCase):
         access_func = lambda var, context: Struct(attributes={"wetness": 3})
         self.scheduler.register_variable_access_function(access_func)
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
-        self.fire_event(Event("service_finished", data={"service_id": "2"}))
-        self.fire_event(Event("service_finished", data={"service_id": "3"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "2"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "3"}))
 
         self.assertTrue(self.token_in_last_place())
 
     def test_task_synchronisation(self) -> None:
         self.setup("task_synchronisation")
 
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
-        self.fire_event(Event("service_finished", data={"service_id": "2"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "2"}))
 
         self.assertTrue(self.token_in_last_place())
 
     def test_counting_loop(self) -> None:
-        # service and task ids dont follow number order cause of scheduling logic for loops
+        # service and task uuids dont follow number order cause of scheduling logic for loops
         self.setup("task_with_counting_loop")
 
         # iterate 3 times
         access_func = lambda var, context: Struct(attributes={"parts_count": 3})
         self.scheduler.register_variable_access_function(access_func)
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
-        self.fire_event(Event("service_finished", data={"service_id": "2"}))
-        self.fire_event(Event("service_finished", data={"service_id": "3"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "2"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "3"}))
 
         self.assertTrue(self.token_in_last_place())
 
@@ -164,13 +180,13 @@ class TestScheduling(unittest.TestCase):
         access_func = lambda var, context: Struct(attributes={"wetness": wetness})
         self.scheduler.register_variable_access_function(access_func)
 
-        self.fire_event(Event("service_finished", data={"service_id": "0"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "0"}))
         wetness = 2
 
-        self.fire_event(Event("service_finished", data={"service_id": "1"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "1"}))
         wetness = 1
 
-        self.fire_event(Event("service_finished", data={"service_id": "2"}))
+        self.fire_event(Event("service_finished", data={"service_uuid": "2"}))
 
         self.assertTrue(self.token_in_last_place())
 
