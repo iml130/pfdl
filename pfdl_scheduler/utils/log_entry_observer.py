@@ -38,8 +38,8 @@ class LogEntryObserver(Observer):
 
     def __init__(self, scheduler_uuid: str):
         logging.basicConfig(
-            filename="temp/" + scheduler_uuid + ".log",
-            encoding="utf-8",
+            filename=LOG_FILE_LOCATION + scheduler_uuid + LOG_FILE_FORMAT,
+            encoding=LOG_FILE_ENCODING,
             level=logging.DEBUG,
             filemode=LOG_FILE_FILEMODE,
         )

@@ -8,7 +8,7 @@
 
 # standard libraries
 import copy
-from typing import Any, Callable, Dict, List, OrderedDict, Tuple
+from typing import Any, Callable, Dict, List, OrderedDict
 import uuid
 import functools
 import json
@@ -229,7 +229,6 @@ class PetriNetGenerator:
             if multiple_statements:
                 if i < len(statements) - 1:
                     current_connection_uuid = create_transition("connection", "", self.net, node)
-                    # node.cluster.add_child(Cluster(current_connection_uuid))
                 else:
                     current_connection_uuid = last_connection_uuid
             else:
@@ -248,7 +247,7 @@ class PetriNetGenerator:
             if isinstance(statement, Service):
                 connection_uuids = [self.generate_service(*args)]
             elif isinstance(statement, TaskCall):
-                connection_uuids, new_task_context = self.generate_task_call(*args)
+                connection_uuids = self.generate_task_call(*args)
             elif isinstance(statement, Parallel):
                 connection_uuids = [self.generate_parallel(*args)]
             elif isinstance(statement, CountingLoop):
@@ -347,7 +346,7 @@ class PetriNetGenerator:
         for last_connection_uuid in last_connection_uuids:
             self.add_callback(last_connection_uuid, self.callbacks.task_finished, new_task_context)
 
-        return last_connection_uuids, new_task_context
+        return last_connection_uuids
 
     def generate_parallel(
         self,
@@ -570,7 +569,7 @@ class PetriNetGenerator:
             parallel_loop_node,
         )
         cluster = Cluster([parallel_loop_started])
-        # node.cluster.add_child(cluster)
+
         parallel_loop_node.cluster = cluster
         self.net.add_output(parallel_loop_started, first_transition_uuid, Value(1))
         self.net.add_input(parallel_loop_started, second_transition_uuid, Value(1))
@@ -617,7 +616,6 @@ class PetriNetGenerator:
             place_uuid: The uuid as string of the task which should be removed from the net.
         """
         if self.net.has_place(place_uuid):
-            # self.net.clusters._nodes.add(place_uuid)
             self.net.remove_place(place_uuid)
             if self.draw_net:
                 draw_petri_net(self.net, self.path_for_image)

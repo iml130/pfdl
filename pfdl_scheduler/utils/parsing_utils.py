@@ -94,7 +94,7 @@ def write_tokens_to_file(token_stream: CommonTokenStream) -> None:
             file.write(token_text + "\n")
 
 
-def extract_content_and_file_path(program):
+def extract_content_and_file_path(program: str) -> Tuple[str, str]:
     """Extracts the file path and loads the PFDL string for a given program.
 
     Args:

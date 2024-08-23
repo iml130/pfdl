@@ -90,10 +90,6 @@ def draw_clusters(clust, attr):
     attr["style"] = DEFAULT_CLUSTER_STYLE
 
 
-def draw_clusters(clust, attr):
-    attr["style"] = ""
-
-
 def draw_petri_net(net, file_path, file_ending=".png"):
     """Calls the draw method form the Snakes module on the given PetriNet."""
     with draw_lock:

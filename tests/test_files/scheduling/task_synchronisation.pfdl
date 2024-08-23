@@ -20,7 +20,7 @@ Struct CuttingResult
     sheet_parts: SheetPart[]
 End
 
-Struct TransportOrderStep_Struct
+Struct TransportOrderStep
     location: string
 End
 
@@ -50,13 +50,13 @@ Task cuttingTask
 End
 
 Task transport
-    Transport_Service
+    Transport
         In
-            TransportOrderStep_Struct
+            TransportOrderStep
                 {
                     "location": "start"
                 }
-            TransportOrderStep_Struct
+            TransportOrderStep
                 {
                     "location": "goal"
                 }

@@ -53,7 +53,7 @@ class PetriNetLogic:
 
         If the `draw_net` flag is set, this method will save the petri net in a "temp" folder
         inside the root folder of the project. The petri net is saved as an image and as a dot
-        file to allow further processing. The dot file contains also the "call_tree" a tree
+        file to allow further processing. The dot file also contains the "call_tree", a tree
         structure that describes the call hierarchy of PFDL tasks.
 
         Args:

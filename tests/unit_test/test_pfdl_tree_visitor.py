@@ -12,7 +12,7 @@ Parser and Lexer beforehand.
 
 # standard libraries
 import unittest
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 from unittest.mock import patch
 from pfdl_scheduler.model.parallel import Parallel
 
@@ -20,7 +20,6 @@ from pfdl_scheduler.model.parallel import Parallel
 # local sources
 from pfdl_scheduler.validation.error_handler import ErrorHandler
 from pfdl_scheduler.parser.PFDLParser import PFDLParser
-from pfdl_scheduler.parser.PFDLParserVisitor import PFDLParserVisitor
 from pfdl_scheduler.model.process import Process
 from pfdl_scheduler.model.struct import Struct
 from pfdl_scheduler.model.task import Task
@@ -36,10 +35,8 @@ from antlr4.Token import Token
 
 from pfdl_scheduler.parser.pfdl_tree_visitor import (
     PFDLTreeVisitor,
-    PRIMITIVE_DATATYPES,
     IN_KEY,
     OUT_KEY,
-    START_TASK,
 )
 
 from antlr4 import ParserRuleContext
@@ -719,8 +716,6 @@ class TestPFDLTreeVisitor(unittest.TestCase):
 
         # without length
         with patch.object(self.visitor, "visitArray", return_value=-1):
-            array = Array("string")
-            array.length = 10
             self.assertEqual(
                 self.visitor.initializeArray(array_context, variable_type), Array("string")
             )

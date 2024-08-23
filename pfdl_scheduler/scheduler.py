@@ -104,10 +104,6 @@ class Scheduler(Subject):
                 file_name=self.scheduler_uuid,
             )
             self.setup_scheduling(draw_petri_net)
-
-            # enable logging
-            # self.attach(LogEntryObserver(self.scheduler_uuid))
-
             if dashboard_host_address != "":
                 self.attach(
                     DashboardObserver(dashboard_host_address, self.scheduler_uuid, pfdl_string)
