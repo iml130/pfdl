@@ -29,6 +29,10 @@ def nextToken(self):
     return self.denter.next_token()
 }
 
+// The comment below allows the PFDL plugin system to insert the lexer rules at this point
+// This ensures that newly added rules are not skipped for rules below like 'STARTS_WITH_LOWER_C_STR'
+// {Plugin_Insertion_Point}
+
 // Main grammar
 STRUCT: 'Struct';
 TASK: 'Task';
@@ -41,7 +45,6 @@ PARALLEL: 'Parallel';
 CONDITION: 'Condition';
 PASSED: 'Passed';
 FAILED: 'Failed';
-ON_DONE: 'OnDone';
 END: 'End';
 NUMBER_P: 'number';
 STRING_P: 'string';
