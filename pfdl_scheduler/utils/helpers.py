@@ -7,12 +7,60 @@
 """Helper functions used in the project (especially in the SemanticErrorChecker)."""
 
 # standard libraries
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 import operator
 
 # local sources
 from pfdl_scheduler.model.struct import Struct
 from pfdl_scheduler.model.task import Task
+
+
+def get_parent_struct_names(
+    struct_name: str, structs: Dict[str, Struct]
+) -> Tuple[List[str], Union[str, None]]:
+    """Returns the name of the parent and subsequent parents of the given struct.
+
+    Args:
+        struct_name: Name of the struct for which the parent names should be returned.
+        structs: A Dict that contains all Structs of the PFDL program.
+
+    Returns:
+        Tuple containing
+            - List of parent names as string
+            - String of an invalid parent name that was not found or None
+    """
+    parent_struct_names = []
+    parent_struct_name = structs[struct_name].parent_struct_name
+    while parent_struct_name != "" and parent_struct_name is not None:
+        if parent_struct_name not in structs:
+            return [], parent_struct_name
+        parent_struct_names.append(parent_struct_name)
+        parent_struct_name = structs[parent_struct_name].parent_struct_name
+    return parent_struct_names, None
+
+
+def get_parent_struct_attributes(
+    struct_name: str, structs: Dict[str, Struct]
+) -> Tuple[Dict, Union[str | None]]:
+    """Returns the attributes of the parent and subsequent parents of the given struct.
+
+    Args:
+        struct_name: Name of the struct for which the parent names should be returned.
+        structs: A Dict that contains all Structs of the PFDL program.
+
+    Returns:
+        Tuple containing
+            - Dict that maps attribute names of parents to the corresponding type.
+            - String of an invalid parent name that was not found or None
+    """
+    parent_struct_attributes = {}
+    parent_struct_names, invalid_parent_name = get_parent_struct_names(struct_name, structs)
+    if not invalid_parent_name:
+        for parent_struct_name in parent_struct_names:
+            parent_struct_attributes.update(structs[parent_struct_name].attributes)
+        return parent_struct_attributes, None
+
+    return parent_struct_attributes, invalid_parent_name
 
 
 def get_type_of_variable_list(
@@ -102,21 +150,23 @@ def is_int(string: str) -> bool:
         return True
 
 
-def cast_element(string: str) -> Union[str, int, float, bool]:
-    """Tries to cast the given string to a primitive datatype.
+def cast_element(element: Union[str, List]) -> Union[str, int, float, bool]:
+    """Tries to cast the given string or list to a primitive datatype.
 
     Returns:
-        The casted element if casting was successful, otherwise the input string
+        The casted element if casting was successful, otherwise the input element
     """
-    if is_int(string):
-        return int(string)
-    elif is_float(string):
-        return float(string)
-    elif is_boolean(string):
-        return string == "true"
-    elif is_string(string):
-        return string.replace('"', "")
-    return string
+    if is_int(element):
+        return int(element)
+    elif is_float(element):
+        return float(element)
+    elif is_boolean(element):
+        return element == "true"
+    elif is_string(element):
+        return element.replace('"', "")
+    elif isinstance(element, list) and len(element) == 1:
+        return element[0]
+    return element
 
 
 def parse_operator(op: str) -> operator:

@@ -8,6 +8,7 @@
 
 # standard libraries
 from typing import Dict, List, OrderedDict, Tuple, Union
+from pfdl_scheduler.model.instance import Instance
 from pfdl_scheduler.utils import helpers
 from pfdl_scheduler.model.parallel import Parallel
 
@@ -80,10 +81,60 @@ class PFDLTreeVisitor(PFDLParserVisitor):
                             f"A Task with the name '{process_component.name}' " "is already defined"
                         )
                         self.error_handler.print_error(error_msg, context=child)
+                elif isinstance(process_component, Instance):
+                    if process_component.name not in process.tasks:
+                        process.instances[process_component.name] = process_component
+                    else:
+                        error_msg = (
+                            f"An instance with the name '{process_component.name}' "
+                            "is already defined"
+                        )
+                        self.error_handler.print_error(error_msg, context=child)
+
+        # perform additional steps after visiting the syntax tree
+        self.execute_additional_tasks(process)
+
         return process
 
+    def execute_additional_tasks(self, process: Process) -> None:
+        """Runs additional parsing methods with full information."""
+
+        # add instances to task variables so they can be used in expressions
+        self.addInstancesToAllTasks(process)
+
+        # add attributes to the structs that are inherited from all parent structs
+        self.add_inherited_attributes_to_structs(process)
+
+    def add_inherited_attributes_to_structs(self, process: Process) -> None:
+        """
+        Tries to add attributes inherited from the respective parents to all child structs.
+
+        Throws an error if one parent struct name is found to be invalid.
+        """
+        for struct_name, struct in process.structs.items():
+            parent_struct_attributes, invalid_parent_name = helpers.get_parent_struct_attributes(
+                struct_name, process.structs
+            )
+            if not invalid_parent_name:
+                struct.attributes.update(parent_struct_attributes)
+            else:
+                error_msg = (
+                    f"The Struct '{struct.name}' tries to inherit from an unknown Struct "
+                    f"'{invalid_parent_name}'."
+                )
+                self.error_handler.print_error(error_msg, context=struct.context)
+
+    def visitProgram_statement(self, ctx: PFDLParser.Program_statementContext):
+        if not isinstance(ctx.children[0], TerminalNodeImpl):
+            return self.visit(ctx.children[0])
+
+    def addInstancesToAllTasks(self, process: Process) -> None:
+        for instance in process.instances.values():
+            for task in process.tasks.values():
+                task.variables[instance.name] = instance.struct_name
+
     def visitStruct(self, ctx) -> Struct:
-        struct = Struct()
+        struct = self.pfdl_base_classes.struct()
         struct.name = ctx.STARTS_WITH_UPPER_C_STR().getText()
         struct.context = ctx
 
@@ -99,7 +150,14 @@ class PFDLTreeVisitor(PFDLParserVisitor):
                     "is already defined in the Struct '{struct.name}'"
                 )
                 self.error_handler.print_error(error_msg, context=variable_definition_ctx)
+
+        if ctx.struct_id():
+            struct.parent_struct_name = self.visitStruct_id(ctx.struct_id())
+
         return struct
+
+    def visitStruct_id(self, ctx: PFDLParser.Struct_idContext) -> str:
+        return ctx.children[0].getText()
 
     def visitTask(self, ctx) -> Task:
         task = Task()
@@ -120,6 +178,38 @@ class PFDLTreeVisitor(PFDLParserVisitor):
             task.context_dict[OUT_KEY] = ctx.task_out()
 
         return task
+
+    def visitInstance(self, ctx: PFDLParser.InstanceContext) -> Instance:
+        instance_name = ctx.STARTS_WITH_LOWER_C_STR().getText()
+        struct_name = self.visitStruct_id(ctx.struct_id())
+        instance = self.pfdl_base_classes.instance(
+            name=instance_name, struct_name=struct_name, context=ctx
+        )
+        self.current_program_component = instance
+        for attribute_assignment_ctx in ctx.attribute_assignment():
+            attribute_name, attribute_value = self.visitAttribute_assignment(
+                attribute_assignment_ctx
+            )
+            # JSON value
+            if isinstance(attribute_value, Dict):
+                attribute_value = self.pfdl_base_classes.instance.from_json(
+                    attribute_value, self.error_handler, ctx, self.pfdl_base_classes.instance
+                )
+            instance.attributes[attribute_name] = attribute_value
+            instance.attribute_contexts[attribute_name] = attribute_assignment_ctx
+
+        return instance
+
+    def visitAttribute_assignment(
+        self, ctx: PFDLParser.Attribute_assignmentContext
+    ) -> Tuple[List[str], Union[str, Dict]]:
+        value = None
+        if ctx.value():
+            value = self.visitValue(ctx.value())
+            value = helpers.cast_element(value)
+        else:
+            value = self.visitJson_object(ctx.json_object())
+        return (ctx.STARTS_WITH_LOWER_C_STR().getText(), value)
 
     def visitTask_in(self, ctx: PFDLParser.Task_inContext) -> Dict[str, Union[str, Array]]:
         input_parameters = OrderedDict()

@@ -13,6 +13,7 @@ from typing import Dict, List, Union, Any
 from antlr4.ParserRuleContext import ParserRuleContext
 
 # local sources
+from pfdl_scheduler.model.instance import Instance
 from pfdl_scheduler.model.process import Process
 from pfdl_scheduler.model.struct import Struct
 from pfdl_scheduler.model.array import Array
@@ -65,7 +66,7 @@ class SemanticErrorChecker:
             True, if the process has no errors, otherwise False.
         """
         # use & so all methods will be executed even if a method returns False
-        return self.check_structs() & self.check_tasks()
+        return self.check_structs() & self.check_tasks() & self.check_instances()
 
     # Struct check
     def check_structs(self) -> bool:
@@ -121,6 +122,130 @@ class SemanticErrorChecker:
             self.error_handler.print_error(error_msg, line=1, column=0, off_symbol_length=5)
             return False
 
+        return valid
+
+    def check_instances(self) -> bool:
+        """Executes semantic checks for all Instances.
+
+        Returns:
+            True if all Instances are valid.
+        """
+        valid = True
+        for instance in self.process.instances.values():
+            struct_name = instance.struct_name
+            struct = None
+            if struct_name in self.process.structs:
+                struct = self.process.structs[struct_name]
+
+            # check first if the corresponding Struct exists
+            if struct is None:
+                error_msg = (
+                    f"The Instance '{instance.name}' refers to a struct that does not exist."
+                )
+                self.error_handler.print_error(error_msg, context=instance.context)
+                valid = False
+            else:
+                # execute checks. The second check can only be executed if the previous one succeeded
+                valid = (
+                    self.check_if_instance_attributes_exist_in_struct(struct, instance)
+                    and self.check_if_value_matches_with_defined_type(struct, instance)
+                ) & self.check_if_struct_attributes_are_assigned(struct, instance)
+        return valid
+
+    def check_if_instance_attributes_exist_in_struct(
+        self, struct: Struct, instance: Instance
+    ) -> bool:
+        """Checks if all attributes in the given Instance exist in the corresponding Struct.
+
+        Returns:
+            True if all attributes in the given Instance exist in the corresponding Struct.
+        """
+        valid = True
+        # collect all attributes of the corresponding struct, including attributes of parent structs
+        struct_attributes = set(self.process.structs[struct.name].attributes.keys())
+
+        for attribute_name, attribute_value in instance.attributes.items():
+            # validate all atributes of this instance
+            if not attribute_name in struct_attributes:
+                error_msg = (
+                    f"The attribute '{attribute_name}' in instance '{instance.name}' "
+                    + "was not defined in the corresponding Struct"
+                )
+
+                self.error_handler.print_error(error_msg, context=instance.context)
+                valid = False
+            elif isinstance(attribute_value, Instance):
+                # the attribute is an instance so recursively check its attributes
+                nested_struct = self.process.structs[struct.attributes[attribute_name]]
+                if not self.check_if_instance_attributes_exist_in_struct(
+                    nested_struct, attribute_value
+                ):
+                    valid = False
+        return valid
+
+    def check_if_struct_attributes_are_assigned(self, struct: Struct, instance: Instance) -> bool:
+        """Checks if all attributes from the corresponding struct are assigned
+        with values in the instance.
+
+        Returns: True if all attributes of the instance are assigned
+        """
+        valid = True
+
+        struct_attributes = struct.attributes.copy()
+
+        for struct_attribute in struct_attributes:
+            attribute_found = False
+            for attribute_name, attribute_value in instance.attributes.items():
+                if struct_attribute == attribute_name:
+                    attribute_found = True
+
+                    if isinstance(attribute_value, Instance):
+                        # the attribute is an instance so recursively check its attributes
+                        nested_struct = self.process.structs[struct.attributes[attribute_name]]
+                        if not self.check_if_struct_attributes_are_assigned(
+                            nested_struct, attribute_value
+                        ):
+                            valid = False
+                    break
+            if attribute_found is False:
+                error_msg = (
+                    f"The attribute '{struct_attribute}' from the corresponding struct was not "
+                    f"definied in instance '{instance.name}'"
+                )
+                self.error_handler.print_error(error_msg, context=instance.context)
+                valid = False
+        return valid
+
+    def check_if_value_matches_with_defined_type(self, struct: Struct, instance: Instance) -> bool:
+        """Checks if the assigned values in the Instance match with the defined type in the Struct.
+
+        Returns:
+            True if all assigned values in the Instance match
+            with the defined type in the Struct.
+        """
+        valid = True
+        for attribute_name, attribute_value in instance.attributes.items():
+            struct_attr_type = None
+            struct_attributes = struct.attributes
+
+            # This method assumes that the attribute exists in the Struct, so no additional check
+            struct_attr_type = struct_attributes[attribute_name]
+
+            if isinstance(attribute_value, Instance):
+                # the attribute is an instance so recursively check its attributes
+                nested_struct = self.process.structs[struct_attr_type]
+                if not self.check_if_value_matches_with_defined_type(
+                    nested_struct, attribute_value
+                ):
+                    valid = False
+
+            elif not self.check_type_of_value(attribute_value, struct_attr_type):
+                error_msg = (
+                    f"The attribute '{attribute_name}' in instance '{instance.name}' has the "
+                    f"wrong type: should be '{struct_attr_type}'."
+                )
+                self.error_handler.print_error(error_msg, context=instance.context)
+                valid = False
         return valid
 
     def check_statements(self, task: Task) -> bool:
@@ -268,7 +393,12 @@ class SemanticErrorChecker:
         for i, (identifier, data_type) in enumerate(task_call.output_parameters.items()):
             variable_in_called_task = called_task.output_parameters[i]
             if variable_in_called_task in called_task.variables:
-                type_of_variable = called_task.variables[variable_in_called_task]
+
+                type_of_variable = ""
+                if isinstance(called_task.variables[variable_in_called_task], Instance):
+                    type_of_variable = called_task.variables[variable_in_called_task].struct_name
+                else:
+                    type_of_variable = called_task.variables[variable_in_called_task]
 
                 if str(type_of_variable) != str(data_type):
                     error_msg = (
@@ -310,7 +440,12 @@ class SemanticErrorChecker:
         """
         if isinstance(input_parameter, str):
             if input_parameter in task_context.variables:
-                type_of_variable = task_context.variables[input_parameter]
+                type_of_variable = ""
+                variable = task_context.variables[input_parameter]
+                if isinstance(variable, Instance):
+                    type_of_variable = variable.struct_name
+                else:
+                    type_of_variable = variable
 
                 # str() because of possible Arrays as
                 # types (we can compare types by converting Array object to string)
@@ -458,8 +593,12 @@ class SemanticErrorChecker:
             True if the attribute access is valid.
         """
         variable = variable_list[0]
-        if variable in task.variables and task.variables[variable] in self.structs:
-            struct = self.structs[task.variables[variable]]
+
+        if variable in task.variables:
+            if task.variables[variable].__class__.__name__ == "Instance":
+                struct = self.structs[task.variables[variable].struct_name]
+            if task.variables[variable] in self.structs:
+                struct = self.structs[task.variables[variable]]
             predecessor = struct
             for i in range(1, len(variable_list)):
                 attribute = variable_list[i]
@@ -710,7 +849,9 @@ class SemanticErrorChecker:
             True if the Counting Loop statement is valid.
         """
         if counting_loop.parallel:
-            if len(counting_loop.statements) == 1 and isinstance(counting_loop.statements[0], TaskCall):
+            if len(counting_loop.statements) == 1 and isinstance(
+                counting_loop.statements[0], TaskCall
+            ):
                 return True
             error_msg = "Only a single task is allowed in a parallel loop statement!"
             self.error_handler.print_error(error_msg, context=counting_loop.context)

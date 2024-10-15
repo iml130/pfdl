@@ -31,6 +31,8 @@ class Struct:
         name: A string representing the name of the Struct.
         attributes: A dict which maps the attribute names to the defined type
                     or a value (if its a instantiated struct).
+        parent_struct_name: A string representin the identifier of the parent struct
+                            from which this struct inherits the attributes
         context: ANTLR context object of this class.
         context_dict: Maps other attributes with ANTLR context objects.
     """
@@ -39,6 +41,7 @@ class Struct:
         self,
         name: str = "",
         attributes: Dict[str, Union[str, Array, "Struct"]] = None,
+        parent_struct_name: str = "",
         context: ParserRuleContext = None,
     ) -> None:
         """Initialize the object.
@@ -47,6 +50,8 @@ class Struct:
             name: A string representing the name of the Struct.
             attributes: A dict which maps the attribute names to the defined type
                         or a value (if its a instantiated struct).
+            parent_struct_name: A string representin the identifier of the parent struct
+                            from which this struct inherits the attributes
             context: ANTLR context object of this class.
         """
         self.name: str = name
@@ -54,6 +59,7 @@ class Struct:
             self.attributes: Dict[str, Union[str, Array, "Struct"]] = attributes
         else:
             self.attributes: Dict[str, Union[str, Array, "Struct"]] = {}
+        self.parent_struct_name: str = parent_struct_name
         self.context: ParserRuleContext = context
         self.context_dict: Dict = {}
 
