@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: The PFDL Contributors
+SPDX-License-Identifier: MIT
+-->
+
 # PFDL Plugin System
 The PFDL plugin system can be used to create plugins that extends the grammar and the underlying logic of the PFDL.
 In the following, the different steps for creating your own plugin will be explained in detail.
