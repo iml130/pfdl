@@ -14,6 +14,7 @@ Parser and Lexer beforehand.
 import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from pfdl_scheduler.model.instance import Instance
 from pfdl_scheduler.model.parallel import Parallel
 
 
@@ -145,8 +146,8 @@ class TestPFDLTreeVisitor(unittest.TestCase):
     def test_visit_task(self):
         task_in_context = PFDLParser.Task_inContext(None)
         task_out_context = PFDLParser.Task_outContext(None)
-        statement_context_1 = PFDLParser.StatementContext(None)
-        statement_context_2 = PFDLParser.StatementContext(None)
+        statement_context_1 = PFDLParser.TaskStatementContext(None)
+        statement_context_2 = PFDLParser.TaskStatementContext(None)
 
         task_context = PFDLParser.TaskContext(None)
         task_context.children = [
@@ -175,7 +176,7 @@ class TestPFDLTreeVisitor(unittest.TestCase):
             ) as mock_2:
                 with patch.object(
                     self.visitor,
-                    "visitStatement",
+                    "visitTaskStatement",
                     MagicMock(side_effect=[statement_1, statement_2]),
                 ) as mock_3:
                     task = self.visitor.visitTask(task_context)
@@ -943,6 +944,38 @@ class TestPFDLTreeVisitor(unittest.TestCase):
         create_and_add_token(PFDLParser.BOOLEAN_NOT, "!", un_op_context)
         un_op = self.visitor.visitUnOperation(un_op_context)
         self.assertEqual(un_op, "!")
+
+    def test_visitInstance(self):
+        instance_context = PFDLParser.InstanceContext(None)
+
+        instance_context.children = [
+            PFDLParser.Struct_idContext(None),
+            PFDLParser.Attribute_assignmentContext(None),
+            PFDLParser.Attribute_assignmentContext(None),
+        ]
+        create_and_add_token(PFDLParser.STARTS_WITH_LOWER_C_STR, "instance_id", instance_context)
+        with patch.object(
+            PFDLTreeVisitor,
+            "visitStruct_id",
+            MagicMock(side_effect=["struct_id"]),
+        ):
+            with patch.object(
+                PFDLTreeVisitor,
+                "visitAttribute_assignment",
+                MagicMock(side_effect=[("attr", "value"), ("attr_2", {"id": "value"})]),
+            ):
+                with patch.object(
+                    Instance,
+                    "from_json",
+                    MagicMock(side_effect=[Instance(attributes={"id": "value"})]),
+                ):
+                    instance = self.visitor.visitInstance(instance_context)
+
+        self.assertIsNotNone(instance)
+        self.assertEqual(instance.name, "instance_id")
+        self.assertEqual(instance.struct_name, "struct_id")
+        self.assertEqual(len(instance.attributes), 2)
+        self.assertTrue(isinstance(instance.attributes["attr_2"], Instance))
 
 
 def create_and_add_token(

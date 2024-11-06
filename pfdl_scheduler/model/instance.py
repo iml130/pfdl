@@ -88,7 +88,7 @@ def parse_json(
                 error_msg = "Array definition in JSON are not supported in the PFDL."
                 error_handler.print_error(error_msg, context=instance_context)
         elif isinstance(value, dict):
-            inner_struct = parse_json(value, error_handler, instance_context)
+            inner_struct = parse_json(value, error_handler, instance_context, instance_class)
             instance.attributes[identifier] = inner_struct
 
     return instance

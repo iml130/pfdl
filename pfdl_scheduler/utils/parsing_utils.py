@@ -17,19 +17,15 @@ from antlr4.CommonTokenStream import CommonTokenStream
 from antlr4.InputStream import InputStream
 
 # local sources
-from pfdl_scheduler.parser.pfdl_tree_visitor import PFDLTreeVisitor
-from pfdl_scheduler.parser.PFDLLexer import PFDLLexer
-from pfdl_scheduler.parser.PFDLParser import PFDLParser
-
-from pfdl_scheduler.validation.error_handler import ErrorHandler
-from pfdl_scheduler.validation.syntax_error_listener import SyntaxErrorListener
-from pfdl_scheduler.validation.semantic_error_checker import SemanticErrorChecker
-
+from pfdl_scheduler.pfdl_base_classes import PFDLBaseClasses
 from pfdl_scheduler.model.process import Process
 
 
 def parse_string(
-    pfdl_string: str, file_path: str = "", used_in_extension: bool = False
+    pfdl_string: str,
+    file_path: str = "",
+    used_in_extension: bool = False,
+    pfdl_base_classes: PFDLBaseClasses = PFDLBaseClasses("pfdl_scheduler"),
 ) -> Tuple[bool, Union[None, Process]]:
     """Instantiate the ANTLR lexer and parser and parses the given PFDL string.
 
@@ -41,25 +37,27 @@ def parse_string(
     Returns:
         A boolan indicating validity of the PFDL file and the process object if so, otherwise None.
     """
-    lexer = PFDLLexer(InputStream(pfdl_string))
+    lexer = pfdl_base_classes.get_class("PFDLLexer")(InputStream(pfdl_string))
     lexer.removeErrorListeners()
 
     token_stream = CommonTokenStream(lexer)
 
-    parser = PFDLParser(token_stream)
+    parser = pfdl_base_classes.get_class("PFDLParser")(token_stream)
     parser.removeErrorListeners()
 
-    error_handler = ErrorHandler(file_path, used_in_extension)
-    error_listener = SyntaxErrorListener(token_stream, error_handler)
+    error_handler = pfdl_base_classes.get_class("ErrorHandler")(file_path, used_in_extension)
+    error_listener = pfdl_base_classes.get_class("SyntaxErrorListener")(token_stream, error_handler)
     parser.addErrorListener(error_listener)
 
     tree = parser.program()
 
     if error_handler.has_error() is False:
-        visitor = PFDLTreeVisitor(error_handler)
+        visitor = pfdl_base_classes.get_class("PFDLTreeVisitor")(error_handler, pfdl_base_classes)
         process = visitor.visit(tree)
 
-        semantic_error_checker = SemanticErrorChecker(error_handler, process)
+        semantic_error_checker = pfdl_base_classes.get_class("SemanticErrorChecker")(
+            error_handler, process, pfdl_base_classes
+        )
         semantic_error_checker.validate_process()
 
         if error_handler.has_error() is False:
@@ -68,7 +66,9 @@ def parse_string(
     return (False, None)
 
 
-def parse_program(program: str) -> Tuple[bool, Union[None, Process], str]:
+def parse_program(
+    program: str, pfdl_base_classes: PFDLBaseClasses = PFDLBaseClasses("pfdl_scheduler")
+) -> Tuple[bool, Union[None, Process], str]:
     """Loads the content of the program from either the given path or the PFDL program directly and calls the parse_string function.
 
     Args:
@@ -79,7 +79,7 @@ def parse_program(program: str) -> Tuple[bool, Union[None, Process], str]:
         process object if so, otherwise None.
     """
     pfdl_string, file_path = extract_content_and_file_path(program)
-    return *parse_string(pfdl_string, file_path), pfdl_string
+    return *parse_string(pfdl_string, file_path, pfdl_base_classes=pfdl_base_classes), pfdl_string
 
 
 def write_tokens_to_file(token_stream: CommonTokenStream) -> None:

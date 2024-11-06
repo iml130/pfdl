@@ -33,11 +33,10 @@ class Event:
         self.event_type: str = event_type
         self.data: Dict = data
 
-    def __eq__(self, other: "Event"):
-        if not isinstance(other, Event):
-            # don't attempt to compare against unrelated types
-            return NotImplemented
-        return self.event_type == other.event_type and self.data == other.data
+    def __eq__(self, other: object) -> bool:
+        if hasattr(other, "event_type") and hasattr(other, "data"):
+            return self.event_type == other.event_type and self.data == other.data
+        return False
 
     @classmethod
     def from_json(cls, json_string: str) -> Union[None, "Event"]:

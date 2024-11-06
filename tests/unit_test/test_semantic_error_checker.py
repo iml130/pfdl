@@ -16,7 +16,8 @@ other tests methods. Here, mock objects are used to check if certain methods wer
 from typing import Dict
 from pfdl_scheduler.model.condition import Condition
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
+from pfdl_scheduler.model.instance import Instance
 from pfdl_scheduler.model.parallel import Parallel
 
 # local sources
@@ -232,6 +233,96 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertFalse(self.execute_check_tasks(True, True, True))
 
         self.check_if_print_error_is_called(self.execute_check_tasks, False, False, False)
+
+    def test_check_instances(self):
+        empty_instances_valid = self.checker.check_instances()
+        self.assertTrue(empty_instances_valid)
+
+        test_instance = Instance("testInstance", struct_name="TestStruct")
+        test_struct = Struct("TestStruct")
+        self.process.instances = {"testInstance": test_instance}
+        self.process.structs = {"TestStruct": test_struct}
+
+        # test valid case
+        with patch.object(
+            SemanticErrorChecker,
+            "check_if_instance_attributes_exist_in_struct",
+            MagicMock(side_effect=[True]),
+        ):
+            with patch.object(
+                SemanticErrorChecker,
+                "check_if_value_matches_with_defined_type",
+                MagicMock(side_effect=[True]),
+            ):
+                with patch.object(
+                    SemanticErrorChecker,
+                    "check_if_struct_attributes_are_assigned",
+                    MagicMock(side_effect=[True]),
+                ):
+                    is_instance_valid = self.checker.check_instances()
+
+        self.assertTrue(is_instance_valid)
+
+        # test invalid cases
+        with patch.object(
+            SemanticErrorChecker,
+            "check_if_instance_attributes_exist_in_struct",
+            MagicMock(side_effect=[False]),
+        ):
+            with patch.object(
+                SemanticErrorChecker,
+                "check_if_value_matches_with_defined_type",
+                MagicMock(side_effect=[True]),
+            ) as value_matches_mock:
+                with patch.object(
+                    SemanticErrorChecker,
+                    "check_if_struct_attributes_are_assigned",
+                    MagicMock(side_effect=[True]),
+                ) as struct_attributes_assigned_mock:
+                    is_instance_valid = self.checker.check_instances()
+
+        self.assertFalse(is_instance_valid)
+        value_matches_mock.assert_not_called()
+        struct_attributes_assigned_mock.assert_called()
+
+        with patch.object(
+            SemanticErrorChecker,
+            "check_if_instance_attributes_exist_in_struct",
+            MagicMock(side_effect=[True]),
+        ):
+            with patch.object(
+                SemanticErrorChecker,
+                "check_if_value_matches_with_defined_type",
+                MagicMock(side_effect=[False]),
+            ) as value_matches_mock:
+                with patch.object(
+                    SemanticErrorChecker,
+                    "check_if_struct_attributes_are_assigned",
+                    MagicMock(side_effect=[True]),
+                ) as struct_attributes_assigned_mock:
+                    is_instance_valid = self.checker.check_instances()
+
+        self.assertFalse(is_instance_valid)
+        struct_attributes_assigned_mock.assert_called()
+
+        with patch.object(
+            SemanticErrorChecker,
+            "check_if_instance_attributes_exist_in_struct",
+            MagicMock(side_effect=[True]),
+        ):
+            with patch.object(
+                SemanticErrorChecker,
+                "check_if_value_matches_with_defined_type",
+                MagicMock(side_effect=[True]),
+            ) as value_matches_mock:
+                with patch.object(
+                    SemanticErrorChecker,
+                    "check_if_struct_attributes_are_assigned",
+                    MagicMock(side_effect=[False]),
+                ) as struct_attributes_assigned_mock:
+                    is_instance_valid = self.checker.check_instances()
+
+        self.assertFalse(is_instance_valid)
 
     def test_check_statements(self):
         dummy_task = Task()

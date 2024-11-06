@@ -64,7 +64,12 @@ class Struct:
         self.context_dict: Dict = {}
 
     def __eq__(self, __o: object) -> bool:
-        if isinstance(__o, Struct):
+        if (
+            hasattr(__o, "name")
+            and hasattr(__o, "attributes")
+            and hasattr(__o, "context")
+            and hasattr(__o, "context_dict")
+        ):
             return (
                 self.name == __o.name
                 and self.attributes == __o.attributes

@@ -9,8 +9,12 @@
 # standard libraries
 from typing import Dict, List, OrderedDict, Tuple, Union
 from pfdl_scheduler.model.instance import Instance
+from pfdl_scheduler.pfdl_base_classes import PFDLBaseClasses
 from pfdl_scheduler.utils import helpers
 from pfdl_scheduler.model.parallel import Parallel
+
+# 3rd party
+from antlr4.tree.Tree import TerminalNodeImpl
 
 # local sources
 from pfdl_scheduler.validation.error_handler import ErrorHandler
@@ -45,15 +49,22 @@ class PFDLTreeVisitor(PFDLParserVisitor):
     Attributes:
         error_handler: ErrorHandler instance for printing errors while visiting.
         current_task: Reference to the currently visited Task. Every visitor method can access it.
+        pfdl_base_classes: `PFDLBaseClasses` instance for creating new objects.
     """
 
-    def __init__(self, error_handler: ErrorHandler) -> None:
+    def __init__(
+        self,
+        error_handler: ErrorHandler,
+        pfdl_base_classes: PFDLBaseClasses = PFDLBaseClasses(),
+    ) -> None:
         """Initialize the object.
 
         Args:
-            error_handler: ErrorHandler instance for printing errors while visiting.
+            error_handler: `ErrorHandler` instance for printing errors while visiting.
+            pfdl_base_classes: `PFDLBaseClasses` instance for creating new objects.
         """
         self.error_handler: ErrorHandler = error_handler
+        self.pfdl_base_classes: PFDLBaseClasses = pfdl_base_classes
         self.current_task: Task = None
 
     def visitProgram(self, ctx) -> Process:
@@ -64,7 +75,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
             for child in ctx.children:
                 process_component = self.visit(child)
 
-                if isinstance(process_component, Struct):
+                if isinstance(process_component, self.pfdl_base_classes.get_class("Struct")):
                     if process_component.name not in process.structs:
                         process.structs[process_component.name] = process_component
                     else:
@@ -73,7 +84,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
                             "is already defined"
                         )
                         self.error_handler.print_error(error_msg, context=child)
-                elif isinstance(process_component, Task):
+                elif isinstance(process_component, self.pfdl_base_classes.get_class("Task")):
                     if process_component.name not in process.tasks:
                         process.tasks[process_component.name] = process_component
                     else:
@@ -81,7 +92,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
                             f"A Task with the name '{process_component.name}' " "is already defined"
                         )
                         self.error_handler.print_error(error_msg, context=child)
-                elif isinstance(process_component, Instance):
+                elif isinstance(process_component, self.pfdl_base_classes.get_class("Instance")):
                     if process_component.name not in process.tasks:
                         process.instances[process_component.name] = process_component
                     else:
@@ -106,8 +117,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         self.add_inherited_attributes_to_structs(process)
 
     def add_inherited_attributes_to_structs(self, process: Process) -> None:
-        """
-        Tries to add attributes inherited from the respective parents to all child structs.
+        """Tries to add attributes inherited from the respective parents to all child structs.
 
         Throws an error if one parent struct name is found to be invalid.
         """
@@ -129,12 +139,19 @@ class PFDLTreeVisitor(PFDLParserVisitor):
             return self.visit(ctx.children[0])
 
     def addInstancesToAllTasks(self, process: Process) -> None:
+        """Adds all instances to the variables of all tasks in the process.
+
+        This method is necessary to use the instances in expressions.
+
+        Args:
+            process: The `Process` object containing all tasks and instances.
+        """
         for instance in process.instances.values():
             for task in process.tasks.values():
                 task.variables[instance.name] = instance.struct_name
 
     def visitStruct(self, ctx) -> Struct:
-        struct = self.pfdl_base_classes.struct()
+        struct = self.pfdl_base_classes.get_class("Struct")()
         struct.name = ctx.STARTS_WITH_UPPER_C_STR().getText()
         struct.context = ctx
 
@@ -160,7 +177,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         return ctx.children[0].getText()
 
     def visitTask(self, ctx) -> Task:
-        task = Task()
+        task = self.pfdl_base_classes.get_class("Task")()
         task.name = ctx.STARTS_WITH_LOWER_C_STR().getText()
         task.context = ctx
 
@@ -170,8 +187,8 @@ class PFDLTreeVisitor(PFDLParserVisitor):
             task.input_parameters = self.visitTask_in(ctx.task_in())
             task.context_dict[IN_KEY] = ctx.task_in()
 
-        for statement_ctx in ctx.statement():
-            statement = self.visitStatement(statement_ctx)
+        for statement_ctx in ctx.taskStatement():
+            statement = self.visitTaskStatement(statement_ctx)
             task.statements.append(statement)
         if ctx.task_out():
             task.output_parameters = self.visitTask_out(ctx.task_out())
@@ -182,7 +199,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
     def visitInstance(self, ctx: PFDLParser.InstanceContext) -> Instance:
         instance_name = ctx.STARTS_WITH_LOWER_C_STR().getText()
         struct_name = self.visitStruct_id(ctx.struct_id())
-        instance = self.pfdl_base_classes.instance(
+        instance = self.pfdl_base_classes.get_class("Instance")(
             name=instance_name, struct_name=struct_name, context=ctx
         )
         self.current_program_component = instance
@@ -192,8 +209,11 @@ class PFDLTreeVisitor(PFDLParserVisitor):
             )
             # JSON value
             if isinstance(attribute_value, Dict):
-                attribute_value = self.pfdl_base_classes.instance.from_json(
-                    attribute_value, self.error_handler, ctx, self.pfdl_base_classes.instance
+                attribute_value = self.pfdl_base_classes.get_class("Instance").from_json(
+                    attribute_value,
+                    self.error_handler,
+                    ctx,
+                    self.pfdl_base_classes.get_class("Instance"),
                 )
             instance.attributes[attribute_name] = attribute_value
             instance.attribute_contexts[attribute_name] = attribute_assignment_ctx
@@ -251,7 +271,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         return statement
 
     def visitService_call(self, ctx: PFDLParser.Service_callContext) -> Service:
-        service = Service()
+        service = self.pfdl_base_classes.get_class("Service")()
         service.context = ctx
 
         service.name = ctx.STARTS_WITH_UPPER_C_STR().getText()
@@ -303,13 +323,15 @@ class PFDLTreeVisitor(PFDLParserVisitor):
     def visitStruct_initialization(self, ctx: PFDLParser.Struct_initializationContext) -> Struct:
         json_string = ctx.json_object().getText()
 
-        struct = Struct.from_json(json_string, self.error_handler, ctx.json_object())
+        struct = self.pfdl_base_classes.get_class("Struct").from_json(
+            json_string, self.error_handler, ctx.json_object()
+        )
         struct.name = ctx.STARTS_WITH_UPPER_C_STR().getText()
         struct.context = ctx
         return struct
 
     def visitTask_call(self, ctx: PFDLParser.Task_callContext) -> TaskCall:
-        task_call = TaskCall()
+        task_call = self.pfdl_base_classes.get_class("TaskCall")()
         task_call.name = ctx.STARTS_WITH_LOWER_C_STR().getText()
         task_call.context = ctx
 
@@ -329,7 +351,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         return task_call
 
     def visitParallel(self, ctx: PFDLParser.ParallelContext) -> Parallel:
-        parallel = Parallel()
+        parallel = self.pfdl_base_classes.get_class("Parallel")()
         parallel.context = ctx
         for task_call_context in ctx.task_call():
             task_call = self.visitTask_call(task_call_context)
@@ -337,7 +359,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         return parallel
 
     def visitWhile_loop(self, ctx: PFDLParser.While_loopContext) -> WhileLoop:
-        while_loop = WhileLoop()
+        while_loop = self.pfdl_base_classes.get_class("WhileLoop")()
         while_loop.context = ctx
 
         while_loop.expression = self.visitExpression(ctx.expression())
@@ -348,7 +370,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         return while_loop
 
     def visitCounting_loop(self, ctx: PFDLParser.Counting_loopContext) -> CountingLoop:
-        counting_loop = CountingLoop()
+        counting_loop = self.pfdl_base_classes.get_class("CountingLoop")()
         counting_loop.context = ctx
 
         counting_loop.counting_variable = ctx.STARTS_WITH_LOWER_C_STR().getText()
@@ -367,7 +389,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         return counting_loop
 
     def visitCondition(self, ctx: PFDLParser.ConditionContext) -> Condition:
-        condition_statement = Condition()
+        condition_statement = self.pfdl_base_classes.get_class("Condition")()
         condition_statement.context = ctx
 
         condition_statement.expression = self.visitExpression(ctx.expression())
@@ -416,7 +438,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         return ctx.getText()
 
     def initializeArray(self, array_ctx: PFDLParser.ArrayContext, variable_type: str) -> Array:
-        array = Array()
+        array = self.pfdl_base_classes.get_class("Array")()
         array.type_of_elements = variable_type
         array.context = array_ctx
         length = self.visitArray(array_ctx)

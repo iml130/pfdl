@@ -22,13 +22,17 @@ from pfdl_scheduler.model.counting_loop import CountingLoop
 from pfdl_scheduler.api.task_api import TaskAPI
 from pfdl_scheduler.api.service_api import ServiceAPI
 
+from pfdl_scheduler.pfdl_base_classes import PFDLBaseClasses
 from pfdl_scheduler.utils.parsing_utils import parse_program
 
 from pfdl_scheduler.petri_net.generator import Node, PetriNetGenerator
-from pfdl_scheduler.petri_net.logic import PetriNetLogic
 
 from pfdl_scheduler.scheduling.event import Event
-from pfdl_scheduler.scheduling.event import START_PRODUCTION_TASK, SET_PLACE, SERVICE_FINISHED
+from pfdl_scheduler.scheduling.event import (
+    START_PRODUCTION_TASK,
+    SET_PLACE,
+    SERVICE_FINISHED,
+)
 from pfdl_scheduler.scheduling.task_callbacks import TaskCallbacks
 
 from pfdl_scheduler.api.observer_api import NotificationType, Observer, Subject
@@ -50,7 +54,9 @@ class Scheduler(Subject):
     The scheduler comprises almost the complete execution of a production order including
     the parsing of the PFDL description, model creation and validation and execution of
     the petri net. It interacts with the execution engines and informs them about services
-    or tasks which started or finished.
+    or tasks which started or finished. The pfdl_base_classes attribute is one of the most
+    impoortant attributes of the scheduler. It holds the base classes for the scheduler that
+    can be overwritten to extend the scheduler with plugins.
 
     This class implements the Observer pattern and serves as subject. Observers can be registered
     in the scheduler and receive updates (e.g. log entries, info about a new petri net img,..)
@@ -68,6 +74,7 @@ class Scheduler(Subject):
         generate_test_ids: Indicates whether test ids should be generated.
         test_id_counters: A List consisting of counters for the test ids of tasks and services.
         observers: List of `Observers` used to update them on a `notify` call.
+        pfdl_base_classes: A `PFDLBaseClasses` instance which holds the base classes for the scheduler.
     """
 
     def __init__(
@@ -77,6 +84,7 @@ class Scheduler(Subject):
         draw_petri_net: bool = True,
         scheduler_uuid: str = "",
         dashboard_host_address: str = "",
+        pfdl_base_classes: PFDLBaseClasses = PFDLBaseClasses("pfdl_scheduler"),
     ) -> None:
         """Initialize the object.
 
@@ -92,24 +100,46 @@ class Scheduler(Subject):
             draw_petri_net: A boolean indicating whether the petri net should be drawn.
             scheduler_uuid: A unique ID to identify the Scheduer / Production Order
             dashboard_host_address: The address of the Dashboard (if existing)
+            pfdl_base_classes: A `PFDLBaseClasses` instance which holds the base classes for the scheduler.
         """
-        self.init_scheduler(scheduler_uuid, generate_test_ids)
-        self.pfdl_file_valid, self.process, pfdl_string = parse_program(pfdl_program)
+        self.init_scheduler(
+            scheduler_uuid,
+            generate_test_ids,
+            pfdl_base_classes.get_instance("PetriNetGenerator"),
+            pfdl_base_classes.get_instance("TaskCallbacks"),
+        )
+        self.pfdl_file_valid, self.process, pfdl_string = parse_program(
+            pfdl_program, pfdl_base_classes
+        )
 
         if self.pfdl_file_valid:
-            self.petri_net_generator = PetriNetGenerator(
+            self.petri_net_generator = pfdl_base_classes.get_class("PetriNetGenerator")(
                 "",
                 generate_test_ids=self.generate_test_ids,
                 draw_net=draw_petri_net,
                 file_name=self.scheduler_uuid,
             )
-            self.setup_scheduling(draw_petri_net)
+            self.setup_scheduling(draw_petri_net, pfdl_base_classes.get_class("PetriNetLogic"))
             if dashboard_host_address != "":
                 self.attach(
                     DashboardObserver(dashboard_host_address, self.scheduler_uuid, pfdl_string)
                 )
 
-    def init_scheduler(self, scheduler_uuid: str, generate_test_ids: bool):
+    def init_scheduler(
+        self,
+        scheduler_uuid: str,
+        generate_test_ids: bool,
+        petri_net_generator: PetriNetGenerator,
+        task_callbacks: TaskCallbacks,
+    ) -> None:
+        """Initialize the scheduler with the given parameters.
+
+        Args:
+            scheduler_uuid: A unique ID to identify the scheduler / production order
+            generate_test_ids: A boolean indicating whether test ids should be generated.
+            petri_net_generator: A `PetriNetGenerator` instance for generating the petri net.
+            task_callbacks: `TaskCallbacks` instance which holds the registered callbacks.
+        """
         if scheduler_uuid == "":
             self.scheduler_uuid: str = str(uuid.uuid4())
         else:
@@ -117,9 +147,8 @@ class Scheduler(Subject):
         self.running: bool = False
         self.pfdl_file_valid: bool = False
         self.process: Process = None
-        self.petri_net_generator: PetriNetGenerator = None
-        self.petri_net_logic: PetriNetLogic = None
-        self.task_callbacks: TaskCallbacks = TaskCallbacks()
+        self.petri_net_generator: PetriNetGenerator = petri_net_generator
+        self.task_callbacks: TaskCallbacks = task_callbacks
         self.variable_access_function: Callable[[str], str] = None
         self.loop_counters: Dict[str, Dict[str, int]] = {}
         self.awaited_events: List[Event] = []
@@ -127,11 +156,16 @@ class Scheduler(Subject):
         self.test_id_counters: List[int] = [0, 0]
         self.observers: List[Observer] = []
 
-    def setup_scheduling(self, draw_petri_net: bool):
+    def setup_scheduling(self, draw_petri_net: bool, petri_net_logic_class) -> None:
+        """Setup the scheduling process.
+
+        This method is called after the PFDL file was successfully parsed and the petri net
+        generator was created. It generates the petri net and creates the petri net logic.
+        """
         self.register_for_petrinet_callbacks()
 
         self.petri_net_generator.generate_petri_net(self.process)
-        self.petri_net_logic = PetriNetLogic(
+        self.petri_net_logic = petri_net_logic_class(
             self.petri_net_generator, draw_petri_net, file_name=self.scheduler_uuid
         )
 
@@ -359,7 +393,11 @@ class Scheduler(Subject):
         self.notify(NotificationType.LOG_EVENT, (log_entry, logging.INFO, False))
 
     def on_condition_started(
-        self, condition: Condition, then_uuid: str, else_uuid: str, task_context: TaskAPI
+        self,
+        condition: Condition,
+        then_uuid: str,
+        else_uuid: str,
+        task_context: TaskAPI,
     ) -> None:
         """Executes Scheduling logic when a Condition statement is started."""
         if self.check_expression(condition.expression, task_context):

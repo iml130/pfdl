@@ -64,7 +64,7 @@ class Array:
         return other + str(self)
 
     def __eq__(self, __o: object) -> bool:
-        if isinstance(__o, Array):
+        if hasattr(__o, "values") and hasattr(__o, "length") and hasattr(__o, "type_of_elements"):
             return (
                 self.values == __o.values
                 and self.length == __o.length
