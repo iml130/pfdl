@@ -7,6 +7,7 @@
 """Contains PFDLTreeVisitor class."""
 
 # standard libraries
+import json
 from typing import Dict, List, OrderedDict, Tuple, Union
 from pfdl_scheduler.model.instance import Instance
 from pfdl_scheduler.pfdl_base_classes import PFDLBaseClasses
@@ -213,7 +214,7 @@ class PFDLTreeVisitor(PFDLParserVisitor):
                     attribute_value,
                     self.error_handler,
                     ctx,
-                    self.pfdl_base_classes.get_class("Instance"),
+                    self.pfdl_base_classes,
                 )
             instance.attributes[attribute_name] = attribute_value
             instance.attribute_contexts[attribute_name] = attribute_assignment_ctx
@@ -294,12 +295,15 @@ class PFDLTreeVisitor(PFDLParserVisitor):
         self, ctx: PFDLParser.Call_inputContext
     ) -> List[Union[str, List[str], Struct]]:
         input_params = []
-        for child in ctx.parameter():
-            parameter = self.visitParameter(child)
-            input_params.append(parameter)
-        for child in ctx.struct_initialization():
-            struct = self.visitStruct_initialization(child)
-            input_params.append(struct)
+        for child in ctx.children:
+            if isinstance(child, self.pfdl_base_classes.get_class("PFDLParser").ParameterContext):
+                parameter = self.visitParameter(child)
+                input_params.append(parameter)
+            elif isinstance(
+                child, self.pfdl_base_classes.get_class("PFDLParser").Struct_initializationContext
+            ):
+                instance = self.visitStruct_initialization(child)
+                input_params.append(instance)
         return input_params
 
     def visitCall_output(self, ctx: PFDLParser.Call_outputContext) -> Dict[str, Union[str, Array]]:
@@ -320,15 +324,18 @@ class PFDLTreeVisitor(PFDLParserVisitor):
             return ctx.STARTS_WITH_LOWER_C_STR().getText()
         return self.visitAttribute_access(ctx.attribute_access())
 
-    def visitStruct_initialization(self, ctx: PFDLParser.Struct_initializationContext) -> Struct:
+    def visitStruct_initialization(self, ctx: PFDLParser.Struct_initializationContext) -> Instance:
         json_string = ctx.json_object().getText()
 
-        struct = self.pfdl_base_classes.get_class("Struct").from_json(
-            json_string, self.error_handler, ctx.json_object()
+        instance = self.pfdl_base_classes.get_class("Instance").from_json(
+            json.loads(json_string),
+            self.error_handler,
+            ctx.json_object(),
+            self.pfdl_base_classes,
         )
-        struct.name = ctx.STARTS_WITH_UPPER_C_STR().getText()
-        struct.context = ctx
-        return struct
+        instance.name = ctx.STARTS_WITH_UPPER_C_STR().getText()
+        instance.context = ctx
+        return instance
 
     def visitTask_call(self, ctx: PFDLParser.Task_callContext) -> TaskCall:
         task_call = self.pfdl_base_classes.get_class("TaskCall")()

@@ -888,8 +888,8 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertTrue(self.checker.check_call_input_parameters(service, task_context))
         self.assertTrue(self.checker.check_call_input_parameters(task_call, task_context))
 
-        # input parameter is struct
-        service.input_parameters = [Struct()]
+        # input parameter is instance
+        service.input_parameters = [Instance()]
 
         args = (
             "check_instantiated_struct_attributes",
@@ -911,7 +911,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
         )
         self.assertFalse(self.check_method(*args))
 
-        task_call.input_parameters = [Struct()]
+        task_call.input_parameters = [Instance()]
         args = (
             "check_instantiated_struct_attributes",
             True,
@@ -932,7 +932,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
         )
         self.assertFalse(self.check_method(*args))
 
-        service.input_parameters = [Struct(), Struct(), Struct()]
+        service.input_parameters = [Instance(), Instance(), Instance()]
         args = (
             "check_instantiated_struct_attributes",
             True,
@@ -1012,12 +1012,12 @@ class TestSemanticErrorChecker(unittest.TestCase):
             self.checker.check_call_input_parameters, service, task_context
         )
 
-        task_context.variables = {"test": Struct()}
+        task_context.variables = {"test": Instance()}
         self.assertTrue(self.checker.check_call_input_parameters(service, task_context))
         self.assertTrue(self.checker.check_call_input_parameters(task_call, task_context))
 
         # mix of input parameters
-        service.input_parameters = ["test", [], Struct()]
+        service.input_parameters = ["test", [], Instance()]
         with patch.object(
             self.checker, "check_instantiated_struct_attributes", return_value=True
         ) as mock_1:
@@ -1223,7 +1223,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
                     )
                 mock_3.assert_called_once()
                 with patch.object(
-                    self.checker, "check_for_wrong_attribute_type_in_struct", return_value=True
+                    self.checker, "check_for_wrong_attribute_type_in_instance", return_value=True
                 ) as mock_3:
                     self.assertTrue(
                         self.checker.check_instantiated_struct_attributes(instantiated_struct)
@@ -1244,7 +1244,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
                     )
                 self.assertEqual(mock_3.call_count, 3)
                 with patch.object(
-                    self.checker, "check_for_wrong_attribute_type_in_struct", return_value=False
+                    self.checker, "check_for_wrong_attribute_type_in_instance", return_value=False
                 ) as mock_3:
                     self.assertFalse(
                         self.checker.check_instantiated_struct_attributes(instantiated_struct)
@@ -1310,7 +1310,7 @@ class TestSemanticErrorChecker(unittest.TestCase):
             struct_definition,
         )
 
-    def test_check_for_wrong_attribute_type_in_struct(self):
+    def test_check_for_wrong_attribute_type_in_instance(self):
         struct_definition = Struct()
         struct_definition.name = "Test"
         instantiated_struct = Struct()
@@ -1319,54 +1319,54 @@ class TestSemanticErrorChecker(unittest.TestCase):
         # type is string
         struct_definition.attributes = {"identifier_1": "string"}
         instantiated_struct.attributes = {"identifier_1": "a string"}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertTrue(check_result)
 
         instantiated_struct.attributes = {"identifier_1": 5}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"identifier_1": Array()}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"identifier_1": True}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"identifier_1": Struct()}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
@@ -1375,54 +1375,54 @@ class TestSemanticErrorChecker(unittest.TestCase):
         # type is number
         struct_definition.attributes = {"identifier_1": "number"}
         instantiated_struct.attributes = {"identifier_1": 5}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertTrue(check_result)
 
         instantiated_struct.attributes = {"identifier_1": "a string"}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"identifier_1": Array()}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"identifier_1": True}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"identifier_1": Struct()}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
@@ -1431,54 +1431,54 @@ class TestSemanticErrorChecker(unittest.TestCase):
         # type is boolean
         struct_definition.attributes = {"identifier_1": "boolean"}
         instantiated_struct.attributes = {"identifier_1": True}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertTrue(check_result)
 
         instantiated_struct.attributes = {"identifier_1": "a string"}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"identifier_1": Array()}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"identifier_1": 5}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"identifier_1": Struct()}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
@@ -1487,54 +1487,54 @@ class TestSemanticErrorChecker(unittest.TestCase):
         # type is Array
         struct_definition.attributes = {"identifier_1": Array()}
         instantiated_struct.attributes = {"identifier_1": Array()}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertTrue(check_result)
 
         instantiated_struct.attributes = {"identifier_1": "a string"}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"identifier_1": 5}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"identifier_1": True}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"identifier_1": Struct()}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "identifier_1", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "identifier_1",
             struct_definition,
@@ -1559,55 +1559,55 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.process.structs["NestedStruct_1"] = struct_definition_2
         self.process.structs["NestedStruct_2"] = struct_definition_3
 
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "nested_struct", struct_definition
         )
         self.assertTrue(check_result)
 
         instantiated_struct.attributes = {"nested_struct": "not_a_struct_name"}
 
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "nested_struct", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "nested_struct",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"nested_struct": Array()}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "nested_struct", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "nested_struct",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"nested_struct": True}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "nested_struct", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "nested_struct",
             struct_definition,
         )
 
         instantiated_struct.attributes = {"nested_struct": 5}
-        check_result = self.checker.check_for_wrong_attribute_type_in_struct(
+        check_result = self.checker.check_for_wrong_attribute_type_in_instance(
             instantiated_struct, "nested_struct", struct_definition
         )
         self.assertFalse(check_result)
         self.check_if_print_error_is_called(
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "nested_struct",
             struct_definition,
@@ -1615,10 +1615,10 @@ class TestSemanticErrorChecker(unittest.TestCase):
 
         instantiated_struct.attributes = {"nested_struct": nested_struct}
         args = (
-            "check_for_wrong_attribute_type_in_struct",
+            "check_for_wrong_attribute_type_in_instance",
             True,
             1,
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "nested_struct",
             struct_definition,
@@ -1626,10 +1626,10 @@ class TestSemanticErrorChecker(unittest.TestCase):
         self.assertTrue(self.check_method(*args))
 
         args = (
-            "check_for_wrong_attribute_type_in_struct",
+            "check_for_wrong_attribute_type_in_instance",
             False,
             1,
-            self.checker.check_for_wrong_attribute_type_in_struct,
+            self.checker.check_for_wrong_attribute_type_in_instance,
             instantiated_struct,
             "nested_struct",
             struct_definition,

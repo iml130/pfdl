@@ -577,7 +577,7 @@ class SemanticErrorChecker:
         valid = True
 
         for input_parameter in called_entity.input_parameters:
-            if isinstance(input_parameter, self.pfdl_base_classes.get_class("Struct")):
+            if isinstance(input_parameter, self.pfdl_base_classes.get_class("Instance")):
                 if not self.check_instantiated_struct_attributes(input_parameter):
                     valid = False
             elif isinstance(input_parameter, list):
@@ -660,7 +660,7 @@ class SemanticErrorChecker:
                 valid = False
         return valid
 
-    def check_instantiated_struct_attributes(self, struct_instance: Struct) -> bool:
+    def check_instantiated_struct_attributes(self, instance: Instance) -> bool:
         """Calls multiple check methods to validate an instantiated Struct.
 
         Multiple Checks are done:
@@ -670,25 +670,26 @@ class SemanticErrorChecker:
             (4) Check if attributes in the instance do not match with attributes in the definition.
 
         Args:
-            struct_instance: The instantiated struct that is checked.
+            instance: The instantiated struct that is checked.
 
         Returns:
             True if the instantiated Struct is valid.
         """
         valid = True
-        if self.check_if_struct_exists(struct_instance):
-            struct_definition = self.structs[struct_instance.name]
+        if self.check_if_struct_exists(instance):
+            struct_definition = self.structs[instance.name]
 
-            if not self.check_for_missing_attribute_in_struct(struct_instance, struct_definition):
+            if not self.check_for_missing_attribute_in_struct(instance, struct_definition):
                 valid = False
 
-            for identifier in struct_instance.attributes:
+            # Create a copy of the struct instance attributes and remove default attributes
+            for identifier in instance.attributes:
                 if not (
                     self.check_for_unknown_attribute_in_struct(
-                        struct_instance, identifier, struct_definition
+                        instance, identifier, struct_definition
                     )
-                    and self.check_for_wrong_attribute_type_in_struct(
-                        struct_instance, identifier, struct_definition
+                    and self.check_for_wrong_attribute_type_in_instance(
+                        instance, identifier, struct_definition
                     )
                 ):
                     valid = False
@@ -732,7 +733,7 @@ class SemanticErrorChecker:
             return False
         return True
 
-    def check_for_wrong_attribute_type_in_struct(
+    def check_for_wrong_attribute_type_in_instance(
         self, struct_instance: Struct, identifier: str, struct_definition: Struct
     ) -> bool:
         """Calls check methods for the attribute assignments in an instantiated Struct.
@@ -757,7 +758,7 @@ class SemanticErrorChecker:
                     struct_def = self.structs[correct_attribute_type]
                     struct_correct = True
                     for identifier in attribute.attributes:
-                        if not self.check_for_wrong_attribute_type_in_struct(
+                        if not self.check_for_wrong_attribute_type_in_instance(
                             attribute, identifier, struct_def
                         ):
                             struct_correct = False

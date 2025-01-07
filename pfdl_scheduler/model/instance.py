@@ -7,7 +7,7 @@
 """Contains Instance class."""
 
 # standard libraries
-import uuid
+import copy
 from numbers import Number
 from typing import Dict, Union
 
@@ -16,6 +16,8 @@ from antlr4.ParserRuleContext import ParserRuleContext
 
 # local sources
 ## PFDL base sources
+from pfdl_scheduler.model.array import Array
+from pfdl_scheduler.pfdl_base_classes import PFDLBaseClasses
 from pfdl_scheduler.validation.error_handler import ErrorHandler
 
 
@@ -56,39 +58,61 @@ class Instance:
         self.context: ParserRuleContext = context
         self.attribute_contexts: Dict = {}
 
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for attr, value in self.__dict__.items():
+            try:
+                setattr(result, attr, copy.deepcopy(value, memo))
+            except Exception:
+                setattr(result, attr, value)
+        return result
+
     @classmethod
     def from_json(
         cls,
         json_object: Dict,
         error_handler: ErrorHandler,
         struct_context: ParserRuleContext,
-        instance_class="Instance",
+        pfdl_base_classes=PFDLBaseClasses,
     ):
-        return parse_json(json_object, error_handler, struct_context, instance_class)
+        return parse_json(json_object, error_handler, struct_context, pfdl_base_classes)
 
 
 def parse_json(
     json_object: Dict,
     error_handler: ErrorHandler,
     instance_context: ParserRuleContext,
-    instance_class=Instance,
+    pfdl_base_classes=PFDLBaseClasses,
 ) -> Instance:
     """Parses the JSON Struct initialization.
 
     Returns:
         An Instance object representing the initialized instance.
     """
-    instance = instance_class()
+    instance = pfdl_base_classes.get_class("Instance")()
     instance.context = instance_context
     for identifier, value in json_object.items():
         if isinstance(value, (int, str, bool)):
             instance.attributes[identifier] = value
         elif isinstance(value, list):
-            if error_handler and instance_context:
-                error_msg = "Array definition in JSON are not supported in the PFDL."
-                error_handler.print_error(error_msg, context=instance_context)
+            array = pfdl_base_classes.get_class("Array")()
+            instance.attributes[identifier] = array
+            for element in value:
+                if isinstance(element, (int, float, str, bool)):
+                    if isinstance(element, bool):
+                        array.type_of_elements = "boolean"
+                    elif isinstance(element, (int, float)):
+                        array.type_of_elements = "number"
+                    else:
+                        array.type_of_elements = "string"
+                    array.append_value(element)
+                elif isinstance(element, dict):
+                    inner_struct = parse_json(element, error_handler)
+                    array.append_value(inner_struct)
         elif isinstance(value, dict):
-            inner_struct = parse_json(value, error_handler, instance_context, instance_class)
+            inner_struct = parse_json(value, error_handler, instance_context, pfdl_base_classes)
             instance.attributes[identifier] = inner_struct
 
     return instance

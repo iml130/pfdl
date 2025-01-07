@@ -9,7 +9,7 @@
 # standard libraries
 import copy
 from dataclasses import dataclass
-from typing import Dict, Union
+from typing import Dict, Type, Union
 import json
 
 # 3rd party libraries
@@ -91,7 +91,11 @@ class Struct:
 
     @classmethod
     def from_json(
-        cls, json_string: str, error_handler: ErrorHandler, struct_context: ParserRuleContext
+        cls,
+        json_string: str,
+        error_handler: ErrorHandler,
+        struct_context: ParserRuleContext,
+        struct_class: Type,
     ) -> "Struct":
         """Creates a Struct instance out of the given JSON string.
 
@@ -103,12 +107,15 @@ class Struct:
             The Struct which was created from the JSON string.
         """
         json_object = json.loads(json_string)
-        struct = parse_json(json_object, error_handler, struct_context)
+        struct = parse_json(json_object, error_handler, struct_context, struct_class)
         return struct
 
 
 def parse_json(
-    json_object: Dict, error_handler: ErrorHandler, struct_context: ParserRuleContext
+    json_object: Dict,
+    error_handler: ErrorHandler,
+    struct_context: ParserRuleContext,
+    struct_class: Type,
 ) -> Struct:
     """Parses the JSON Struct initialization.
 
@@ -116,11 +123,12 @@ def parse_json(
         json_object: A JSON object describing the Struct.
         error_handler: An ErrorHandler instance used for printing errors.
         struct_context: The ANTLR struct context the struct corresponds to.
+        struct_class: The class of the struct from which the struct object is created.
 
     Returns:
         A Struct object representing the initialized Struct.
     """
-    struct = Struct()
+    struct = struct_class()
     struct.context = struct_context
 
     for identifier, value in json_object.items():
@@ -140,9 +148,9 @@ def parse_json(
                         array.type_of_elements = "string"
                     array.append_value(element)
                 elif isinstance(element, dict):
-                    inner_struct = parse_json(element, error_handler, struct_context)
+                    inner_struct = parse_json(element, error_handler, struct_context, struct_class)
                     array.append_value(inner_struct)
         elif isinstance(value, dict):
-            inner_struct = parse_json(value, error_handler, struct_context)
+            inner_struct = parse_json(value, error_handler, struct_context, struct_class)
             struct.attributes[identifier] = inner_struct
     return struct
