@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: The PFDL Contributors
+# SPDX-License-Identifier: MIT
+
+[submodule "pfdl_scheduler/plugins/mf_plugin"]
+	path = pfdl_scheduler/plugins/mf_plugin
+	url = https://github.com/iml130/mf_plugin.git
+
