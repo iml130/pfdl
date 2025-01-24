@@ -19,7 +19,6 @@ from pfdl_scheduler.model.struct import Struct
 from pfdl_scheduler.model.array import Array
 
 
-@dataclass
 class Service:
     """Represents a Service or Service Call in the PFDL.
 
