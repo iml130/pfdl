@@ -127,6 +127,7 @@ class PetriNetGenerator:
         self.tree = None
         self.file_name = file_name
         self.pfdl_base_classes = pfdl_base_classes
+        self.service_apis: list[ServiceAPI] = []
 
     def add_callback(self, transition_uuid: str, callback_function: Callable, *args: Any) -> None:
         """Registers the given callback function in the transition_dict.
@@ -288,6 +289,7 @@ class PetriNetGenerator:
         service_api = self.pfdl_base_classes.get_class("ServiceAPI")(
             service, task_context, in_loop=in_loop
         )
+        self.service_apis.append(service_api)
 
         service_started_uuid = create_place(service.name + " started", self.net, service_node)
         service_finished_uuid = create_place(service.name + " finished", self.net, service_node)

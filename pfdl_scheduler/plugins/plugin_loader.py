@@ -12,12 +12,11 @@ import os
 import sys
 import inspect
 from typing import List
+from pathlib import Path
 
 from pfdl_scheduler.pfdl_base_classes import PFDLBaseClasses
 
 base_classes_registry = {}
-
-PLUGIN_FOLDER_PATH = "./pfdl_scheduler/plugins"
 
 
 def base_class(existing_class_name):
@@ -160,16 +159,18 @@ class PluginLoader:
     def load_plugins(self, plugins: List[str]):
         """Recursively load all Python files from plugin folders."""
         for plugin_folder in plugins:
-            plugin_path = os.path.join(PLUGIN_FOLDER_PATH, plugin_folder)
+            plugin_path = Path(__file__).parent / plugin_folder
 
-            if os.path.isdir(plugin_path):
-                # Walk through all files in the plugin folder
-                for root, _, files in os.walk(plugin_path):
-                    for file in files:
-                        if file.endswith(".py"):
-                            module_name = f"{plugin_folder}.{file[:-3]}"  # Plugin folder + filename without .py
-                            module_path = os.path.join(root, file)
-                            self.load_plugin_modules(module_name, module_path)
+            if not plugin_path.is_dir():
+                raise ValueError("given plugin could not be found")
+
+            # Walk through all files in the plugin folder
+            for root, _, files in os.walk(plugin_path):
+                for file in files:
+                    if file.endswith(".py"):
+                        module_name = f"{plugin_folder}.{file[:-3]}"  # Plugin folder + filename without .py
+                        module_path = os.path.join(root, file)
+                        self.load_plugin_modules(module_name, module_path)
 
     def get_final_classes(self):
         """Return a dictionary of final classes after applying plugins."""
