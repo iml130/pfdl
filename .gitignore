@@ -41,3 +41,5 @@ site/
 
 # ignore log files
 temp/
+
+pfdl_scheduler/plugins/parser/**

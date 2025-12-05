@@ -5,19 +5,34 @@ options {
 }
 
 program:
-    (NL | struct | task)* EOF;
+    program_statement* EOF;
+
+program_statement:
+    NL | struct | task | instance;
 
 struct:
-    STRUCT STARTS_WITH_UPPER_C_STR INDENT (variable_definition NL+)+ DEDENT END;
+	STRUCT STARTS_WITH_UPPER_C_STR (COLON struct_id)? INDENT (
+		variable_definition NL+
+	)+ DEDENT END;
+
+struct_id: STARTS_WITH_UPPER_C_STR;
 
 task:
-    TASK STARTS_WITH_LOWER_C_STR INDENT task_in? statement+ task_out? DEDENT END;
+    TASK STARTS_WITH_LOWER_C_STR INDENT task_in? taskStatement+ task_out? DEDENT END;
+
+instance:
+	struct_id STARTS_WITH_LOWER_C_STR INDENT (
+		attribute_assignment NL
+	)+ DEDENT END;
 
 task_in:
     IN INDENT (variable_definition NL+)+ DEDENT;
 
 task_out:
     OUT INDENT (STARTS_WITH_LOWER_C_STR NL+)+ DEDENT;
+
+taskStatement:
+    statement;
 
 statement:
     service_call 
@@ -79,6 +94,9 @@ primitive:
 
 attribute_access:
     STARTS_WITH_LOWER_C_STR (DOT STARTS_WITH_LOWER_C_STR array?)+;
+
+attribute_assignment:
+	STARTS_WITH_LOWER_C_STR COLON (value | json_object);
 
 array:
     ARRAY_LEFT (INTEGER | STARTS_WITH_LOWER_C_STR)? ARRAY_RIGHT;

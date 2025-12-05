@@ -9,7 +9,7 @@
 # standard libraries
 import copy
 from dataclasses import dataclass
-from typing import Dict, Union
+from typing import Dict, Type, Union
 import json
 
 # 3rd party libraries
@@ -31,6 +31,8 @@ class Struct:
         name: A string representing the name of the Struct.
         attributes: A dict which maps the attribute names to the defined type
                     or a value (if its a instantiated struct).
+        parent_struct_name: A string representin the identifier of the parent struct
+                            from which this struct inherits the attributes
         context: ANTLR context object of this class.
         context_dict: Maps other attributes with ANTLR context objects.
     """
@@ -39,6 +41,7 @@ class Struct:
         self,
         name: str = "",
         attributes: Dict[str, Union[str, Array, "Struct"]] = None,
+        parent_struct_name: str = "",
         context: ParserRuleContext = None,
     ) -> None:
         """Initialize the object.
@@ -47,6 +50,8 @@ class Struct:
             name: A string representing the name of the Struct.
             attributes: A dict which maps the attribute names to the defined type
                         or a value (if its a instantiated struct).
+            parent_struct_name: A string representin the identifier of the parent struct
+                            from which this struct inherits the attributes
             context: ANTLR context object of this class.
         """
         self.name: str = name
@@ -54,11 +59,17 @@ class Struct:
             self.attributes: Dict[str, Union[str, Array, "Struct"]] = attributes
         else:
             self.attributes: Dict[str, Union[str, Array, "Struct"]] = {}
+        self.parent_struct_name: str = parent_struct_name
         self.context: ParserRuleContext = context
         self.context_dict: Dict = {}
 
     def __eq__(self, __o: object) -> bool:
-        if isinstance(__o, Struct):
+        if (
+            hasattr(__o, "name")
+            and hasattr(__o, "attributes")
+            and hasattr(__o, "context")
+            and hasattr(__o, "context_dict")
+        ):
             return (
                 self.name == __o.name
                 and self.attributes == __o.attributes
@@ -80,7 +91,11 @@ class Struct:
 
     @classmethod
     def from_json(
-        cls, json_string: str, error_handler: ErrorHandler, struct_context: ParserRuleContext
+        cls,
+        json_string: str,
+        error_handler: ErrorHandler,
+        struct_context: ParserRuleContext,
+        struct_class: Type,
     ) -> "Struct":
         """Creates a Struct instance out of the given JSON string.
 
@@ -92,12 +107,15 @@ class Struct:
             The Struct which was created from the JSON string.
         """
         json_object = json.loads(json_string)
-        struct = parse_json(json_object, error_handler, struct_context)
+        struct = parse_json(json_object, error_handler, struct_context, struct_class)
         return struct
 
 
 def parse_json(
-    json_object: Dict, error_handler: ErrorHandler, struct_context: ParserRuleContext
+    json_object: Dict,
+    error_handler: ErrorHandler,
+    struct_context: ParserRuleContext,
+    struct_class: Type,
 ) -> Struct:
     """Parses the JSON Struct initialization.
 
@@ -105,11 +123,12 @@ def parse_json(
         json_object: A JSON object describing the Struct.
         error_handler: An ErrorHandler instance used for printing errors.
         struct_context: The ANTLR struct context the struct corresponds to.
+        struct_class: The class of the struct from which the struct object is created.
 
     Returns:
         A Struct object representing the initialized Struct.
     """
-    struct = Struct()
+    struct = struct_class()
     struct.context = struct_context
 
     for identifier, value in json_object.items():
@@ -129,9 +148,9 @@ def parse_json(
                         array.type_of_elements = "string"
                     array.append_value(element)
                 elif isinstance(element, dict):
-                    inner_struct = parse_json(element, error_handler, struct_context)
+                    inner_struct = parse_json(element, error_handler, struct_context, struct_class)
                     array.append_value(inner_struct)
         elif isinstance(value, dict):
-            inner_struct = parse_json(value, error_handler, struct_context)
+            inner_struct = parse_json(value, error_handler, struct_context, struct_class)
             struct.attributes[identifier] = inner_struct
     return struct

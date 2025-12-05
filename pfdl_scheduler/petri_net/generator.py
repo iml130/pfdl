@@ -31,6 +31,7 @@ from pfdl_scheduler.model.condition import Condition
 
 from pfdl_scheduler.petri_net.drawer import draw_petri_net
 from pfdl_scheduler.petri_net.callbacks import PetriNetCallbacks
+from pfdl_scheduler.pfdl_base_classes import PFDLBaseClasses
 
 plugins.load(["labels", "gv", "clusters"], "snakes.nets", "nets")
 
@@ -82,6 +83,7 @@ class PetriNetGenerator:
         callbacks: A PetriNetCallbacks instance representing functions called while execution.
         generate_test_ids: A boolean indicating if test ids (counting from 0) should be generated.
         used_in_extension: A boolean indicating if the Generator is used within the extension.
+        pfdl_base_classes: An instance of `PFDLBaseClasses`.
     """
 
     def __init__(
@@ -91,6 +93,7 @@ class PetriNetGenerator:
         generate_test_ids: bool = False,
         draw_net: bool = True,
         file_name: str = "petri_net",
+        pfdl_base_classes: PFDLBaseClasses = PFDLBaseClasses(),
     ) -> None:
         """Initialize the object.
 
@@ -100,6 +103,7 @@ class PetriNetGenerator:
             generate_test_ids: A boolean indicating if test ids (counting from 0) should be generated.
             draw_net: A boolean indicating if the petri net should be drawn.
             file_name: The desired filename of the petri net image.
+            pfdl_base_classes: An instance of `PFDLBaseClasses`.
         """
 
         if used_in_extension:
@@ -117,11 +121,13 @@ class PetriNetGenerator:
         self.transition_dict: OrderedDict = OrderedDict()
         self.place_dict: Dict = {}
         self.task_started_uuid: str = ""
-        self.callbacks: PetriNetCallbacks = PetriNetCallbacks()
+        self.callbacks: PetriNetCallbacks = pfdl_base_classes.get_class("PetriNetCallbacks")()
         self.generate_test_ids: bool = generate_test_ids
         self.used_in_extension: bool = used_in_extension
         self.tree = None
         self.file_name = file_name
+        self.pfdl_base_classes = pfdl_base_classes
+        self.service_apis: list[ServiceAPI] = []
 
     def add_callback(self, transition_uuid: str, callback_function: Callable, *args: Any) -> None:
         """Registers the given callback function in the transition_dict.
@@ -156,7 +162,7 @@ class PetriNetGenerator:
         group_uuid = str(uuid.uuid4())
         self.tree = Node(group_uuid, start_task.name)
 
-        task_context = TaskAPI(start_task, None)
+        task_context = self.pfdl_base_classes.get_class("TaskAPI")(start_task, None)
         if self.generate_test_ids:
             task_context.uuid = "0"
 
@@ -244,17 +250,17 @@ class PetriNetGenerator:
                 in_loop,
             )
 
-            if isinstance(statement, Service):
+            if isinstance(statement, self.pfdl_base_classes.get_class("Service")):
                 connection_uuids = [self.generate_service(*args)]
-            elif isinstance(statement, TaskCall):
+            elif isinstance(statement, self.pfdl_base_classes.get_class("TaskCall")):
                 connection_uuids = self.generate_task_call(*args)
-            elif isinstance(statement, Parallel):
+            elif isinstance(statement, self.pfdl_base_classes.get_class("Parallel")):
                 connection_uuids = [self.generate_parallel(*args)]
-            elif isinstance(statement, CountingLoop):
+            elif isinstance(statement, self.pfdl_base_classes.get_class("CountingLoop")):
                 connection_uuids = [self.generate_counting_loop(*args)]
-            elif isinstance(statement, WhileLoop):
+            elif isinstance(statement, self.pfdl_base_classes.get_class("WhileLoop")):
                 connection_uuids = [self.generate_while_loop(*args)]
-            elif isinstance(statement, Condition):
+            elif isinstance(statement, self.pfdl_base_classes.get_class("Condition")):
                 connection_uuids = self.generate_condition(*args)
             else:
                 connection_uuids = self.handle_other_statements(*args)
@@ -280,7 +286,10 @@ class PetriNetGenerator:
         group_uuid = str(uuid.uuid4())
         service_node = Node(group_uuid, service.name, node)
 
-        service_api = ServiceAPI(service, task_context, in_loop=in_loop)
+        service_api = self.pfdl_base_classes.get_class("ServiceAPI")(
+            service, task_context, in_loop=in_loop
+        )
+        self.service_apis.append(service_api)
 
         service_started_uuid = create_place(service.name + " started", self.net, service_node)
         service_finished_uuid = create_place(service.name + " finished", self.net, service_node)
@@ -327,7 +336,9 @@ class PetriNetGenerator:
             The uuids of the last transitions of the TaskCall petri net component.
         """
         called_task = self.tasks[task_call.name]
-        new_task_context = TaskAPI(called_task, task_context, task_call=task_call, in_loop=in_loop)
+        new_task_context = self.pfdl_base_classes.get_class("TaskAPI")(
+            called_task, task_context, task_call=task_call, in_loop=in_loop
+        )
 
         group_uuid = str(uuid.uuid4())
         task_node = Node(group_uuid, task_call.name, node)

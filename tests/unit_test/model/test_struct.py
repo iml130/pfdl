@@ -71,7 +71,9 @@ class TestStruct(unittest.TestCase):
         context = ParserRuleContext()
 
         json_string = '{"attr1": "value1", "attr2": [1, 2, 3], "attr3": {"attr4": "value4"}}'
-        struct = Struct.from_json(json_string, ErrorHandler("", False), context)
+        struct = Struct.from_json(
+            json_string, ErrorHandler("", False), context, struct_class=Struct
+        )
         self.assertEqual(struct.name, "")
 
         attributes = {
@@ -88,7 +90,7 @@ class TestStruct(unittest.TestCase):
         context = ParserRuleContext()
 
         # empty
-        struct = parse_json({}, ErrorHandler("", False), context)
+        struct = parse_json({}, ErrorHandler("", False), context, Struct)
         self.assertEqual(struct.name, "")
         self.assertEqual(struct.attributes, {})
         self.assertEqual(struct.context, context)
@@ -97,7 +99,10 @@ class TestStruct(unittest.TestCase):
         # simple attributes
         attributes = {"attr1": "value1", "attr2": 123, "attr3": True}
         struct = parse_json(
-            {"attr1": "value1", "attr2": 123, "attr3": True}, ErrorHandler("", False), context
+            {"attr1": "value1", "attr2": 123, "attr3": True},
+            ErrorHandler("", False),
+            context,
+            Struct,
         )
         self.assertEqual(struct.name, "")
 
@@ -114,7 +119,7 @@ class TestStruct(unittest.TestCase):
             "attr7": {"attr8": {"attr9": True}},
             "attr10": [True, True, False],
         }
-        struct = parse_json(struct_dict, ErrorHandler("", False), None)
+        struct = parse_json(struct_dict, ErrorHandler("", False), None, Struct)
         self.assertEqual(struct.name, "")
         self.assertEqual(
             struct.attributes,
@@ -144,7 +149,7 @@ class TestStruct(unittest.TestCase):
                 },
             ]
         }
-        struct = parse_json(struct_dict, ErrorHandler("", False), None)
+        struct = parse_json(struct_dict, ErrorHandler("", False), None, Struct)
         self.assertEqual(struct.name, "")
         array = Array("", [Struct("", {"attr2": 5}), Struct("", {"attr3": "string"})])
         self.assertEqual(struct.attributes, {"attr1": array})

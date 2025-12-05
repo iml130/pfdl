@@ -14,11 +14,11 @@ from typing import Dict, List, OrderedDict, Union
 from antlr4.ParserRuleContext import ParserRuleContext
 
 # local sources
+from pfdl_scheduler.model.instance import Instance
 from pfdl_scheduler.model.struct import Struct
 from pfdl_scheduler.model.array import Array
 
 
-@dataclass
 class Service:
     """Represents a Service or Service Call in the PFDL.
 
@@ -36,7 +36,7 @@ class Service:
     def __init__(
         self,
         name: str = "",
-        input_parameters: List[Union[str, List[str], Struct]] = None,
+        input_parameters: List[Union[str, List[str], Instance]] = None,
         output_parameters: Dict[str, Union[str, Array]] = None,
         context: ParserRuleContext = None,
     ) -> None:
@@ -51,9 +51,9 @@ class Service:
         self.name: str = name
 
         if input_parameters:
-            self.input_parameters: List[Union[str, List[str], Struct]] = input_parameters
+            self.input_parameters: List[Union[str, List[str], Instance]] = input_parameters
         else:
-            self.input_parameters: List[Union[str, List[str], Struct]] = []
+            self.input_parameters: List[Union[str, List[str], Instance]] = []
 
         if output_parameters:
             self.output_parameters: OrderedDict[str, Union[str, Array]] = output_parameters

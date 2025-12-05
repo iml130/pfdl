@@ -1,4 +1,4 @@
-# Generated from PFDLParser.g4 by ANTLR 4.9.3
+# Generated from temp/PFDLParser.g4 by ANTLR 4.9.3
 from antlr4 import *
 if __name__ is not None and "." in __name__:
     from .PFDLParser import PFDLParser
@@ -14,13 +14,28 @@ class PFDLParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by PFDLParser#program_statement.
+    def visitProgram_statement(self, ctx:PFDLParser.Program_statementContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by PFDLParser#struct.
     def visitStruct(self, ctx:PFDLParser.StructContext):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by PFDLParser#struct_id.
+    def visitStruct_id(self, ctx:PFDLParser.Struct_idContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by PFDLParser#task.
     def visitTask(self, ctx:PFDLParser.TaskContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#instance.
+    def visitInstance(self, ctx:PFDLParser.InstanceContext):
         return self.visitChildren(ctx)
 
 
@@ -31,6 +46,11 @@ class PFDLParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by PFDLParser#task_out.
     def visitTask_out(self, ctx:PFDLParser.Task_outContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#taskStatement.
+    def visitTaskStatement(self, ctx:PFDLParser.TaskStatementContext):
         return self.visitChildren(ctx)
 
 
@@ -119,6 +139,11 @@ class PFDLParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by PFDLParser#attribute_assignment.
+    def visitAttribute_assignment(self, ctx:PFDLParser.Attribute_assignmentContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by PFDLParser#array.
     def visitArray(self, ctx:PFDLParser.ArrayContext):
         return self.visitChildren(ctx)
@@ -171,6 +196,101 @@ class PFDLParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by PFDLParser#json_array.
     def visitJson_array(self, ctx:PFDLParser.Json_arrayContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#transportStatement.
+    def visitTransportStatement(self, ctx:PFDLParser.TransportStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#tosCollectionStatement.
+    def visitTosCollectionStatement(self, ctx:PFDLParser.TosCollectionStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#moveStatement.
+    def visitMoveStatement(self, ctx:PFDLParser.MoveStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#actionStatement.
+    def visitActionStatement(self, ctx:PFDLParser.ActionStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#constraintStatement.
+    def visitConstraintStatement(self, ctx:PFDLParser.ConstraintStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#moveOrderStep.
+    def visitMoveOrderStep(self, ctx:PFDLParser.MoveOrderStepContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#mosStatement.
+    def visitMosStatement(self, ctx:PFDLParser.MosStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#actionOrderStep.
+    def visitActionOrderStep(self, ctx:PFDLParser.ActionOrderStepContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#aosStatement.
+    def visitAosStatement(self, ctx:PFDLParser.AosStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#orderStep.
+    def visitOrderStep(self, ctx:PFDLParser.OrderStepContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#transportOrderStep.
+    def visitTransportOrderStep(self, ctx:PFDLParser.TransportOrderStepContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#tosStatement.
+    def visitTosStatement(self, ctx:PFDLParser.TosStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#locationStatement.
+    def visitLocationStatement(self, ctx:PFDLParser.LocationStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#parameterStatement.
+    def visitParameterStatement(self, ctx:PFDLParser.ParameterStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#eventStatement.
+    def visitEventStatement(self, ctx:PFDLParser.EventStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#onDoneStatement.
+    def visitOnDoneStatement(self, ctx:PFDLParser.OnDoneStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#rule_.
+    def visitRule_(self, ctx:PFDLParser.Rule_Context):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#rule_call.
+    def visitRule_call(self, ctx:PFDLParser.Rule_callContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by PFDLParser#rule_parameter.
+    def visitRule_parameter(self, ctx:PFDLParser.Rule_parameterContext):
         return self.visitChildren(ctx)
 
 
